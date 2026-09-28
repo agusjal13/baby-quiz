@@ -360,8 +360,8 @@
         last && h('div', { class: 'party-prize emoji' }, '🏆'),
         h('div', { class: 'party-actions' },
           h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
-          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
-          h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' }))));
+          h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' })),
+          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁'))));
       screen.append(party);
 
       // Salto desde el camino hasta el centro, con una vuelta en el aire

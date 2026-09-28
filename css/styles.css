@@ -521,6 +521,11 @@ button {
   transition: opacity .4s, translate .4s;
 }
 .party.settled .party-actions { opacity: 1; translate: 0 0; pointer-events: auto; }
+/* El ▶ es la acción principal: grande y al centro; mapa y repetir chicos y alejados */
+.party-actions { gap: 7vmin; }
+.party-actions .btn-round { --s: clamp(40px, 8vmin, 64px); opacity: .85; }
+.party-actions .btn-next { width: clamp(110px, 27vmin, 230px); box-shadow: 0 1.6vmin 0 #22994e; }
+.party-actions .btn-next .play-tri { border-left-width: 9vmin; border-top-width: 5.6vmin; border-bottom-width: 5.6vmin; margin-left: 2.4vmin; }
 .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .confetti i {
   position: absolute;
