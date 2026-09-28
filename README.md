@@ -63,6 +63,17 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Los personajes se dibujan en `js/puppet.js` (`LOOKS`); ahí también está dónde va cada prenda
   (`anchors`) y el gesto propio de cada uno (`idle`).
 
+## Bingo familiar (online)
+
+- Botón 🎱 en el mapa de mundos. Uno crea la partida (código de 4 letras + link para compartir)
+  y los demás se unen. Cartón 4x4 con números del 1 al 40: línea (fila, columna o diagonal) y bingo.
+- Usa **Supabase Realtime** (canales con broadcast y presence, sin tablas). La configuración está en
+  `js/online-config.js` (URL del proyecto y clave pública `anon`, que es segura para publicar).
+- El dispositivo que crea la partida es el anfitrión: saca los números y decide los ganadores.
+  Tiene que quedar abierto mientras se juega (si se recarga, retoma la partida).
+- Plan gratis de Supabase: el proyecto se **pausa tras 7 días sin uso**. Si el bingo no conecta,
+  entrar a supabase.com → proyecto `baby-quiz` → **Restore project**.
+
 ## Agregar más niveles o preguntas
 
 - Más niveles en un mundo: `levels: 8` en su definición.
