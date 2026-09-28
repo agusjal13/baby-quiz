@@ -3,8 +3,9 @@
 
   const U = BQ.util;
 
-  // Número más alto en juego por nivel
+  // Número más alto en juego por nivel (nunca más de 10)
   const MAX = [4, 5, 6, 8, 10];
+  const TOP = 10;
 
   const THINGS = [
     { emoji: '🍎', one: 'manzana', many: 'manzanas', fem: true },
@@ -21,7 +22,7 @@
 
   const DIGIT_COLORS = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00897b', '#d81b60', '#5e35b1', '#f4511e', '#3949ab', '#c0ca33'];
 
-  const range = (level) => Array.from({ length: MAX[Math.min(level, MAX.length) - 1] }, (_, i) => i + 1);
+  const range = (level) => Array.from({ length: Math.min(MAX[Math.min(level, MAX.length) - 1], TOP) }, (_, i) => i + 1);
   const digit = (n) => ({ type: 'text', text: String(n), color: DIGIT_COLORS[n] });
   const group = (emoji, n) => ({ type: 'group', emoji, count: n });
 
@@ -49,6 +50,7 @@
           return BQ.question({
             key: 'num-' + n,
             say: `Tocá el número ${U.NUM_WORDS[n]}`,
+            text: `Tocá el número ${n}`, // en pantalla, el número escrito como número
             correct: digit(n),
             wrong: U.others(nums, 3, (x) => x === n).map(digit),
           });
@@ -64,6 +66,7 @@
           return BQ.question({
             key: 'donde-' + n,
             say: `¿Dónde hay ${U.numWord(n, t.fem)} ${n === 1 ? t.one : t.many}?`,
+            text: `¿Dónde hay ${n} ${n === 1 ? t.one : t.many}?`,
             correct: group(t.emoji, n),
             wrong: U.others(nums, 3, (x) => x === n).map((m) => group(t.emoji, m)),
           });
