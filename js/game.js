@@ -177,7 +177,10 @@
     function start() {
       goFullscreen();
       voice.unlock();
-      if (!store.data.character) showCharacters();
+      // Llegó por un link de bingo (#bingo-CODIGO): directo a la partida
+      const room = /^#bingo-([A-Z0-9]{4})$/i.exec(location.hash);
+      if (room && BQ.bingo) BQ.bingo.open(room[1].toUpperCase());
+      else if (!store.data.character) showCharacters();
       else showWorlds(true);
     }
   }
@@ -229,12 +232,14 @@
 
     const shopBtn = h('button', { class: 'shop-btn', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) },
       h('span', { class: 'emoji' }, '🛍️'), coinCounter());
+    const bingoBtn = h('button', { class: 'btn-round bingo-btn', 'aria-label': 'Bingo familiar', onpointerdown: tap(() => BQ.bingo.open()) },
+      h('span', { class: 'emoji' }, '🎱'));
 
     show(h('div', { class: 'screen worlds' },
       topbar(
         h('button', { class: 'btn-round char-mini', 'aria-label': 'Cambiar personaje', onpointerdown: tap(showCharacters) }, avatarEl(currentChar())),
         h('h2', { class: 'screen-title' }, '¿A dónde vamos?'),
-        h('div', { class: 'top-right' }, shopBtn, gearBtn())),
+        h('div', { class: 'top-right' }, bingoBtn, shopBtn, gearBtn())),
       h('div', { class: 'worlds-grid' }, cards)));
     if (greet) voice.say('¿A dónde vamos?');
   }
@@ -710,6 +715,9 @@
       h('div', { class: 'row' }, button('Cerrar', 'primary', close))));
     app.append(modal);
   }
+
+  // Piezas compartidas con otros módulos (bingo.js)
+  BQ.ui = { show, topbar, backBtn, tap, confetti, burst, playable, currentChar, showWorlds, LOGO_COLORS };
 
   // ---------- Inicio ----------
 

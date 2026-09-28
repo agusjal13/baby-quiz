@@ -318,8 +318,11 @@
     kindFor: (item) => item.use || DEFAULT_USE[item.slot],
 
     // Personaje con su ropa. Tocarlo lo hace usar sus cosas (o su gesto propio).
-    el(charId) {
-      const items = BQ.wardrobe.wornItems(charId);
+    // wornIds: ropa de otro jugador (bingo online); si no se pasa, la guardada en este dispositivo.
+    el(charId, wornIds) {
+      const items = wornIds
+        ? BQ.wardrobe.items(charId).filter((it) => wornIds.includes(it.id))
+        : BQ.wardrobe.wornItems(charId);
       const wrap = document.createElement('span');
       wrap.className = 'avatar';
       wrap.innerHTML = build(charId, items);
