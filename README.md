@@ -67,7 +67,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 - Botón 🎱 en el mapa de mundos. Uno crea la partida (código de 4 letras + link para compartir)
   y los demás se unen. Cartón 4x4 con dibujos (los 11 personajes y 19 cosas conocidas, lista `PICS` en
-  `js/bingo.js`): línea (fila, columna o diagonal) y bingo. En automático sale uno cada 4 segundos,
+  `js/bingo.js`): línea (fila, columna o diagonal) y bingo. En automático sale uno cada 6 segundos,
   con cuenta regresiva en todas las pantallas.
 - Usa **Supabase Realtime** (canales con broadcast y presence, sin tablas). La configuración está en
   `js/online-config.js` (URL del proyecto y clave pública `anon`, que es segura para publicar).

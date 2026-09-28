@@ -25,14 +25,16 @@
 
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
   const SIZE = 4;
-  const AUTO_SECONDS = 4; // cuenta regresiva del modo automático
+  const AUTO_SECONDS = 6; // cuenta regresiva del modo automático
   const PROTOCOL = 'bingo2'; // cambia si cambia lo que viaja entre dispositivos (antes eran números)
 
-  // Dibujos del bingo: los personajes del juego y cosas que los chicos conocen
+  // Dibujos del bingo: los personajes del juego y cosas que los chicos conocen.
+  // Ninguna cosa tiene que parecerse a un personaje (por eso no están el gato, la pelota,
+  // la estrella ni la tortuga: se confunden con el gatito, el futbolista, el superhéroe y el dinosaurio).
   const PICS = [
     ...BQ.characters.map((c) => ({ id: 'c-' + c.id, charId: c.id, name: c.name })),
     { id: 'perro', emoji: '🐶', name: 'el perro' },
-    { id: 'tortuga', emoji: '🐢', name: 'la tortuga' }, // (no el gato: se confunde con el personaje gatito)
+    { id: 'pinguino', emoji: '🐧', name: 'el pingüino' },
     { id: 'vaca', emoji: '🐮', name: 'la vaca' },
     { id: 'chancho', emoji: '🐷', name: 'el chancho' },
     { id: 'rana', emoji: '🐸', name: 'la rana' },
@@ -45,9 +47,9 @@
     { id: 'banana', emoji: '🍌', name: 'la banana' },
     { id: 'frutilla', emoji: '🍓', name: 'la frutilla' },
     { id: 'sandia', emoji: '🍉', name: 'la sandía' },
-    { id: 'pelota', emoji: '⚽', name: 'la pelota' },
+    { id: 'helado', emoji: '🍦', name: 'el helado' },
     { id: 'auto', emoji: '🚗', name: 'el auto' },
-    { id: 'estrella', emoji: '⭐', name: 'la estrella' },
+    { id: 'casa', emoji: '🏠', name: 'la casa' },
     { id: 'globo', emoji: '🎈', name: 'el globo' },
     { id: 'arcoiris', emoji: '🌈', name: 'el arcoíris' },
   ];
