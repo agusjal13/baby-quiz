@@ -446,15 +446,81 @@ button {
 
 /* ---------- Festejo ---------- */
 
-.celebrate {
+.party {
   position: absolute;
   inset: 0;
   z-index: 20;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, .45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vmin;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, .92), rgba(255, 244, 214, .82) 70%);
   animation: fadein .3s;
 }
+.party-rays {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 180vmax;
+  height: 180vmax;
+  margin: -90vmax 0 0 -90vmax;
+  background: repeating-conic-gradient(rgba(255, 236, 140, .55) 0 9deg, transparent 9deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0 12%, transparent 45%);
+  mask-image: radial-gradient(circle, #000 0 12%, transparent 45%);
+  animation: spin 14s linear infinite;
+  pointer-events: none;
+}
+.party-fx { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.spark {
+  position: absolute;
+  width: 1.8vmin;
+  height: 1.8vmin;
+  margin: -.9vmin 0 0 -.9vmin;
+  border-radius: 50%;
+  box-shadow: 0 0 1.2vmin currentColor;
+}
+.balloon {
+  position: absolute;
+  bottom: -20vmin;
+  z-index: 1;
+  font-size: clamp(40px, 10vmin, 90px);
+  animation: rise 4.5s ease-in both;
+  pointer-events: none;
+}
+.party-title {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  font-size: clamp(34px, 10vmin, 96px);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+.party-title span {
+  display: inline-block;
+  -webkit-text-stroke: .7vmin #fff;
+  paint-order: stroke fill;
+  text-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
+  animation: letterpop .5s both, bob 1.4s ease-in-out infinite;
+  animation-delay: calc(1s + var(--i) * .06s), calc(1.8s + var(--i) * .1s);
+}
+.party-hero { position: relative; z-index: 4; --ride: clamp(110px, 34vmin, 300px); }
+.party.settled .party-hero { animation: dance .9s ease-in-out infinite; }
+.party-prize { position: relative; z-index: 3; font-size: clamp(36px, 9vmin, 80px); animation: popin .5s 1.4s both; }
+.party-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  gap: 3vmin;
+  align-items: center;
+  opacity: 0;
+  translate: 0 4vmin;
+  pointer-events: none;
+  transition: opacity .4s, translate .4s;
+}
+.party.settled .party-actions { opacity: 1; translate: 0 0; pointer-events: auto; }
 .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .confetti i {
   position: absolute;
@@ -464,20 +530,6 @@ button {
   border-radius: 2px;
   animation: fall linear infinite;
 }
-.cel-card {
-  position: relative;
-  z-index: 2;
-  background: #fff;
-  border-radius: 6vmin;
-  padding: 3vmin 7vmin;
-  text-align: center;
-  box-shadow: 0 2vmin 0 rgba(0, 0, 0, .15);
-  animation: popin .5s both;
-}
-.cel-hero { font-size: clamp(56px, 16vmin, 140px); animation: dance .7s ease-in-out infinite; }
-.cel-title { font-size: clamp(26px, 8vmin, 72px); margin: 1vmin 0; color: #ff5a8a; }
-.cel-prize { font-size: clamp(40px, 11vmin, 100px); animation: pulse 1s ease-in-out infinite; }
-.cel-actions { display: flex; gap: 3vmin; justify-content: center; align-items: center; margin-top: 2vmin; }
 .btn-next {
   width: clamp(70px, 17vmin, 150px);
   aspect-ratio: 1;
@@ -542,7 +594,17 @@ button {
   to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; }
 }
 @keyframes fall { to { top: 105%; transform: rotate(720deg) translateX(6vmin); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes letterpop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  70% { transform: scale(1.35) rotate(8deg); opacity: 1; }
+}
+@keyframes rise {
+  from { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-65vh) rotate(6deg); }
+  to { transform: translateY(-140vh) rotate(-6deg); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .decor, .logo-l, .parade-item, .anim-float, .anim-bounce, .anim-sway { animation: none; }
+  .decor, .logo-l, .parade-item, .anim-float, .anim-bounce, .anim-sway, .party-rays { animation: none; }
 }

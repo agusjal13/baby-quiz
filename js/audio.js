@@ -144,6 +144,43 @@
       }
     },
 
+    // Silbido que sube: el personaje salta
+    whee() {
+      if (!this.ctx || !BQ.store.data.settings.sfx) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(300, t);
+      o.frequency.exponentialRampToValueAtTime(1400, t + 0.6);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.15, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+      o.connect(g).connect(this.ctx.destination);
+      o.start(t);
+      o.stop(t + 0.75);
+    },
+
+    // Explosión suave de fuego artificial (ruido filtrado)
+    pop() {
+      if (!this.ctx || !BQ.store.data.settings.sfx) return;
+      const t = this.ctx.currentTime;
+      const len = Math.floor(this.ctx.sampleRate * 0.5);
+      const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const src = this.ctx.createBufferSource();
+      const filter = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = buf;
+      filter.type = 'lowpass';
+      filter.frequency.value = 900 + Math.random() * 900;
+      g.gain.value = 0.35;
+      src.connect(filter).connect(g).connect(this.ctx.destination);
+      src.start(t);
+      this.notes([[1200 + Math.random() * 800, 0.05, 0.25, 'sine', 0.05]]); // chispita
+    },
+
     tap() { this.notes([[660, 0, 0.08, 'sine', 0.12]]); },
     correct() { this.notes([[523, 0, 0.15], [659, 0.09, 0.15], [784, 0.18, 0.15], [1047, 0.27, 0.35]]); },
     wrong() { this.notes([[330, 0, 0.18, 'sine', 0.15], [262, 0.14, 0.28, 'sine', 0.15]]); },

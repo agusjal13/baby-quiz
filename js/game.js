@@ -327,26 +327,87 @@
       if (alive()) nextQuestion('¡Vamos con otra!');
     }
 
+    // Fiesta de fin de nivel: el personaje vuela al centro, fuegos artificiales, globos y
+    // recién al final aparecen los botones (así los toques seguidos no se saltean el festejo).
     function levelComplete() {
       store.complete(world.id, level);
-      sfx.win();
       const last = level >= world.levels;
       const next = last ? () => showWorlds() : () => startLevel(world, level + 1);
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      screen.append(h('div', { class: 'celebrate' },
+      const titleText = last ? '¡Mundo completo!' : '¡Lo lograste!';
+      const title = h('h2', { class: 'party-title' }, [...titleText].map((ch, i) => h('span', {
+        style: { '--i': i, color: LOGO_COLORS[i % LOGO_COLORS.length] },
+      }, ch === ' ' ? ' ' : ch)));
+      const hero = h('div', { class: 'party-hero' }, rideEl(world, currentChar()));
+      const fx = h('div', { class: 'party-fx' });
+      const balloons = Array.from({ length: 7 }, (_, i) => h('span', {
+        class: 'balloon emoji',
+        style: {
+          left: 6 + i * 14 + Math.random() * 6 + '%',
+          'animation-delay': 0.8 + Math.random() * 1.6 + 's',
+          filter: `hue-rotate(${U.rand(360)}deg)`,
+        },
+      }, '🎈'));
+
+      const party = h('div', { class: 'party' },
+        h('div', { class: 'party-rays' }),
+        balloons,
         confetti(),
-        h('div', { class: 'cel-card' },
-          h('div', { class: 'cel-hero' }, avatarEl(currentChar())),
-          h('h2', { class: 'cel-title' }, last ? '¡Mundo completo!' : '¡Lo lograste!'),
-          h('div', { class: 'cel-prize emoji' }, last ? '🏆' : '⭐'),
-          h('div', { class: 'cel-actions' },
-            h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
-            h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
-            h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' }))))));
+        fx,
+        title,
+        hero,
+        last && h('div', { class: 'party-prize emoji' }, '🏆'),
+        h('div', { class: 'party-actions' },
+          h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
+          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
+          h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' }))));
+      screen.append(party);
 
-      voice.say(last
-        ? `¡Increíble! ¡Completaste ${world.sayName}!`
-        : `¡Lo lograste! ¡Completaste el nivel ${level}!`);
+      // Salto desde el camino hasta el centro, con una vuelta en el aire
+      if (!calm) {
+        const from = rider.getBoundingClientRect();
+        const to = hero.getBoundingClientRect();
+        const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+        const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+        const s = from.width / to.width;
+        hero.animate([
+          { transform: `translate(${dx}px, ${dy}px) scale(${s})` },
+          { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - to.height * 0.8}px) scale(${(s + 1) / 2}) rotate(-25deg)`, offset: 0.45 },
+          { transform: 'translate(0, 0) scale(1.2) rotate(360deg)', offset: 0.8 },
+          { transform: 'translate(0, 0) scale(1) rotate(360deg)' },
+        ], { duration: 1100, easing: 'ease-in-out' });
+      }
+      rider.style.visibility = 'hidden';
+      sfx.whee();
+
+      const later = (ms, fn) => setTimeout(() => alive() && fn(), ms);
+      later(1100, () => {
+        sfx.win();
+        voice.say(last
+          ? `¡Increíble! ¡Completaste ${world.sayName}!`
+          : `¡Yupi! ¡Lo lograste! ¡Vamos al nivel ${level + 1}!`);
+      });
+      [1000, 1500, 1900, 2400, 2900, 3400].forEach((ms) => later(ms, () => firework(fx)));
+      later(3300, () => party.classList.add('settled'));
+    }
+
+    function firework(layer) {
+      const x = 12 + Math.random() * 76;
+      const y = 12 + Math.random() * 40;
+      const color = U.pick(CONFETTI_COLORS);
+      const radius = Math.min(innerWidth, innerHeight) * (0.12 + Math.random() * 0.08);
+      sfx.pop();
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2;
+        const c = i % 2 ? color : '#fff';
+        const spark = h('i', { class: 'spark', style: { left: x + '%', top: y + '%', background: c, color: c } });
+        layer.append(spark);
+        spark.animate([
+          { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+          { transform: `translate(${Math.cos(a) * radius}px, ${Math.sin(a) * radius + 20}px) scale(.3)`, opacity: 0 },
+        ], { duration: 900, easing: 'cubic-bezier(.1,.7,.3,1)' }).onfinish = () => spark.remove();
+      }
     }
 
     nextQuestion(`¡Nivel ${level}!`);
