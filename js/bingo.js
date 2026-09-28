@@ -4,11 +4,14 @@
   /*
    * Bingo familiar online (Supabase Realtime: canales con "broadcast" y "presence", sin tablas).
    *
-   * El dispositivo que crea la partida es el anfitrión: guarda el estado (números salidos, ganadores)
+   * En vez de números salen dibujos (personajes del juego y cosas conocidas), para que puedan jugar
+   * los chicos que todavía no conocen los números.
+   *
+   * El dispositivo que crea la partida es el anfitrión: guarda el estado (dibujos salidos, ganadores)
    * y se lo manda a todos cada vez que cambia. Los demás solo marcan su cartón y avisan si hicieron
    * línea o bingo; el anfitrión decide quién llegó primero.
    *
-   * Mensajes del canal "bingo-CODIGO":
+   * Mensajes del canal "bingo2-CODIGO":
    *   state  anfitrión → todos   estado completo de la partida
    *   hello  jugador → todos     "acabo de entrar": el anfitrión responde con el estado
    *   claim  jugador → todos     "hice línea / bingo": solo el anfitrión lo procesa
@@ -21,9 +24,34 @@
   const sfx = BQ.sfx;
 
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
-  const MAX_N = 40;
   const SIZE = 4;
-  const AUTO_MS = 7000;
+  const AUTO_SECONDS = 4; // cuenta regresiva del modo automático
+  const PROTOCOL = 'bingo2'; // cambia si cambia lo que viaja entre dispositivos (antes eran números)
+
+  // Dibujos del bingo: los personajes del juego y cosas que los chicos conocen
+  const PICS = [
+    ...BQ.characters.map((c) => ({ id: 'c-' + c.id, charId: c.id, name: c.name })),
+    { id: 'perro', emoji: '🐶', name: 'el perro' },
+    { id: 'tortuga', emoji: '🐢', name: 'la tortuga' }, // (no el gato: se confunde con el personaje gatito)
+    { id: 'vaca', emoji: '🐮', name: 'la vaca' },
+    { id: 'chancho', emoji: '🐷', name: 'el chancho' },
+    { id: 'rana', emoji: '🐸', name: 'la rana' },
+    { id: 'leon', emoji: '🦁', name: 'el león' },
+    { id: 'elefante', emoji: '🐘', name: 'el elefante' },
+    { id: 'mono', emoji: '🐵', name: 'el mono' },
+    { id: 'conejo', emoji: '🐰', name: 'el conejo' },
+    { id: 'pollito', emoji: '🐤', name: 'el pollito' },
+    { id: 'manzana', emoji: '🍎', name: 'la manzana' },
+    { id: 'banana', emoji: '🍌', name: 'la banana' },
+    { id: 'frutilla', emoji: '🍓', name: 'la frutilla' },
+    { id: 'sandia', emoji: '🍉', name: 'la sandía' },
+    { id: 'pelota', emoji: '⚽', name: 'la pelota' },
+    { id: 'auto', emoji: '🚗', name: 'el auto' },
+    { id: 'estrella', emoji: '⭐', name: 'la estrella' },
+    { id: 'globo', emoji: '🎈', name: 'el globo' },
+    { id: 'arcoiris', emoji: '🌈', name: 'el arcoíris' },
+  ];
+  const PIC = Object.fromEntries(PICS.map((p) => [p.id, p]));
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin O/0 ni I/1, que se confunden
   const THEME = {
     sky1: '#ffe3b3', sky2: '#ffc9c9', ground: '#a8dba8',
@@ -60,11 +88,21 @@
   const myName = () => store.data.nick || defaultName();
   const myLook = () => ({ charId: charId(), worn: BQ.wardrobe.wornItems(charId()).map((i) => i.id) });
 
-  const ballColor = (n) => BALL_COLORS[n % BALL_COLORS.length];
-  const cardKey = (code, round) => `bingo.card.${code}.${round}`;
-  const hostKey = (code) => `bingo.host.${code}`;
+  const ballColor = (id) => BALL_COLORS[PICS.findIndex((p) => p.id === id) % BALL_COLORS.length];
+  const cardKey = (code, round) => `${PROTOCOL}.card.${code}.${round}`;
+  const hostKey = (code) => `${PROTOCOL}.host.${code}`;
   const newCode = () => Array.from({ length: 4 }, () => U.pick([...CODE_CHARS])).join('');
-  const newCard = () => U.sample(Array.from({ length: MAX_N }, (_, i) => i + 1), SIZE * SIZE).sort((a, b) => a - b);
+  const newCard = () => U.sample(PICS.map((p) => p.id), SIZE * SIZE);
+
+  // Dibujo de un casillero, la bolilla o el tablero chico
+  function picEl(id) {
+    const p = PIC[id];
+    if (!p) return h('span', { class: 'bingo-pic' }, '?');
+    return p.charId
+      ? h('span', { class: 'bingo-pic char' }, BQ.puppet.el(p.charId, []))
+      : h('span', { class: 'bingo-pic emoji' }, p.emoji);
+  }
+  const picName = (id) => (PIC[id] ? PIC[id].name : '');
   const shareLink = (code) => `${location.origin}${location.pathname}#bingo-${code}`;
 
   // ---------- Conexión ----------
@@ -119,11 +157,11 @@
     if (create) host = { code, host: me, round: 1, status: 'lobby', drawn: [], winners: {}, v: 1 };
     else if (resumed && resumed.host === me) host = resumed; // el anfitrión volvió a entrar
 
-    const ch = sb.channel('bingo-' + code, { config: { broadcast: { self: false }, presence: { key: me } } });
+    const ch = sb.channel(`${PROTOCOL}-${code}`, { config: { broadcast: { self: false }, presence: { key: me } } });
     const session = {
       code, ch, me, host,
       state: null, players: {}, round: 0, card: null, marks: new Set(),
-      lastCount: 0, seenWin: {}, myLine: false, auto: null, beat: null, timers: [], view: null, dom: null,
+      lastCount: 0, seenWin: {}, myLine: false, autoTimer: null, countTimer: null, beat: null, timers: [], view: null, dom: null,
     };
     S = session;
 
@@ -167,7 +205,8 @@
     if (!S) return;
     const s = S;
     S = null;
-    clearInterval(s.auto);
+    clearTimeout(s.autoTimer);
+    clearInterval(s.countTimer);
     clearInterval(s.beat);
     s.timers.forEach(clearTimeout);
     try { s.ch.untrack(); } catch (e) { /* ignorar */ }
@@ -195,31 +234,37 @@
 
   function draw() {
     if (!S || !S.host || S.host.status !== 'playing') return;
-    const left = [];
-    for (let n = 1; n <= MAX_N; n++) if (!S.host.drawn.includes(n)) left.push(n);
+    clearTimeout(S.autoTimer);
+    const left = PICS.map((p) => p.id).filter((id) => !S.host.drawn.includes(id));
     if (!left.length) return setAuto(false);
-    hostUpdate((st) => { st.drawn.push(U.pick(left)); });
+    hostUpdate((st) => {
+      st.drawn.push(U.pick(left));
+      if (left.length === 1) st.auto = false; // era el último
+    });
+    // Automático: el siguiente sale cuando termina la cuenta regresiva
+    if (S.host.auto) S.autoTimer = setTimeout(draw, AUTO_SECONDS * 1000);
   }
 
+  // El modo automático viaja en el estado, así todos ven la cuenta regresiva
   function setAuto(on) {
     if (!S || !S.host) return;
-    clearInterval(S.auto);
-    S.auto = null;
-    if (on && S.host.status === 'playing') {
-      draw();
-      S.auto = setInterval(draw, AUTO_MS);
-    }
-    if (S.dom && S.dom.autoBtn) S.dom.autoBtn.classList.toggle('on', !!S.auto);
+    clearTimeout(S.autoTimer);
+    const active = on && S.host.status === 'playing';
+    if (S.host.auto !== active) hostUpdate((st) => { st.auto = active; });
+    if (active) draw();
   }
 
   function onClaim(c) {
     const st = S.host;
     if (!c || c.round !== st.round || st.status !== 'playing' || st.winners[c.kind]) return;
+    if (c.kind === 'bingo') clearTimeout(S.autoTimer);
     hostUpdate((s) => {
       s.winners[c.kind] = { pid: c.pid, name: c.name, charId: c.charId, worn: c.worn };
-      if (c.kind === 'bingo') s.status = 'done';
+      if (c.kind === 'bingo') {
+        s.status = 'done';
+        s.auto = false;
+      }
     });
-    if (c.kind === 'bingo') setAuto(false);
   }
 
   function start() { hostUpdate((st) => { st.status = 'playing'; }); }
@@ -242,7 +287,8 @@
 
     if (S.round !== st.round) {
       S.round = st.round;
-      S.card = ls.get(cardKey(S.code, st.round)) || newCard();
+      const saved = ls.get(cardKey(S.code, st.round));
+      S.card = saved && saved.every((id) => PIC[id]) ? saved : newCard();
       ls.set(cardKey(S.code, st.round), S.card);
       S.marks = new Set(ls.get(cardKey(S.code, st.round) + '.marks') || []);
       S.myLine = false;
@@ -259,13 +305,15 @@
       update();
     }
 
-    // Número nuevo
+    // Dibujo nuevo (y en automático, cuenta regresiva hasta el siguiente)
     if (view === 'game' && st.drawn.length > S.lastCount) {
-      const n = st.drawn[st.drawn.length - 1];
       S.lastCount = st.drawn.length;
-      announce(n);
+      announce(st.drawn[st.drawn.length - 1]);
+      if (st.auto && st.status === 'playing') countdown();
     }
     S.lastCount = st.drawn.length;
+    if (!st.auto || st.status !== 'playing') stopCountdown();
+    if (S.dom && S.dom.autoBtn) S.dom.autoBtn.classList.toggle('on', !!st.auto);
 
     // Ganadores (al entrar tarde, se muestran sin festejar de nuevo)
     for (const kind of ['line', 'bingo']) {
@@ -393,21 +441,23 @@
     const st = S.state;
     const players = h('div', { class: 'bingo-players small' });
     const ball = h('div', { class: 'bingo-ball' }, h('span', { class: 'bingo-ball-n' }, '?'));
+    const count = h('div', { class: 'bingo-count', hidden: true });
     const board = h('div', { class: 'bingo-board' },
-      Array.from({ length: MAX_N }, (_, i) => h('span', { class: 'bingo-board-n', 'data-n': i + 1 }, String(i + 1))));
+      PICS.map((p) => h('span', { class: 'bingo-board-n', 'data-id': p.id }, picEl(p.id))));
     const card = h('div', { class: 'bingo-card' },
-      S.card.map((n, i) => h('button', {
+      S.card.map((id, i) => h('button', {
         class: 'bingo-cell' + (S.marks.has(i) ? ' marked' : ''),
         'data-i': i,
+        'aria-label': picName(id),
         onpointerdown: ui().tap(() => mark(i)),
-      }, h('span', { class: 'bingo-cell-n' }, String(n)))));
+      }, picEl(id))));
 
     let controls = null;
     let autoBtn = null;
     if (S.host) {
-      autoBtn = h('button', { class: 'bingo-small auto' + (S.auto ? ' on' : ''), onclick: () => setAuto(!S.auto) }, '⏱️ Automático');
+      autoBtn = h('button', { class: 'bingo-small auto' + (st.auto ? ' on' : ''), onclick: () => setAuto(!S.host.auto) }, '⏱️ Automático');
       controls = h('div', { class: 'bingo-controls' },
-        h('button', { class: 'bingo-draw', 'aria-label': 'Sacar número', onpointerdown: ui().tap(() => draw()) }, h('span', { class: 'emoji' }, '🎱'), ' Sacar'),
+        h('button', { class: 'bingo-draw', 'aria-label': 'Sacar', onpointerdown: ui().tap(() => draw()) }, h('span', { class: 'emoji' }, '🎱'), ' Sacar'),
         autoBtn);
     }
 
@@ -415,16 +465,45 @@
     const screen = h('div', { class: 'screen bingo-game' },
       ui().topbar(back, players, h('span', { class: 'spacer' })),
       h('div', { class: 'bingo-main' },
-        h('div', { class: 'bingo-side' }, ball, controls, board),
+        h('div', { class: 'bingo-side' }, h('div', { class: 'bingo-ball-wrap' }, ball, count), controls, board),
         card));
     ui().show(screen, THEME);
-    S.dom = { players, ball, board, card, autoBtn, screen };
+    S.dom = { players, ball, count, board, card, autoBtn, screen };
     update();
 
     const last = st.drawn[st.drawn.length - 1];
     if (last) setBall(last, false);
-    if (!first || st.drawn.length === 0) voice.say('¡Empieza el bingo! Cuando salga un número de tu cartón, tocalo.');
+    if (!first || st.drawn.length === 0) voice.say('¡Empieza el bingo! Cuando salga un dibujo de tu cartón, tocalo.');
     if (st.status === 'done' && st.winners.bingo) showWinner(st.winners.bingo, true);
+  }
+
+  // Cuenta regresiva 4, 3, 2, 1 hasta el próximo dibujo (modo automático)
+  function countdown() {
+    stopCountdown();
+    if (!S || !S.dom || !S.dom.count) return;
+    const el = S.dom.count;
+    let n = AUTO_SECONDS;
+    const paint = () => {
+      el.hidden = false;
+      el.textContent = String(n);
+      el.classList.remove('tick');
+      void el.offsetWidth;
+      el.classList.add('tick');
+    };
+    paint();
+    S.countTimer = setInterval(() => {
+      n--;
+      if (n <= 0) return stopCountdown();
+      paint();
+      sfx.notes([[880, 0, 0.05, 'sine', 0.06]]);
+    }, 1000);
+  }
+
+  function stopCountdown() {
+    if (!S) return;
+    clearInterval(S.countTimer);
+    S.countTimer = null;
+    if (S.dom && S.dom.count) S.dom.count.hidden = true;
   }
 
   // Actualiza lo que cambia sin redibujar toda la pantalla
@@ -434,16 +513,16 @@
     if (d.players) d.players.replaceChildren(...playersRow(S.view === 'waiting'));
     if (S.view === 'game' && S.state) {
       const drawn = new Set(S.state.drawn);
-      d.board.querySelectorAll('.bingo-board-n').forEach((el) => el.classList.toggle('on', drawn.has(Number(el.dataset.n))));
+      d.board.querySelectorAll('.bingo-board-n').forEach((el) => el.classList.toggle('on', drawn.has(el.dataset.id)));
       const hostHere = Object.values(S.players).some((p) => p.host);
       d.screen.classList.toggle('no-host', !S.host && !hostHere);
     }
   }
 
-  function setBall(n, animate) {
+  function setBall(id, animate) {
     const b = S.dom.ball;
-    b.style.setProperty('--ball', ballColor(n));
-    b.querySelector('.bingo-ball-n').textContent = String(n);
+    b.style.setProperty('--ball', ballColor(id));
+    b.querySelector('.bingo-ball-n').replaceChildren(picEl(id));
     if (animate) {
       b.classList.remove('roll');
       void b.offsetWidth;
@@ -451,12 +530,12 @@
     }
   }
 
-  function announce(n) {
-    setBall(n, true);
+  function announce(id) {
+    setBall(id, true);
     sfx.notes([[523, 0, 0.08], [659, 0.08, 0.08], [784, 0.16, 0.2]]);
-    voice.say(`¡Salió el ${n}!`);
+    voice.say(`¡Salió ${picName(id)}!`);
     // Ayuda: si está en el cartón y no lo marca, a los 6 segundos titila
-    const i = S.card.indexOf(n);
+    const i = S.card.indexOf(id);
     if (i >= 0 && !S.marks.has(i)) {
       const s = S;
       s.timers.push(setTimeout(() => {
@@ -471,14 +550,14 @@
 
   function mark(i) {
     if (!S || !S.state || S.state.status !== 'playing' || S.marks.has(i)) return;
-    const n = S.card[i];
+    const id = S.card[i];
     const cell = S.dom.card.querySelector(`[data-i="${i}"]`);
-    if (!S.state.drawn.includes(n)) {
+    if (!S.state.drawn.includes(id)) {
       cell.classList.remove('nope');
       void cell.offsetWidth;
       cell.classList.add('nope');
       sfx.wrong();
-      voice.say(`El ${n} todavía no salió.`);
+      voice.say(`${U.cap(picName(id))} todavía no salió.`);
       return;
     }
     S.marks.add(i);

@@ -1102,6 +1102,38 @@ button {
 .bingo-banner-art { font-size: 1.3em; }
 .bingo-winner-art { position: relative; z-index: 4; font-size: clamp(90px, 26vmin, 220px); }
 .bingo-winner-name { position: relative; z-index: 3; margin: 0; font-size: clamp(22px, 6vmin, 50px); font-weight: 900; }
+/* Dibujos del bingo (emojis y personajes quietos, para no distraer) */
+.bingo-pic { display: grid; place-items: center; line-height: 1; }
+.bingo-pic .pp, .bingo-pic .pp * { animation: none !important; }
+.bingo-cell .bingo-pic.emoji { font-size: clamp(30px, 9vmin, 74px); }
+.bingo-cell .bingo-pic.char { font-size: clamp(34px, 10vmin, 84px); }
+.bingo-ball-n .bingo-pic.emoji { font-size: clamp(34px, 10vmin, 86px); }
+.bingo-ball-n .bingo-pic.char { font-size: clamp(38px, 11vmin, 96px); }
+.bingo-board { grid-template-columns: repeat(6, 1fr); }
+.bingo-board-n { width: clamp(22px, 5.2vmin, 42px); opacity: .28; filter: grayscale(1); }
+.bingo-board-n.on { opacity: 1; filter: none; background: #fff; box-shadow: 0 0 0 .4vmin var(--accent); }
+.bingo-board-n .bingo-pic.emoji { font-size: clamp(14px, 3.4vmin, 28px); }
+.bingo-board-n .bingo-pic.char { font-size: clamp(15px, 3.8vmin, 30px); }
+
+/* Cuenta regresiva del modo automático */
+.bingo-ball-wrap { position: relative; }
+.bingo-count {
+  position: absolute;
+  top: -1vmin;
+  right: -3vmin;
+  display: grid;
+  place-items: center;
+  width: clamp(40px, 10vmin, 84px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 .8vmin 0 #d9a400;
+  font-size: clamp(24px, 6.5vmin, 54px);
+  font-weight: 900;
+  color: var(--ink);
+}
+.bingo-count.tick { animation: pop .45s; }
+
 .bingo-game.no-host .bingo-side::before {
   content: 'Se desconectó el que creó la partida…';
   font-weight: bold;
