@@ -99,21 +99,31 @@
     return h('button', { class: 'btn-round back', 'aria-label': 'Volver', onpointerdown: tap(fn) }, h('span', { class: 'emoji' }, '⬅️'));
   }
 
-  // Engranaje para adultos: hay que mantenerlo apretado 2 segundos.
+  // Engranaje para adultos: mantenerlo apretado 1,2 segundos o tocarlo 3 veces seguidas.
+  // (En Android mantener apretado abre el menú contextual y cancela el toque: por eso se bloquea
+  // ese menú y existe la alternativa de los 3 toques.)
+  const HOLD_MS = 1200;
   function gearBtn() {
     let timer;
+    let taps = [];
     const b = h('button', { class: 'btn-round gear', 'aria-label': 'Opciones para adultos' }, h('span', { class: 'emoji' }, '⚙️'));
     const cancel = () => {
       clearTimeout(timer);
       b.classList.remove('holding');
     };
+    const openPanel = () => {
+      cancel();
+      taps = [];
+      openParentPanel();
+    };
+    b.addEventListener('contextmenu', (e) => e.preventDefault());
     b.addEventListener('pointerdown', (e) => {
       e.preventDefault();
+      const now = Date.now();
+      taps = taps.filter((t) => now - t < 1500).concat(now);
+      if (taps.length >= 3) return openPanel();
       b.classList.add('holding');
-      timer = setTimeout(() => {
-        cancel();
-        openParentPanel();
-      }, 2000);
+      timer = setTimeout(openPanel, HOLD_MS);
     });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, cancel));
     return b;
@@ -232,15 +242,18 @@
 
     const shopBtn = h('button', { class: 'shop-btn', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) },
       h('span', { class: 'emoji' }, '🛍️'), coinCounter());
-    const bingoBtn = h('button', { class: 'btn-round bingo-btn', 'aria-label': 'Bingo familiar', onpointerdown: tap(() => BQ.bingo.open()) },
-      h('span', { class: 'emoji' }, '🎱'));
+    // Juegos aparte de los mundos
+    const games = h('div', { class: 'games-row' },
+      h('button', { class: 'game-pill penales', onpointerdown: tap(() => BQ.penales.open()) }, h('span', { class: 'emoji' }, '⚽'), ' Penales'),
+      h('button', { class: 'game-pill bingo', onpointerdown: tap(() => BQ.bingo.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Bingo'));
 
     show(h('div', { class: 'screen worlds' },
       topbar(
         h('button', { class: 'btn-round char-mini', 'aria-label': 'Cambiar personaje', onpointerdown: tap(showCharacters) }, avatarEl(currentChar())),
         h('h2', { class: 'screen-title' }, '¿A dónde vamos?'),
-        h('div', { class: 'top-right' }, bingoBtn, shopBtn, gearBtn())),
-      h('div', { class: 'worlds-grid' }, cards)));
+        h('div', { class: 'top-right' }, shopBtn, gearBtn())),
+      h('div', { class: 'worlds-grid' }, cards),
+      games));
     if (greet) voice.say('¿A dónde vamos?');
   }
 
@@ -508,8 +521,8 @@
         },
       }, '🎈'));
 
-      // Nivel completado por primera vez: premio de una moneda
-      const earnedCoin = store.awardLevelCoin(world.id, level);
+      // Premio de una moneda (primera vez, o repitiendo en un mundo ya completo)
+      const earnedCoin = store.awardLevelCoin(world.id, level, world.levels);
       const canBuy = store.data.coins >= BQ.wardrobe.PRICE;
       const shopBtn = (cls) => h('button', { class: 'btn-shop' + (cls ? ' ' + cls : ''), 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) }, h('span', { class: 'emoji' }, '🛍️'));
 
@@ -717,7 +730,7 @@
   }
 
   // Piezas compartidas con otros módulos (bingo.js)
-  BQ.ui = { show, topbar, backBtn, tap, confetti, burst, playable, currentChar, showWorlds, LOGO_COLORS };
+  BQ.ui = { show, topbar, backBtn, tap, confetti, burst, playable, currentChar, showWorlds, showShop, coinEl, coinCounter, PRAISES, LOGO_COLORS };
 
   // ---------- Inicio ----------
 

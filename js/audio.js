@@ -161,6 +161,36 @@
       o.stop(t + 0.75);
     },
 
+    // Ruido filtrado con volumen que sube y baja (tribuna, patada)
+    noise(duration, type, freq, vol, attack) {
+      if (!this.ctx || !BQ.store.data.settings.sfx) return;
+      const t = this.ctx.currentTime;
+      const len = Math.floor(this.ctx.sampleRate * duration);
+      const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      const src = this.ctx.createBufferSource();
+      const filter = this.ctx.createBiquadFilter();
+      const g = this.ctx.createGain();
+      src.buffer = buf;
+      filter.type = type;
+      filter.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      src.connect(filter).connect(g).connect(this.ctx.destination);
+      src.start(t);
+    },
+
+    // Fútbol
+    whistle() { this.notes([[2800, 0, 0.18, 'sine', 0.07], [2600, 0.22, 0.45, 'sine', 0.07]]); },
+    kick() {
+      this.noise(0.12, 'lowpass', 600, 0.5, 0.005);
+      this.notes([[110, 0, 0.12, 'sine', 0.3]]);
+    },
+    cheer() { this.noise(2.2, 'bandpass', 1200, 0.25, 0.4); },
+    aww() { this.notes([[392, 0, 0.35, 'sine', 0.1], [330, 0.3, 0.6, 'sine', 0.1]]); },
+
     // Explosión suave de fuego artificial (ruido filtrado)
     pop() {
       if (!this.ctx || !BQ.store.data.settings.sfx) return;

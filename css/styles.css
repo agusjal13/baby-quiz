@@ -118,7 +118,8 @@ button {
   translate: 0 .6vmin;
 }
 
-.gear { opacity: .55; }
+/* touch-action y callout: que Android no convierta el toque largo en "clic derecho" */
+.gear { opacity: .55; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .gear.holding { opacity: 1; }
 .gear.holding::after {
   content: '';
@@ -126,7 +127,7 @@ button {
   inset: -6px;
   border-radius: 50%;
   background: conic-gradient(var(--accent) var(--p), transparent 0);
-  animation: hold 2s linear forwards;
+  animation: hold 1.2s linear forwards;
   z-index: -1;
 }
 @property --p { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
@@ -1141,6 +1142,96 @@ button {
   padding: .3em .8em;
   border-radius: 99px;
 }
+
+/* ---------- Juegos del mapa (penales, bingo) ---------- */
+
+.games-row { flex: none; display: flex; justify-content: center; gap: 3vmin; }
+.game-pill {
+  padding: .35em 1.1em;
+  border-radius: 99px;
+  font: bold clamp(17px, 4.4vmin, 34px) var(--font);
+  color: #fff;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .2);
+}
+.game-pill.penales { background: linear-gradient(160deg, #43a047, #1b5e20); }
+.game-pill.bingo { background: linear-gradient(160deg, #ff7e5f, #d63384); }
+.game-pill:active { translate: 0 .6vmin; }
+
+/* ---------- Penales ---------- */
+
+.penales { gap: 1.5vmin; }
+.pen-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1.5vmin; }
+.pen-scene {
+  position: relative;
+  flex: 1.15;
+  min-height: 0;
+  container-type: size;
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
+  background: #4caf50;
+}
+.pen-field { display: block; width: 100%; height: 100%; }
+.pen-field * { transform-box: view-box; }
+.pen-quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1.5vmin; }
+@media (orientation: landscape) {
+  .pen-body { flex-direction: row; }
+  .pen-scene { flex: 1.1; }
+  .pen-quiz { flex: 1; }
+  .penales .options { grid-template-columns: 1fr 1fr; }
+}
+
+.pen-keeper { transform-origin: 150px 110px; animation: pen-keeper 1.5s ease-in-out infinite alternate; }
+.pen-keeper-dive { transform-origin: 150px 110px; }
+.pen-ball { transform-origin: 150px 172px; }
+.pen-net { transform-origin: 150px 75px; }
+.pen-net.shake { animation: pen-net .7s ease-out; }
+.pen-field.celebrate .pen-fan { animation: pen-jump .35s ease-in-out infinite alternate; }
+.pen-fan:nth-child(3n) { animation-delay: .12s !important; }
+.pen-fan:nth-child(3n+1) { animation-delay: .24s !important; }
+
+.pen-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end; /* abajo, para que se vea la pelota en el arco */
+  justify-content: center;
+  padding-bottom: 6cqmin;
+  pointer-events: none;
+  font-size: clamp(36px, 22cqmin, 120px);
+  font-weight: 900;
+  -webkit-text-stroke: .08em #fff;
+  paint-order: stroke fill;
+}
+.pen-flash.goal { color: #ff5a8a; }
+.pen-flash.saved { color: #ff9800; }
+.pen-flash span { display: inline-block; animation: letterpop .45s both; animation-delay: calc(var(--i) * .05s); }
+
+.pen-score { display: flex; gap: 2vmin; }
+.pen-slot {
+  display: grid;
+  place-items: center;
+  width: clamp(38px, 9vmin, 72px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .7);
+  border: .6vmin dashed rgba(0, 0, 0, .2);
+  font-size: clamp(22px, 5.5vmin, 44px);
+}
+.pen-slot.now { border-style: solid; border-color: var(--gold); animation: pulse 1s ease-in-out infinite; }
+.pen-slot.goal { background: #c8f7c5; border: .6vmin solid #2ecc71; }
+.pen-slot.goal::before { content: '⚽'; font-family: var(--emoji); }
+.pen-slot.saved { background: #ffe0cc; border: .6vmin solid #ff9800; }
+.pen-slot.saved::before { content: '🧤'; font-family: var(--emoji); }
+.pen-final { position: relative; z-index: 3; display: flex; gap: 2vmin; }
+.pen-hero { font-size: clamp(90px, 26vmin, 220px); }
+.party.pen-lost { background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, .92), rgba(214, 234, 255, .85) 70%); }
+.pen-coin { position: absolute; left: 50%; top: 42%; margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 8; }
+
+@keyframes pen-keeper { from { transform: translateX(-9px); } to { transform: translateX(9px); } }
+@keyframes pen-net { 20% { transform: scale(1.05, 1.08) translateY(-2px); } 45% { transform: scale(.97, .95); } 70% { transform: scale(1.02, 1.03); } }
+@keyframes pen-jump { to { transform: translateY(-3px); } }
 
 /* ---------- Animaciones ---------- */
 

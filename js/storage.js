@@ -51,14 +51,22 @@
         this.save();
       }
     },
-    // La primera vez que se completa cada nivel se gana una moneda. Devuelve true si la dio.
-    awardLevelCoin(worldId, level) {
+    // Moneda por nivel: siempre la primera vez; repitiendo, solo si el mundo ya está completo
+    // (así primero conviene avanzar, y al terminar todo se puede seguir juntando). Devuelve true si la dio.
+    awardLevelCoin(worldId, level, worldLevels) {
       const key = `${worldId}:${level}`;
-      if (this.data.coinLevels.includes(key)) return false;
-      this.data.coinLevels.push(key);
+      const firstTime = !this.data.coinLevels.includes(key);
+      const worldDone = this.completed(worldId) >= worldLevels;
+      if (!firstTime && !worldDone) return false;
+      if (firstTime) this.data.coinLevels.push(key);
       this.data.coins++;
       this.save();
       return true;
+    },
+    // Premio suelto (por ejemplo, ganar un partido de penales)
+    addCoin() {
+      this.data.coins++;
+      this.save();
     },
     resetProgress() {
       const settings = this.data.settings;

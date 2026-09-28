@@ -17,7 +17,7 @@ Abrir http://localhost:8080 en Chrome o Edge.
 - Error 1: se apaga la opción tocada y se repite la pregunta.
 - Error 2: se muestra la correcta y se cambia de pregunta (sin avanzar).
 - Los niveles se desbloquean en orden; los mundos están todos abiertos.
-- **Opciones para adultos:** mantener apretado el engranaje ⚙️ 2 segundos
+- **Opciones para adultos:** mantener apretado el engranaje ⚙️ 1 segundo, o tocarlo 3 veces seguidas
   (voz, velocidad, efectos, desbloquear todo, reiniciar).
 
 ## Estructura
@@ -53,7 +53,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 ## Monedas y tienda
 
 - Completar un nivel por primera vez da **1 moneda** (moneda gigante al final de la fiesta, que cae en
-  una fila de 5 lugares). Repetir un nivel ya pasado no da otra.
+  una fila de 5 lugares). Repetir un nivel no da otra mientras falten niveles en ese mundo; en un mundo
+  **completo**, cada nivel jugado vuelve a dar una moneda. Ganar un partido de penales también da una.
 - En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a **5 monedas** cada cosa
   (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`.
   Tocar algo comprado lo pone o lo saca. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
@@ -62,6 +63,13 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   (con `emoji`, `art`, `bow`, `cape` o `jersey`, y opcionalmente `use`: la acción al tocarlo).
 - Los personajes se dibujan en `js/puppet.js` (`LOOKS`); ahí también está dónde va cada prenda
   (`anchors`) y el gesto propio de cada uno (`idle`).
+
+## Penales
+
+- Botón ⚽ Penales en el mapa de mundos. 3 penales con preguntas al azar de todos los mundos
+  (menos los de dibujar), con nivel según lo que ya jugó en cada mundo.
+- Respuesta correcta = gol (el arquero se tira al otro lado); incorrecta = ataja y se muestra la correcta.
+- Con 2 goles o más se gana el partido y **1 moneda** (siempre, cada partido ganado). Código en `js/penales.js`.
 
 ## Bingo familiar (online)
 
