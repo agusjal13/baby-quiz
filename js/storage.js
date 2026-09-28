@@ -6,6 +6,9 @@
   const defaults = () => ({
     character: null,
     progress: {}, // { [worldId]: último nivel completado }
+    coins: 0,
+    coinWorlds: [], // mundos que ya dieron su moneda
+    wardrobe: {}, // { [charId]: { owned: [itemId], worn: [itemId] } }
     settings: { voiceURI: null, rate: 0.9, sfx: true },
   });
 
@@ -34,6 +37,14 @@
         this.data.progress[worldId] = level;
         this.save();
       }
+    },
+    // La primera vez que se completa un mundo se gana una moneda. Devuelve true si la dio.
+    awardWorldCoin(worldId) {
+      if (this.data.coinWorlds.includes(worldId)) return false;
+      this.data.coinWorlds.push(worldId);
+      this.data.coins++;
+      this.save();
+      return true;
     },
     resetProgress() {
       const settings = this.data.settings;

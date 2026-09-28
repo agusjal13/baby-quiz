@@ -50,6 +50,15 @@ Un generador puede devolver `{ kind: 'connect', key, say, pairs: [colores] }` en
 `BQ.question(...)`: el juego muestra un tablero para unir con el dedo cada par de puntos del
 mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo avanza una parada.
 
+## Monedas y tienda
+
+- Completar un mundo por primera vez da **1 moneda** (animación de moneda gigante al final de la fiesta).
+- En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a 1 moneda cada cosa.
+  Tocar algo comprado lo pone o lo saca. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
+- Desde ⚙️ se pueden regalar monedas.
+- Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
+  (con `emoji`, un dibujo `svg` o una remera `shirt`). Si queda mal ubicada, ajustarla en `FIT`.
+
 ## Agregar más niveles o preguntas
 
 - Más niveles en un mundo: `levels: 8` en su definición.

@@ -46,10 +46,35 @@
     app.replaceChildren(background(theme || DEFAULT_THEME), screen);
   }
 
+  // Personaje con la ropa que tiene puesta
   function avatarEl(c) {
     return h('span', { class: 'avatar' },
       h('span', { class: 'emoji av-main' + (c.flip ? ' flip' : '') }, c.emoji),
-      c.badge && h('span', { class: 'emoji av-badge' }, c.badge));
+      c.badge && h('span', { class: 'emoji av-badge' }, c.badge),
+      BQ.wardrobe.wornItems(c.id).map((it) => BQ.wardrobe.render(it, c.id)));
+  }
+
+  // Moneda dibujada con CSS (el emoji de moneda no existe en todos los dispositivos)
+  const coinEl = (cls) => h('span', { class: 'coin' + (cls ? ' ' + cls : '') });
+
+  const counters = new Set();
+  function coinCounter() {
+    const n = h('span', { class: 'coin-n' }, String(store.data.coins));
+    const el = h('span', { class: 'coin-counter' }, coinEl(), n);
+    el.set = (v) => {
+      n.textContent = String(v);
+      el.classList.remove('bump');
+      void el.offsetWidth;
+      el.classList.add('bump');
+    };
+    counters.add(el);
+    return el;
+  }
+  function refreshCounters() {
+    for (const el of counters) {
+      if (el.isConnected) el.set(store.data.coins);
+      else counters.delete(el);
+    }
   }
 
   // Personaje montado en el transporte del mundo
@@ -195,10 +220,14 @@
     h('span', { class: 'wc-name' }, w.name),
     h('span', { class: 'wc-stars' }, starsRow(store.completed(w.id), w.levels))));
 
+    const shopBtn = h('button', { class: 'shop-btn', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) },
+      h('span', { class: 'emoji' }, '🛍️'), coinCounter());
+
     show(h('div', { class: 'screen worlds' },
       topbar(
         h('button', { class: 'btn-round char-mini', 'aria-label': 'Cambiar personaje', onpointerdown: tap(showCharacters) }, avatarEl(currentChar())),
-        h('h2', { class: 'screen-title' }, '¿A dónde vamos?')),
+        h('h2', { class: 'screen-title' }, '¿A dónde vamos?'),
+        h('div', { class: 'top-right' }, shopBtn, gearBtn())),
       h('div', { class: 'worlds-grid' }, cards)));
     if (greet) voice.say('¿A dónde vamos?');
   }
@@ -234,6 +263,75 @@
       topbar(backBtn(() => showWorlds()),
         h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, world.icon), ' ', world.name)),
       h('div', { class: 'level-path' }, nodes)), world.theme);
+  }
+
+  // ---------- Tienda ----------
+
+  function showShop() {
+    const c = currentChar();
+    const W = BQ.wardrobe;
+    const counter = coinCounter();
+    const hero = h('div', { class: 'shop-hero' });
+    const grid = h('div', { class: 'shop-grid' });
+
+    function paint() {
+      hero.replaceChildren(avatarEl(c));
+      grid.replaceChildren(...W.items(c.id).map((item) => {
+        const owned = W.owns(c.id, item.id);
+        const worn = W.wears(c.id, item.id);
+        const b = h('button', {
+          class: 'shop-item' + (owned ? ' owned' : '') + (worn ? ' worn' : ''),
+          'aria-label': item.name,
+          onpointerdown: tap(() => pick(item, b)),
+        },
+        h('span', { class: 'shop-art' }, W.render(item)),
+        owned
+          ? h('span', { class: 'shop-tag' + (worn ? ' on' : '') }, worn ? '✔' : '')
+          : h('span', { class: 'shop-price' }, coinEl(), String(W.PRICE)));
+        return b;
+      }));
+    }
+
+    function pick(item, b) {
+      if (W.owns(c.id, item.id)) {
+        if (W.wears(c.id, item.id)) {
+          W.takeOff(c.id, item);
+          sfx.tap();
+          voice.say(`Le sacaste ${item.name}`);
+        } else {
+          W.wear(c.id, item);
+          sfx.correct();
+          voice.say(`¡Le pusiste ${item.name}!`);
+        }
+        paint();
+        return;
+      }
+      if (!W.buy(c.id, item)) {
+        b.classList.remove('nope');
+        void b.offsetWidth;
+        b.classList.add('nope');
+        sfx.wrong();
+        voice.say('Necesitás una moneda. ¡Completá un mundo para ganar una!');
+        return;
+      }
+      sfx.coin();
+      counter.set(store.data.coins);
+      voice.say(`¡Le compraste ${item.name}!`);
+      paint();
+      hero.classList.remove('dress');
+      void hero.offsetWidth;
+      hero.classList.add('dress');
+      burst(hero);
+    }
+
+    paint();
+    show(h('div', { class: 'screen shop' },
+      topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🛍️'), ' Tienda'),
+        h('div', { class: 'top-right' }, counter, gearBtn())),
+      h('div', { class: 'shop-body' }, hero, grid)));
+    voice.say(store.data.coins > 0
+      ? `¡Bienvenido a la tienda! ¿Qué le comprás ${c.name.replace(/^el /, 'al ').replace(/^la /, 'a la ')}?`
+      : `¡Bienvenido a la tienda! Completá un mundo para ganar una moneda.`);
   }
 
   // ---------- Juego ----------
@@ -384,6 +482,20 @@
         },
       }, '🎈'));
 
+      // Mundo completado por primera vez: premio de una moneda
+      const earnedCoin = last && store.awardWorldCoin(world.id);
+
+      const actions = earnedCoin
+        ? [
+          h('button', { class: 'btn-round', 'aria-label': 'Mundos', onpointerdown: tap(() => showWorlds()) }, h('span', { class: 'emoji' }, '🗺️')),
+          h('button', { class: 'btn-shop', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) }, h('span', { class: 'emoji' }, '🛍️')),
+        ]
+        : [
+          h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
+          h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' })),
+          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
+        ];
+
       const party = h('div', { class: 'party' },
         h('div', { class: 'party-rays' }),
         balloons,
@@ -392,10 +504,7 @@
         title,
         hero,
         last && h('div', { class: 'party-prize emoji' }, '🏆'),
-        h('div', { class: 'party-actions' },
-          h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
-          h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' })),
-          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁'))));
+        h('div', { class: 'party-actions' }, actions));
       screen.append(party);
 
       // Salto desde el camino hasta el centro, con una vuelta en el aire
@@ -423,7 +532,43 @@
           : `¡Yupi! ¡Lo lograste! ¡Vamos al nivel ${level + 1}!`);
       });
       [1000, 1500, 1900, 2400, 2900, 3400].forEach((ms) => later(ms, () => firework(fx)));
-      later(3300, () => party.classList.add('settled'));
+      later(3300, () => (earnedCoin ? coinReward(party, fx) : party.classList.add('settled')));
+    }
+
+    // Moneda gigante que gira y brilla, y después vuela al contador
+    async function coinReward(party, fx) {
+      const counter = coinCounter();
+      counter.classList.add('party-coins');
+      counter.querySelector('.coin-n').textContent = String(store.data.coins - 1);
+      const coin = coinEl('big-coin');
+      const stage = h('div', { class: 'coin-stage' }, h('div', { class: 'coin-glow' }), coin);
+      party.append(counter, stage);
+      party.classList.add('coin-time');
+      sfx.coin();
+      [300, 900, 1500].forEach((ms) => setTimeout(() => alive() && firework(fx), ms));
+
+      await Promise.all([
+        voice.say('¡Ganaste una moneda! Con la moneda podés comprarle cosas a tu personaje en la tienda.'),
+        U.wait(3200),
+      ]);
+      if (!alive()) return;
+
+      const from = coin.getBoundingClientRect();
+      const to = counter.querySelector('.coin').getBoundingClientRect();
+      const fly = coin.animate([
+        { transform: 'translate(0, 0) scale(1)' },
+        {
+          transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(${to.width / from.width})`,
+        },
+      ], { duration: 800, easing: 'cubic-bezier(.5,0,.7,1)', fill: 'forwards' });
+      await fly.finished.catch(() => {});
+      if (!alive()) return;
+      stage.remove();
+      sfx.coin();
+      counter.set(store.data.coins);
+      party.classList.remove('coin-time');
+      await U.wait(400);
+      if (alive()) party.classList.add('settled');
     }
 
     function firework(layer) {
@@ -493,6 +638,12 @@
       h('label', { class: 'check' }, sfxChk, ' Efectos de sonido'),
       h('div', { class: 'row' },
         button('Probar voz', '', () => voice.say('¡Hola! ¡Vamos a jugar!')),
+        button(`Regalar una moneda (tiene ${store.data.coins})`, '', (e) => {
+          store.data.coins++;
+          store.save();
+          e.currentTarget.textContent = `Regalar una moneda (tiene ${store.data.coins})`;
+          refreshCounters();
+        }),
         button('Desbloquear todos los niveles', '', () => {
           BQ.worlds.forEach((w) => store.complete(w.id, w.levels));
           close();
