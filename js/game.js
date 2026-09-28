@@ -259,11 +259,13 @@
     const promptBox = h('button', { class: 'prompt', onpointerdown: tap(repeat) });
     const qtext = h('p', { class: 'qtext' });
     const options = h('div', { class: 'options' });
+    const board = h('div', { class: 'board', hidden: true });
 
     const screen = h('div', { class: 'screen game' },
       h('div', { class: 'game-top' }, backBtn(() => showLevels(world)), track),
       h('div', { class: 'ask' }, h('div', { class: 'ask-row' }, speakBtn, promptBox), qtext),
-      options);
+      options,
+      board);
     show(screen, world.theme);
 
     const myToken = token;
@@ -275,13 +277,62 @@
       promptBox.hidden = !S.q.prompt;
       promptBox.replaceChildren(S.q.prompt ? BQ.renderVisual(S.q.prompt) : '');
       qtext.textContent = S.q.text;
+      const connect = S.q.kind === 'connect';
+      options.hidden = connect;
+      board.hidden = !connect;
+      voice.say(prefix ? `${prefix} ${S.q.say}` : S.q.say);
+      if (connect) return startConnect();
+
       options.replaceChildren(...S.q.options.map((o, k) => {
         const b = h('button', { class: 'option', style: { '--k': k }, onpointerdown: tap(() => answer(o, b)) }, BQ.renderVisual(o));
         o.el = b;
         return b;
       }));
       options.classList.remove('locked');
-      voice.say(prefix ? `${prefix} ${S.q.say}` : S.q.say);
+    }
+
+    // Unir puntos: cada tablero completo avanza una parada.
+    function startConnect() {
+      const firstBoard = S.step === 0 && level === 1;
+      const game = BQ.connectBoard(board, S.q.pairs, {
+        onStart() { sfx.init(); game.stopHint(); },
+        onPair(color) {
+          sfx.correct();
+          voice.say(`¡${U.cap(color.name)}!`);
+        },
+        onMiss() {
+          sfx.wrong();
+          voice.say('¡Casi! Llevá el dedo hasta el otro punto.');
+          game.hint();
+        },
+        onDone() {
+          voice.stop();
+          advance(board);
+        },
+      });
+      if (firstBoard) setTimeout(() => alive() && game.hint(), 900);
+    }
+
+    // Respuesta correcta: festejo, el personaje avanza y sigue la próxima pregunta (o la fiesta).
+    async function advance(el) {
+      sfx.correct();
+      burst(el);
+      // Se espera a que termine el festejo hablado Y el viaje del personaje antes de seguir.
+      const praised = voice.say(U.pick(PRAISES));
+      S.step++;
+      await U.wait(400);
+      if (!alive()) return;
+      sfx.step();
+      nodes[S.step].classList.add('done');
+      rider.classList.add('moving');
+      rider.style.left = pos(S.step) + '%';
+      await Promise.all([praised, U.wait(1400)]);
+      if (!alive()) return;
+      rider.classList.remove('moving');
+      await U.wait(250);
+      if (!alive()) return;
+      if (S.step >= N) levelComplete();
+      else nextQuestion();
     }
 
     async function answer(o, b) {
@@ -290,24 +341,7 @@
       if (o.correct) {
         options.classList.add('locked');
         b.classList.add('right');
-        sfx.correct();
-        burst(b);
-        // Se espera a que termine el festejo hablado Y el viaje del personaje antes de seguir.
-        const praised = voice.say(U.pick(PRAISES));
-        S.step++;
-        await U.wait(400);
-        if (!alive()) return;
-        sfx.step();
-        nodes[S.step].classList.add('done');
-        rider.classList.add('moving');
-        rider.style.left = pos(S.step) + '%';
-        await Promise.all([praised, U.wait(1400)]);
-        if (!alive()) return;
-        rider.classList.remove('moving');
-        await U.wait(250);
-        if (!alive()) return;
-        if (S.step >= N) levelComplete();
-        else nextQuestion();
+        advance(b);
         return;
       }
 

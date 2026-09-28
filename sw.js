@@ -1,6 +1,6 @@
-// Guarda todos los archivos del juego para que funcione sin internet.
+﻿// Guarda todos los archivos del juego para que funcione sin internet.
 // Al cambiar cualquier archivo, subir la versión para que los dispositivos se actualicen.
-const CACHE = 'baby-quiz-v6';
+const CACHE = 'baby-quiz-v7';
 
 const ASSETS = [
   './',
@@ -12,12 +12,14 @@ const ASSETS = [
   'js/audio.js',
   'js/characters.js',
   'js/render.js',
+  'js/connect.js',
   'js/worlds/registry.js',
   'js/worlds/colores.js',
   'js/worlds/animales.js',
   'js/worlds/numeros.js',
   'js/worlds/vocales.js',
   'js/worlds/formas.js',
+  'js/worlds/unir.js',
   'js/game.js',
   'icons/icon.svg',
   'icons/icon-192.png',

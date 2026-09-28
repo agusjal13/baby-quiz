@@ -242,14 +242,17 @@ button {
 
 .worlds-grid {
   flex: 1;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
   gap: 3vmin;
   justify-content: center;
   align-content: center;
 }
+@media (orientation: landscape) {
+  .worlds-grid { grid-template-columns: repeat(3, auto); }
+}
 .world-card {
-  width: clamp(120px, 27vmin, 230px);
+  width: clamp(96px, min(27vmin, 36vh), 230px);
   aspect-ratio: 1;
   border-radius: 5vmin;
   background: linear-gradient(160deg, var(--c1), var(--c2));
@@ -419,6 +422,60 @@ button {
 .option.wrong { filter: grayscale(1); opacity: .35; animation: shake .45s; pointer-events: none; }
 .option.right { box-shadow: 0 0 0 1.2vmin var(--ok), 0 1vmin 0 rgba(0, 0, 0, .15); animation: pop .5s; }
 .option.hint { box-shadow: 0 0 0 1.2vmin var(--gold), 0 1vmin 0 rgba(0, 0, 0, .15); animation: pulse .7s ease-in-out infinite; }
+
+/* Tablero de unir puntos */
+.board {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: rgba(255, 255, 255, .8);
+  border-radius: 4vmin;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .12);
+  touch-action: none;
+  overflow: hidden;
+}
+.board-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.trail {
+  fill: none;
+  stroke-width: clamp(14px, 4vmin, 34px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .85;
+}
+.trail.miss { opacity: 0; transition: opacity .4s; }
+.dot {
+  position: absolute;
+  z-index: 2;
+  --d: clamp(54px, 14vmin, 120px);
+  width: var(--d);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 1vmin #fff, 0 1.2vmin 0 1vmin rgba(0, 0, 0, .12), inset -1.2vmin -1.5vmin 0 rgba(0, 0, 0, .16);
+  pointer-events: none;
+  animation: pulse 1.6s ease-in-out infinite;
+  transition: scale .2s;
+}
+.dot.grab { scale: 1.25; animation: none; }
+.dot.done { animation: pop .5s; }
+.dot.done::after {
+  content: '⭐';
+  font-family: var(--emoji);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--d) * .5);
+  line-height: 1;
+}
+.hand {
+  position: absolute;
+  z-index: 3;
+  font-size: clamp(44px, 12vmin, 100px);
+  margin: -.1em 0 0 -.35em;
+  pointer-events: none;
+}
 
 /* Contenido de opciones y cartel (escala con la tarjeta) */
 .vis { display: grid; place-items: center; line-height: 1; }

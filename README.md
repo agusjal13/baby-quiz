@@ -44,6 +44,12 @@ sw.js                 funcionamiento sin internet
    Usar `minLevel` para que un tipo de pregunta aparezca recién en niveles altos.
 4. Sumar el `<script>` en `index.html` y la ruta en la lista `ASSETS` de `sw.js`.
 
+### Mundos de dibujar (unir puntos)
+
+Un generador puede devolver `{ kind: 'connect', key, say, pairs: [colores] }` en lugar de
+`BQ.question(...)`: el juego muestra un tablero para unir con el dedo cada par de puntos del
+mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo avanza una parada.
+
 ## Agregar más niveles o preguntas
 
 - Más niveles en un mundo: `levels: 8` en su definición.
