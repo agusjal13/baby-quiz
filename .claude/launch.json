@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "baby-quiz",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["servidor.js"],
+      "port": 8080
+    }
+  ]
+}
