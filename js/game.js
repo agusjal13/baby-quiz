@@ -403,8 +403,14 @@
           close();
           showWorlds();
         }),
-        button('Reiniciar progreso', 'danger', () => {
-          if (!confirm('¿Borrar el progreso y el personaje elegido?')) return;
+        button('Reiniciar progreso', 'danger', (e) => {
+          // Doble toque en vez de confirm(): no todos los navegadores/visores muestran diálogos.
+          const b = e.currentTarget;
+          if (!b.dataset.armed) {
+            b.dataset.armed = '1';
+            b.textContent = '¿Seguro? Tocá de nuevo para borrar';
+            return;
+          }
           store.resetProgress();
           close();
           showTitle();
