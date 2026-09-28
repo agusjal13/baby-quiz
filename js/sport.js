@@ -32,7 +32,7 @@
   function quiz() {
     let q = null;
     const repeat = () => q && voice.say(q.say);
-    const promptBox = h('button', { class: 'prompt', onpointerdown: ui().tap(repeat) });
+    const promptBox = h('button', { class: 'prompt', hidden: true, onpointerdown: ui().tap(repeat) });
     const qtext = h('p', { class: 'qtext' });
     const options = h('div', { class: 'options' });
     const el = h('div', { class: 'sport-quiz' },

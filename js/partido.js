@@ -81,6 +81,7 @@
     const quiz = BQ.sport.quiz();
     const waiting = h('div', { class: 'mt-waiting' }, h('span', { class: 'emoji' }, '👀'), ' ¡Mirá el partido!');
     quiz.el.append(waiting);
+    quiz.el.classList.add('idle'); // hasta la primera jugada
 
     const screen = h('div', { class: 'screen partido' },
       ui().topbar(ui().backBtn(() => { stop(); ui().showWorlds(); }), score, h('span', { class: 'spacer' })),
