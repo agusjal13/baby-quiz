@@ -50,31 +50,66 @@
     },
 
     stop() {
+      this._id++;
       if (this.supported) synth.cancel();
     },
 
+    _id: 0,
+
     // Devuelve una promesa que se resuelve al terminar de hablar (o por tiempo, si no hay voz).
+    // Cada frase nueva corta la anterior.
     say(text) {
+      const id = ++this._id;
       return new Promise((resolve) => {
         if (!this.supported) return setTimeout(resolve, 400);
-        synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        if (this.current) u.voice = this.current;
-        u.lang = this.current ? this.current.lang : 'es-AR';
-        u.rate = BQ.store.data.settings.rate;
-        u.pitch = 1.15;
+
+        const rate = BQ.store.data.settings.rate;
         let done = false;
+        let started = false;
+        let fallback;
+        let watchdog;
         const finish = () => {
           if (done) return;
           done = true;
-          clearTimeout(timer);
+          clearTimeout(fallback);
+          clearTimeout(watchdog);
           resolve();
         };
-        const timer = setTimeout(finish, 1500 + text.length * 90);
-        u.onend = finish;
-        u.onerror = finish;
-        this._utterance = u;
-        synth.speak(u);
+
+        const speak = (retry) => {
+          if (id !== this._id) return finish(); // ya la reemplazó otra frase
+          const u = new SpeechSynthesisUtterance(text);
+          if (this.current) u.voice = this.current;
+          u.lang = this.current ? this.current.lang : 'es-AR';
+          u.rate = rate;
+          u.pitch = 1.15;
+          u.onstart = () => {
+            started = true;
+            clearTimeout(fallback);
+            // Tope por si Chrome nunca avisa que terminó
+            fallback = setTimeout(finish, (2000 + text.length * 110) / rate);
+          };
+          u.onend = finish;
+          u.onerror = () => { if (started || !retry) finish(); };
+          this._utterance = u;
+          synth.resume(); // Chrome a veces queda "pausado" y no habla
+          synth.speak(u);
+          // Si no arrancó en 1,5 s, el motor se trabó: reiniciar y reintentar una vez
+          watchdog = setTimeout(() => {
+            if (started || done) return;
+            if (retry) {
+              synth.cancel();
+              setTimeout(() => speak(false), 120);
+            } else {
+              finish();
+            }
+          }, 1500);
+        };
+
+        // Chrome descarta frases pedidas justo después de cancel(): esperar un instante.
+        const wasBusy = synth.speaking || synth.pending;
+        synth.cancel();
+        setTimeout(() => speak(true), wasBusy ? 120 : 0);
       });
     },
   };

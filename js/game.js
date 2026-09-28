@@ -292,7 +292,8 @@
         b.classList.add('right');
         sfx.correct();
         burst(b);
-        voice.say(U.pick(PRAISES));
+        // Se espera a que termine el festejo hablado Y el viaje del personaje antes de seguir.
+        const praised = voice.say(U.pick(PRAISES));
         S.step++;
         await U.wait(400);
         if (!alive()) return;
@@ -300,9 +301,11 @@
         nodes[S.step].classList.add('done');
         rider.classList.add('moving');
         rider.style.left = pos(S.step) + '%';
-        await U.wait(1400);
+        await Promise.all([praised, U.wait(1400)]);
         if (!alive()) return;
         rider.classList.remove('moving');
+        await U.wait(250);
+        if (!alive()) return;
         if (S.step >= N) levelComplete();
         else nextQuestion();
         return;
@@ -319,8 +322,8 @@
       }
       options.classList.add('locked');
       S.q.options.find((x) => x.correct).el.classList.add('hint');
-      voice.say('¡Mirá! Era este.');
-      await U.wait(2300);
+      await Promise.all([voice.say('¡Mirá! Era este.'), U.wait(1800)]);
+      await U.wait(300);
       if (alive()) nextQuestion('¡Vamos con otra!');
     }
 
