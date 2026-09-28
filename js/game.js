@@ -46,13 +46,19 @@
     app.replaceChildren(background(theme || DEFAULT_THEME), screen);
   }
 
-  // Personaje con la ropa que tiene puesta
-  function avatarEl(c) {
-    return h('span', { class: 'avatar' },
-      h('span', { class: 'emoji av-main' + (c.flip ? ' flip' : '') }, c.emoji),
-      c.badge && h('span', { class: 'emoji av-badge' }, c.badge),
-      BQ.wardrobe.wornItems(c.id).map((it) => BQ.wardrobe.render(it, c.id)));
-  }
+  // Personaje de cuerpo entero con la ropa que tiene puesta
+  const avatarEl = (c) => BQ.puppet.el(c.id);
+
+  // Tocar al personaje: usa sus cosas (o hace su gesto)
+  const playable = (el) => {
+    el.classList.add('playable');
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      sfx.init();
+      BQ.puppet.use(el.querySelector('.avatar'));
+    });
+    return el;
+  };
 
   // Moneda dibujada con CSS (el emoji de moneda no existe en todos los dispositivos)
   const coinEl = (cls) => h('span', { class: 'coin' + (cls ? ' ' + cls : '') });
@@ -159,7 +165,7 @@
       ? h('span', { class: 'logo-space' })
       : h('span', { class: 'logo-l', style: { '--i': i, color: LOGO_COLORS[i % LOGO_COLORS.length] } }, ch)));
     const parade = h('div', { class: 'parade' },
-      U.sample(BQ.characters, 5).map((c, i) => h('span', { class: 'parade-item', style: { '--i': i } }, avatarEl(c))));
+      U.sample(BQ.characters, 5).map((c, i) => playable(h('span', { class: 'parade-item', style: { '--i': i } }, avatarEl(c)))));
     const play = h('button', { class: 'play-btn', 'aria-label': 'Jugar', onpointerdown: tap(start) }, h('span', { class: 'play-tri' }));
 
     show(h('div', { class: 'screen title' },
@@ -195,6 +201,7 @@
     const myToken = tk();
 
     async function choose(c, b) {
+      BQ.puppet.use(b.querySelector('.avatar'));
       grid.querySelectorAll('.char-btn').forEach((x) => x.classList.remove('selected'));
       b.classList.add('selected');
       grid.classList.add('locked');
@@ -284,7 +291,7 @@
           'aria-label': item.name,
           onpointerdown: tap(() => pick(item, b)),
         },
-        h('span', { class: 'shop-art' }, W.render(item)),
+        h('span', { class: 'shop-art' }, W.card(item)),
         owned
           ? h('span', { class: 'shop-tag' + (worn ? ' on' : '') }, worn ? '✔' : '')
           : h('span', { class: 'shop-price' }, coinEl(), String(W.PRICE)));
@@ -302,6 +309,9 @@
           W.wear(c.id, item);
           sfx.correct();
           voice.say(`¡Le pusiste ${item.name}!`);
+          paint();
+          showOff(item);
+          return;
         }
         paint();
         return;
@@ -318,12 +328,16 @@
       counter.set(store.data.coins);
       voice.say(`¡Le compraste ${item.name}!`);
       paint();
-      hero.classList.remove('dress');
-      void hero.offsetWidth;
-      hero.classList.add('dress');
       burst(hero);
+      showOff(item);
     }
 
+    // Recién puesta, el personaje la usa
+    function showOff(item) {
+      setTimeout(() => BQ.puppet.use(hero.querySelector('.avatar'), BQ.puppet.kindFor(item)), 350);
+    }
+
+    playable(hero);
     paint();
     show(h('div', { class: 'screen shop' },
       topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🛍️'), ' Tienda'),
@@ -349,7 +363,7 @@
       nodes.push(node);
       track.append(node);
     }
-    const rider = h('div', { class: 'ride-pos', style: { left: pos(0) + '%' } }, rideEl(world, currentChar()));
+    const rider = playable(h('div', { class: 'ride-pos', style: { left: pos(0) + '%' } }, rideEl(world, currentChar())));
     track.append(rider);
 
     const repeat = () => S.q && voice.say(S.q.say);
@@ -471,7 +485,7 @@
       const title = h('h2', { class: 'party-title' }, [...titleText].map((ch, i) => h('span', {
         style: { '--i': i, color: LOGO_COLORS[i % LOGO_COLORS.length] },
       }, ch === ' ' ? ' ' : ch)));
-      const hero = h('div', { class: 'party-hero' }, rideEl(world, currentChar()));
+      const hero = playable(h('div', { class: 'party-hero' }, rideEl(world, currentChar())));
       const fx = h('div', { class: 'party-fx' });
       const balloons = Array.from({ length: 7 }, (_, i) => h('span', {
         class: 'balloon emoji',
@@ -525,6 +539,7 @@
       sfx.whee();
 
       const later = (ms, fn) => setTimeout(() => alive() && fn(), ms);
+      later(1500, () => BQ.puppet.use(hero.querySelector('.avatar')));
       later(1100, () => {
         sfx.win();
         voice.say(last

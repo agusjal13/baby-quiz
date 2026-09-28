@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --font: "Comic Sans MS", "Chalkboard SE", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
   --emoji: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
   --ink: #3b2a5a;
@@ -134,27 +134,78 @@ button {
 
 /* ---------- Avatar y transporte ---------- */
 
-.avatar { position: relative; display: inline-block; line-height: 1; isolation: isolate; }
+/* ---------- Personaje de cuerpo entero (puppet.js) ---------- */
 
-/* Ropa: posiciones en % de la caja del personaje; el tamaño es el font-size */
-.acc { position: absolute; z-index: 2; line-height: 1; pointer-events: none; }
-.acc svg { display: block; width: 1em; height: 1em; overflow: visible; }
-.acc-head { top: -30%; left: 50%; font-size: .5em; translate: -50% 0; }
-.acc-neck { top: 72%; left: 50%; font-size: .38em; translate: -50% -50%; }
-.acc-hand { bottom: -4%; right: -34%; font-size: .55em; }
-.acc-hand:has(svg) { font-size: .9em; right: -22%; bottom: -12%; }
-.acc-hand svg { width: .4em; height: 1.1em; }
-.acc-body { top: 80%; left: 50%; font-size: .9em; translate: -50% 0; z-index: -1; }
-.acc-back { top: 50%; left: 50%; font-size: 1.3em; translate: -50% -48%; z-index: -1; }
-/* Capas: más anchas y bajas para que asomen a los costados del personaje */
-.acc-back:has(svg) { font-size: 1.7em; translate: -50% -36%; }
+/* La caja mide .8em x 1.12em (proporción del lienzo 100x140), así escala con el font-size */
+.avatar { position: relative; display: inline-block; width: .8em; height: 1.12em; line-height: 1; vertical-align: middle; }
+.avatar > .pp { display: block; width: 100%; height: 100%; overflow: visible; }
+.pp * { transform-box: view-box; }
+.pp-all { transform-origin: 50px 125px; animation: pp-bob 2.2s ease-in-out infinite; }
+.pp-eyes { animation: pp-blink 4.5s infinite; }
+.pp-head { transform-origin: 50px 64px; animation: pp-tilt 4s ease-in-out infinite; }
+.pp-arm-l { transform-origin: 37px 70px; animation: pp-sway-l 2.2s ease-in-out infinite; }
+.pp-arm-r { transform-origin: 63px 70px; animation: pp-sway-r 2.2s ease-in-out infinite; }
+.pp-hitem { transform-origin: 70px 90px; }
+.pp-leg-r { transform-origin: 55px 98px; }
+.pp-nitem { transform-origin: 50px 66px; }
+.pp-hditem { transform-origin: 50px 20px; }
+.pp-back { transform-origin: 50px 68px; }
+.playable { cursor: pointer; }
+
+/* Acciones al tocarlo */
+.pp.use-raise .pp-arm-r, .pp.use-magic .pp-arm-r { animation: pp-raise 1.4s ease-in-out; }
+.pp.use-raise .pp-hitem, .pp.use-magic .pp-hitem { animation: pp-unraise 1.4s ease-in-out; }
+.pp.use-block .pp-arm-r { animation: pp-block 1.1s ease-in-out; }
+.pp.use-block .pp-hitem { animation: pp-unblock 1.1s ease-in-out; }
+.pp.use-wave .pp-arm-r { animation: pp-wave 1.4s ease-in-out; }
+.pp.use-hop .pp-all, .pp.use-shine .pp-all { animation: pp-hop .9s ease-in-out; }
+.pp.use-hop .pp-hditem { animation: pp-wobble .9s ease-in-out; }
+.pp.use-wiggle .pp-nitem { animation: pp-wiggle .9s ease-in-out; }
+.pp.use-spin { animation: pp-spin 1s ease-in-out; }
+.pp.use-flutter .pp-back { animation: pp-flutter 1.2s ease-in-out; }
+.pp.use-kick .pp-leg-r { animation: pp-kick 1.1s ease-in-out; }
+.pp.use-kick .pp-ball { animation: pp-ball 1.1s ease-in-out; }
+.pp.use-fire .pp-head { animation: pp-roar 1.1s ease-in-out; }
+
+@keyframes pp-bob { 50% { transform: translateY(-2px); } }
+@keyframes pp-blink { 0%, 94%, 100% { transform: none; } 96% { transform: scaleY(.1); } }
+@keyframes pp-tilt { 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes pp-sway-l { 50% { transform: rotate(6deg); } }
+@keyframes pp-sway-r { 50% { transform: rotate(-6deg); } }
+@keyframes pp-raise { 20%, 75% { transform: rotate(-155deg); } }
+@keyframes pp-unraise { 20%, 75% { transform: rotate(155deg); } }
+@keyframes pp-block { 25%, 70% { transform: rotate(-70deg); } }
+@keyframes pp-unblock { 25%, 70% { transform: rotate(70deg); } }
+@keyframes pp-wave {
+  15%, 45%, 75% { transform: rotate(-150deg); }
+  30%, 60% { transform: rotate(-115deg); }
+}
+@keyframes pp-hop {
+  35% { transform: translateY(-16px); }
+  65% { transform: translateY(0) scale(1.06, .9); }
+  80% { transform: translateY(0) scale(.97, 1.03); }
+}
+@keyframes pp-wobble { 30% { transform: rotate(-18deg) translateY(-4px); } 60% { transform: rotate(14deg); } }
+@keyframes pp-wiggle { 20%, 60% { transform: rotate(-22deg) scale(1.35); } 40%, 80% { transform: rotate(22deg) scale(1.35); } }
+@keyframes pp-spin { to { transform: rotateY(360deg); } }
+@keyframes pp-flutter { 20%, 60% { transform: skewX(-14deg); } 40%, 80% { transform: skewX(12deg); } }
+@keyframes pp-kick { 30% { transform: rotate(-55deg); } 60% { transform: rotate(10deg); } }
+@keyframes pp-ball { 30% { transform: translate(0, 0); } 60% { transform: translate(16px, -46px); } 85% { transform: translate(4px, -6px); } }
+@keyframes pp-roar { 20%, 80% { transform: rotate(-10deg) scale(1.06); } }
+
+.pp-fx { position: fixed; z-index: 100; pointer-events: none; font-family: var(--emoji); line-height: 1; }
+
+/* Prenda sola en la tarjeta de la tienda */
+.card-art { display: grid; place-items: center; line-height: 1; }
+.card-svg svg { width: 1em; height: .7em; display: block; }
+.card-svg.tall svg { width: .5em; height: 1em; }
 .shirt {
   display: block;
   width: 1em;
   height: .82em;
   clip-path: polygon(30% 0, 12% 8%, 0 34%, 16% 44%, 22% 36%, 22% 100%, 78% 100%, 78% 36%, 84% 44%, 100% 34%, 88% 8%, 70% 0, 50% 12%);
 }
-.acc-body:has(.shirt) { filter: drop-shadow(0 0 .02em rgba(0, 0, 0, .6)); }
+.card-art:has(.shirt) { filter: drop-shadow(0 0 1px rgba(0, 0, 0, .7)); }
 
 /* Moneda dibujada */
 .coin {
@@ -268,10 +319,9 @@ button {
   border-radius: 50%;
   background: radial-gradient(circle, #fff 55%, rgba(255, 255, 255, .5));
   box-shadow: 0 1.4vmin 0 rgba(0, 0, 0, .12);
-  font-size: clamp(70px, 20vmin, 170px);
+  font-size: clamp(100px, 30vmin, 250px);
   flex: none;
 }
-.shop-hero.dress .avatar { animation: dance .5s ease-in-out 2; }
 .shop-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3vmin; }
 .shop-item {
   position: relative;
@@ -288,9 +338,6 @@ button {
 .shop-item.nope { animation: shake .45s; }
 .shop-item:active { translate: 0 .6vmin; }
 .shop-art { font-size: 56cqmin; line-height: 1; }
-/* En la tienda la prenda se muestra sola y centrada */
-.shop-art .acc { position: static; translate: none; font-size: 1em; display: block; filter: none; }
-.shop-art .acc-hand svg { width: .45em; height: 1em; margin: auto; }
 .shop-price, .shop-tag {
   position: absolute;
   right: -2cqmin;
@@ -308,9 +355,7 @@ button {
 }
 .shop-tag { padding: 2cqmin; width: 22cqmin; height: 22cqmin; justify-content: center; color: #fff; background: #d8d2e6; }
 .shop-tag.on { background: var(--ok); }
-.av-main { display: inline-block; }
 .flip { display: inline-block; transform: scaleX(-1); }
-.av-badge { position: absolute; font-size: .45em; right: -.2em; bottom: -.05em; }
 
 .ride {
   position: relative;
@@ -358,7 +403,7 @@ button {
   animation-delay: calc(var(--i) * .1s);
 }
 .logo-space { display: inline-block; width: .35em; }
-.parade { display: flex; gap: 3vmin; font-size: clamp(40px, 11vmin, 100px); }
+.parade { display: flex; gap: 4vmin; font-size: clamp(56px, 16vmin, 150px); }
 .parade-item { animation: bob 1.4s ease-in-out infinite; animation-delay: calc(var(--i) * .2s); }
 .play-btn {
   width: clamp(100px, 26vmin, 220px);
@@ -398,7 +443,7 @@ button {
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
-  font-size: clamp(42px, 11vmin, 92px);
+  font-size: clamp(56px, 14.5vmin, 124px);
   display: grid;
   place-items: center;
   transition: transform .2s;
@@ -409,7 +454,7 @@ button {
   transform: scale(1.12);
   animation: dance .6s ease-in-out infinite;
 }
-.char-mini { font-size: calc(var(--s) * .6); }
+.char-mini { font-size: calc(var(--s) * .78); }
 
 /* ---------- Mundos ---------- */
 
@@ -529,7 +574,7 @@ button {
   position: absolute;
   bottom: calc(14% + 1vmin);
   translate: -50% 0;
-  --ride: clamp(56px, 15vmin, 130px);
+  --ride: clamp(64px, 18vmin, 150px);
   transition: left 1.2s ease-in-out;
   z-index: 2;
 }

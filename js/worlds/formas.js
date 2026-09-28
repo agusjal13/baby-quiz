@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   const U = BQ.util;
@@ -33,7 +33,7 @@
       card1: '#6a3de8', card2: '#1f1147',
       decor: ['⭐', '✨', '🪐', '🌙', '☄️'],
     },
-    vehicle: { emoji: '🛸', anim: 'float', rider: { bottom: '30%', left: '31%', size: 0.4, front: true } },
+    vehicle: { emoji: '🛸', anim: 'float', rider: { bottom: '24%', left: '30%', size: 0.5, front: true } },
     goal: '🪐',
 
     questionTypes: [
