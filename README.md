@@ -1,7 +1,7 @@
-# Baby Quiz
+﻿# Baby Quiz
 
 Juego de preguntas para chicos de 3 a 5 años. Una voz hace la pregunta, el chico toca la respuesta
-y su personaje avanza por el camino. 5 aciertos completan el nivel.
+y su personaje avanza por el camino. 3 aciertos completan el nivel.
 
 ## Probar en la PC
 
@@ -13,7 +13,7 @@ Abrir http://localhost:8080 en Chrome o Edge.
 
 ## Cómo se juega
 
-- Cada nivel tiene 5 preguntas con 4 opciones.
+- Cada nivel tiene 3 preguntas con 4 opciones.
 - Error 1: se apaga la opción tocada y se repite la pregunta.
 - Error 2: se muestra la correcta y se cambia de pregunta (sin avanzar).
 - Los niveles se desbloquean en orden; los mundos están todos abiertos.
@@ -47,7 +47,7 @@ sw.js                 funcionamiento sin internet
 ## Agregar más niveles o preguntas
 
 - Más niveles en un mundo: `levels: 8` en su definición.
-- Más preguntas por nivel: `questionsPerLevel: 7`.
+- Más preguntas por nivel: `questionsPerLevel: 5` (por defecto son 3).
 - Más variedad: sumar elementos a las listas del mundo (`THINGS`, `ANIMALS`, `WORDS`...)
   o un nuevo tipo en `questionTypes`.
 

@@ -1,6 +1,6 @@
 // Guarda todos los archivos del juego para que funcione sin internet.
 // Al cambiar cualquier archivo, subir la versión para que los dispositivos se actualicen.
-const CACHE = 'baby-quiz-v3';
+const CACHE = 'baby-quiz-v4';
 
 const ASSETS = [
   './',
@@ -36,12 +36,19 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Con internet trae siempre la versión nueva (y la guarda); sin internet usa la guardada.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request).catch(() => {
-      if (e.request.mode === 'navigate') return caches.match('index.html');
-      return Response.error();
-    })),
+    fetch(e.request)
+      .then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request, { ignoreSearch: true })
+        .then((hit) => hit || (e.request.mode === 'navigate' ? caches.match('index.html') : Response.error()))),
   );
 });

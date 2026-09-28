@@ -10,7 +10,7 @@
    *   name, sayName        nombre en pantalla y cómo lo dice la voz ("el mundo de los colores")
    *   icon                 emoji del mundo
    *   levels               cantidad de niveles (por defecto 5)
-   *   questionsPerLevel    preguntas para completar un nivel (por defecto 5)
+   *   questionsPerLevel    preguntas para completar un nivel (por defecto 3)
    *   theme                colores del fondo, de la tarjeta y emojis decorativos
    *   vehicle              medio de transporte del personaje en este mundo
    *   goal                 emoji de la meta al final del recorrido
@@ -21,7 +21,7 @@
   BQ.worlds = [];
 
   BQ.registerWorld = function (def) {
-    BQ.worlds.push(Object.assign({ levels: 5, questionsPerLevel: 5 }, def));
+    BQ.worlds.push(Object.assign({ levels: 5, questionsPerLevel: 3 }, def));
     BQ.worlds.sort((a, b) => a.order - b.order);
   };
 
