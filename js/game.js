@@ -321,7 +321,7 @@
         void b.offsetWidth;
         b.classList.add('nope');
         sfx.wrong();
-        voice.say('Necesitás una moneda. ¡Completá un mundo para ganar una!');
+        voice.say(`Necesitás ${U.NUM_WORDS[W.PRICE]} monedas y tenés ${coinsWord()}. ¡Pasá niveles para ganar más!`);
         return;
       }
       sfx.coin();
@@ -343,9 +343,16 @@
       topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🛍️'), ' Tienda'),
         h('div', { class: 'top-right' }, counter, gearBtn())),
       h('div', { class: 'shop-body' }, hero, grid)));
-    voice.say(store.data.coins > 0
+    voice.say(store.data.coins >= W.PRICE
       ? `¡Bienvenido a la tienda! ¿Qué le comprás ${c.name.replace(/^el /, 'al ').replace(/^la /, 'a la ')}?`
-      : `¡Bienvenido a la tienda! Completá un mundo para ganar una moneda.`);
+      : `¡Bienvenido a la tienda! Cada cosa cuesta ${U.NUM_WORDS[W.PRICE]} monedas. ¡Pasá niveles para juntarlas!`);
+  }
+
+  // "una moneda", "tres monedas", "ninguna moneda"
+  function coinsWord(n = store.data.coins) {
+    if (n === 0) return 'ninguna';
+    if (n === 1) return 'una';
+    return n <= 10 ? U.NUM_WORDS[n] : String(n);
   }
 
   // ---------- Juego ----------
@@ -496,18 +503,23 @@
         },
       }, '🎈'));
 
-      // Mundo completado por primera vez: premio de una moneda
-      const earnedCoin = last && store.awardWorldCoin(world.id);
+      // Nivel completado por primera vez: premio de una moneda
+      const earnedCoin = store.awardLevelCoin(world.id, level);
+      const canBuy = store.data.coins >= BQ.wardrobe.PRICE;
+      const shopBtn = (cls) => h('button', { class: 'btn-shop' + (cls ? ' ' + cls : ''), 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) }, h('span', { class: 'emoji' }, '🛍️'));
 
-      const actions = earnedCoin
+      // El botón grande es la acción principal: seguir jugando, o la tienda al terminar un mundo con monedas
+      const actions = last
         ? [
           h('button', { class: 'btn-round', 'aria-label': 'Mundos', onpointerdown: tap(() => showWorlds()) }, h('span', { class: 'emoji' }, '🗺️')),
-          h('button', { class: 'btn-shop', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) }, h('span', { class: 'emoji' }, '🛍️')),
+          canBuy ? shopBtn() : h('button', { class: 'btn-next', 'aria-label': 'Mundos', onpointerdown: tap(next) }, h('span', { class: 'play-tri' })),
         ]
         : [
           h('button', { class: 'btn-round', 'aria-label': 'Niveles', onpointerdown: tap(() => showLevels(world)) }, h('span', { class: 'emoji' }, '🗺️')),
           h('button', { class: 'btn-next', 'aria-label': 'Siguiente', onpointerdown: tap(next) }, h('span', { class: 'play-tri' })),
-          h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
+          canBuy
+            ? shopBtn('mini')
+            : h('button', { class: 'btn-round', 'aria-label': 'Repetir nivel', onpointerdown: tap(() => startLevel(world, level)) }, h('span', { class: 'emoji' }, '🔁')),
         ];
 
       const party = h('div', { class: 'party' },
@@ -550,40 +562,59 @@
       later(3300, () => (earnedCoin ? coinReward(party, fx) : party.classList.add('settled')));
     }
 
-    // Moneda gigante que gira y brilla, y después vuela al contador
+    // Moneda gigante que gira y brilla, y después cae en la fila de 5 lugares (lo que cuesta una prenda)
     async function coinReward(party, fx) {
+      const price = BQ.wardrobe.PRICE;
+      const coins = store.data.coins;
+      const before = Math.min(coins - 1, price);
+      const after = Math.min(coins, price);
+
       const counter = coinCounter();
       counter.classList.add('party-coins');
-      counter.querySelector('.coin-n').textContent = String(store.data.coins - 1);
+      counter.querySelector('.coin-n').textContent = String(coins - 1);
+      const slots = Array.from({ length: price }, (_, i) => coinEl('slot' + (i < before ? ' on' : '')));
       const coin = coinEl('big-coin');
-      const stage = h('div', { class: 'coin-stage' }, h('div', { class: 'coin-glow' }), coin);
+      const stage = h('div', { class: 'coin-stage' },
+        h('div', { class: 'coin-glow' }),
+        coin,
+        h('div', { class: 'coin-goal' }, slots, h('span', { class: 'emoji goal-bag' }, '🛍️')));
       party.append(counter, stage);
       party.classList.add('coin-time');
       sfx.coin();
-      [300, 900, 1500].forEach((ms) => setTimeout(() => alive() && firework(fx), ms));
+      [300, 1000].forEach((ms) => setTimeout(() => alive() && firework(fx), ms));
 
+      const missing = price - coins;
       await Promise.all([
-        voice.say('¡Ganaste una moneda! Con la moneda podés comprarle cosas a tu personaje en la tienda.'),
-        U.wait(3200),
+        voice.say(missing <= 0
+          ? `¡Ganaste una moneda! ¡Ya tenés ${coinsWord(coins)}! ¡Podés comprar algo en la tienda!`
+          : `¡Ganaste una moneda! Te ${missing === 1 ? 'falta una' : `faltan ${U.NUM_WORDS[missing]}`} para comprar algo en la tienda.`),
+        U.wait(2400),
       ]);
       if (!alive()) return;
 
+      // Vuela a su lugar en la fila (o al contador, si la fila ya estaba llena)
+      const target = before < price ? slots[after - 1] : counter.querySelector('.coin');
       const from = coin.getBoundingClientRect();
-      const to = counter.querySelector('.coin').getBoundingClientRect();
+      const to = target.getBoundingClientRect();
       const fly = coin.animate([
         { transform: 'translate(0, 0) scale(1)' },
         {
           transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(${to.width / from.width})`,
         },
-      ], { duration: 800, easing: 'cubic-bezier(.5,0,.7,1)', fill: 'forwards' });
-      await fly.finished.catch(() => {});
+      ], { duration: 750, easing: 'cubic-bezier(.5,0,.7,1)', fill: 'forwards' });
+      // Tope de tiempo: si la pantalla está en segundo plano la animación no avanza y no hay que trabarse
+      await Promise.race([fly.finished.catch(() => {}), U.wait(1000)]);
+      if (!alive()) return;
+      coin.remove();
+      target.classList.add('on');
+      sfx.coin();
+      counter.set(coins);
+      if (after >= price) stage.classList.add('full');
+      await U.wait(after >= price ? 1400 : 900);
       if (!alive()) return;
       stage.remove();
-      sfx.coin();
-      counter.set(store.data.coins);
       party.classList.remove('coin-time');
-      await U.wait(400);
-      if (alive()) party.classList.add('settled');
+      party.classList.add('settled');
     }
 
     function firework(layer) {
@@ -653,10 +684,10 @@
       h('label', { class: 'check' }, sfxChk, ' Efectos de sonido'),
       h('div', { class: 'row' },
         button('Probar voz', '', () => voice.say('¡Hola! ¡Vamos a jugar!')),
-        button(`Regalar una moneda (tiene ${store.data.coins})`, '', (e) => {
+        button(`Regalar una moneda (tiene ${store.data.coins}; cada cosa cuesta ${BQ.wardrobe.PRICE})`, '', (e) => {
           store.data.coins++;
           store.save();
-          e.currentTarget.textContent = `Regalar una moneda (tiene ${store.data.coins})`;
+          e.currentTarget.textContent = `Regalar una moneda (tiene ${store.data.coins}; cada cosa cuesta ${BQ.wardrobe.PRICE})`;
           refreshCounters();
         }),
         button('Desbloquear todos los niveles', '', () => {

@@ -7,10 +7,23 @@
     character: null,
     progress: {}, // { [worldId]: último nivel completado }
     coins: 0,
-    coinWorlds: [], // mundos que ya dieron su moneda
+    coinLevels: null, // niveles que ya dieron su moneda ("mundo:nivel")
     wardrobe: {}, // { [charId]: { owned: [itemId], worn: [itemId] } }
     settings: { voiceURI: null, rate: 0.9, sfx: true },
   });
+
+  // Datos guardados con versiones anteriores: los niveles ya completados cuentan como cobrados
+  // (antes la moneda se daba por mundo), así no se regalan monedas de golpe.
+  function migrate(data) {
+    if (!Array.isArray(data.coinLevels)) {
+      data.coinLevels = [];
+      for (const [worldId, done] of Object.entries(data.progress)) {
+        for (let level = 1; level <= done; level++) data.coinLevels.push(`${worldId}:${level}`);
+      }
+    }
+    delete data.coinWorlds;
+    return data;
+  }
 
   function load() {
     try {
@@ -18,10 +31,10 @@
       if (raw) {
         const saved = JSON.parse(raw);
         const def = defaults();
-        return Object.assign(def, saved, { settings: Object.assign(def.settings, saved.settings) });
+        return migrate(Object.assign(def, saved, { settings: Object.assign(def.settings, saved.settings) }));
       }
     } catch (e) { /* sin almacenamiento: se juega igual, sin guardar */ }
-    return defaults();
+    return migrate(defaults());
   }
 
   BQ.store = {
@@ -38,17 +51,18 @@
         this.save();
       }
     },
-    // La primera vez que se completa un mundo se gana una moneda. Devuelve true si la dio.
-    awardWorldCoin(worldId) {
-      if (this.data.coinWorlds.includes(worldId)) return false;
-      this.data.coinWorlds.push(worldId);
+    // La primera vez que se completa cada nivel se gana una moneda. Devuelve true si la dio.
+    awardLevelCoin(worldId, level) {
+      const key = `${worldId}:${level}`;
+      if (this.data.coinLevels.includes(key)) return false;
+      this.data.coinLevels.push(key);
       this.data.coins++;
       this.save();
       return true;
     },
     resetProgress() {
       const settings = this.data.settings;
-      this.data = defaults();
+      this.data = migrate(defaults());
       this.data.settings = settings;
       this.save();
     },

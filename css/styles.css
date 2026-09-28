@@ -258,7 +258,35 @@ button {
 /* Premio: moneda gigante */
 .party.coin-time .party-hero, .party.coin-time .party-title, .party.coin-time .party-prize { opacity: .2; transition: opacity .4s; }
 .party-coins { position: absolute; top: max(2vmin, env(safe-area-inset-top)); right: max(2vmin, env(safe-area-inset-right)); z-index: 7; }
-.coin-stage { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none; }
+.coin-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5vmin;
+  pointer-events: none;
+}
+/* Fila de 5 lugares: lo que cuesta una prenda */
+.coin-goal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 2vmin;
+  padding: 1.5vmin 3vmin;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .12);
+  font-size: clamp(28px, 8vmin, 64px);
+}
+.coin.slot { filter: grayscale(1); opacity: .3; }
+.coin.slot.on { filter: none; opacity: 1; animation: pop .5s; }
+.goal-bag { font-size: 1.15em; margin-left: 1vmin; }
+.coin-stage.full .coin-goal { animation: pulse .7s ease-in-out infinite; box-shadow: 0 0 0 1vmin #ffd23f, 0 1vmin 0 rgba(0, 0, 0, .12); }
+.btn-shop.mini { width: clamp(64px, 15vmin, 130px); font-size: clamp(30px, 8vmin, 64px); box-shadow: 0 1.1vmin 0 #b07800; }
 .coin-glow {
   position: absolute;
   width: 90vmin;
@@ -272,7 +300,7 @@ button {
   animation: spin 8s linear infinite;
 }
 .big-coin {
-  --s: clamp(150px, 46vmin, 400px);
+  --s: clamp(120px, 38vmin, 340px);
   position: relative;
   overflow: hidden;
   animation: coinin .9s cubic-bezier(.3, 1.6, .5, 1) both, coinspin 2.4s ease-in-out .9s infinite;

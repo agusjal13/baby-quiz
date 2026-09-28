@@ -52,12 +52,16 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Monedas y tienda
 
-- Completar un mundo por primera vez da **1 moneda** (animación de moneda gigante al final de la fiesta).
-- En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a 1 moneda cada cosa.
+- Completar un nivel por primera vez da **1 moneda** (moneda gigante al final de la fiesta, que cae en
+  una fila de 5 lugares). Repetir un nivel ya pasado no da otra.
+- En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a **5 monedas** cada cosa
+  (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`.
   Tocar algo comprado lo pone o lo saca. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
 - Desde ⚙️ se pueden regalar monedas.
 - Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
-  (con `emoji`, un dibujo `svg` o una remera `shirt`). Si queda mal ubicada, ajustarla en `FIT`.
+  (con `emoji`, `art`, `bow`, `cape` o `jersey`, y opcionalmente `use`: la acción al tocarlo).
+- Los personajes se dibujan en `js/puppet.js` (`LOOKS`); ahí también está dónde va cada prenda
+  (`anchors`) y el gesto propio de cada uno (`idle`).
 
 ## Agregar más niveles o preguntas
 

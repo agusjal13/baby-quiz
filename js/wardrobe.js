@@ -109,7 +109,7 @@
   };
 
   BQ.wardrobe = {
-    PRICE: 1,
+    PRICE: 5,
     ART,
 
     items: (charId) => CATALOG[charId] || [],
