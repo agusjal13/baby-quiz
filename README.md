@@ -53,9 +53,13 @@ sw.js                 funcionamiento sin internet
 
 Después de cambiar archivos, subir la versión `CACHE` en `sw.js` para que las tablets se actualicen.
 
+## Publicación
+
+El juego está publicado con GitHub Pages en **https://agusjal13.github.io/baby-quiz/**.
+Cada `git push` a `main` lo actualiza en uno o dos minutos (acordarse de subir `CACHE` en `sw.js`).
+
 ## Instalar en tablet o celular (sin internet)
 
-El juego es una PWA: se sube una vez a un hosting con HTTPS (GitHub Pages, Netlify, etc.),
-se abre en Chrome del dispositivo, menú ⋮ → **Instalar app**, y desde ahí funciona sin conexión.
+Abrir el link en Chrome del dispositivo, menú ⋮ → **Instalar app**. Desde ahí funciona sin conexión.
 La voz usa el motor de texto a voz del dispositivo: en Android conviene tener descargada
 la voz en español (Ajustes → Texto a voz).

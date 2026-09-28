@@ -168,6 +168,7 @@ button {
 /* ---------- Título ---------- */
 
 .title { align-items: center; justify-content: space-between; }
+.title .topbar { align-self: stretch; }
 .logo {
   margin: 0;
   font-size: clamp(48px, 15vmin, 150px);
