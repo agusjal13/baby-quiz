@@ -1173,11 +1173,11 @@ button {
 }
 .pen-field { display: block; width: 100%; height: 100%; }
 .pen-field * { transform-box: view-box; }
-.pen-quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1.5vmin; }
+.sport-quiz { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1.5vmin; }
 @media (orientation: landscape) {
   .pen-body { flex-direction: row; }
   .pen-scene { flex: 1.1; }
-  .pen-quiz { flex: 1; }
+  .sport-quiz { flex: 1; }
   .penales .options { grid-template-columns: 1fr 1fr; }
 }
 
@@ -1190,7 +1190,7 @@ button {
 .pen-fan:nth-child(3n) { animation-delay: .12s !important; }
 .pen-fan:nth-child(3n+1) { animation-delay: .24s !important; }
 
-.pen-flash {
+.sport-flash {
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -1204,9 +1204,9 @@ button {
   -webkit-text-stroke: .08em #fff;
   paint-order: stroke fill;
 }
-.pen-flash.goal { color: #ff5a8a; }
-.pen-flash.saved { color: #ff9800; }
-.pen-flash span { display: inline-block; animation: letterpop .45s both; animation-delay: calc(var(--i) * .05s); }
+.sport-flash.goal { color: #ff5a8a; }
+.sport-flash.saved { color: #ff9800; }
+.sport-flash span { display: inline-block; animation: letterpop .45s both; animation-delay: calc(var(--i) * .05s); }
 
 .pen-score { display: flex; gap: 2vmin; }
 .pen-slot {
@@ -1225,13 +1225,121 @@ button {
 .pen-slot.saved { background: #ffe0cc; border: .6vmin solid #ff9800; }
 .pen-slot.saved::before { content: '🧤'; font-family: var(--emoji); }
 .pen-final { position: relative; z-index: 3; display: flex; gap: 2vmin; }
-.pen-hero { font-size: clamp(90px, 26vmin, 220px); }
-.party.pen-lost { background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, .92), rgba(214, 234, 255, .85) 70%); }
-.pen-coin { position: absolute; left: 50%; top: 42%; margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 8; }
+.sport-hero { font-size: clamp(90px, 26vmin, 220px); }
+.party.sport-lost { background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, .92), rgba(214, 234, 255, .85) 70%); }
+.sport-coin { position: absolute; left: 50%; top: 42%; margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 8; }
 
 @keyframes pen-keeper { from { transform: translateX(-9px); } to { transform: translateX(9px); } }
 @keyframes pen-net { 20% { transform: scale(1.05, 1.08) translateY(-2px); } 45% { transform: scale(.97, .95); } 70% { transform: scale(1.02, 1.03); } }
 @keyframes pen-jump { to { transform: translateY(-3px); } }
+
+/* ---------- Partidito ---------- */
+
+.game-pill.partido { background: linear-gradient(160deg, #2f9bff, #1a3d8f); }
+.games-row { flex-wrap: wrap; }
+.partido { gap: 1.5vmin; }
+.mt-scene {
+  position: relative;
+  flex: 1.3;
+  min-height: 0;
+  container-type: size;
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
+  background: #4caf50;
+}
+@media (orientation: landscape) {
+  .mt-scene { flex: 1.4; }
+}
+.mt-field { display: block; width: 100%; height: 100%; }
+.mt-field * { transform-box: view-box; }
+.mt-net-us { transform-origin: 4px 125px; }
+.mt-net-them { transform-origin: 396px 125px; }
+.mt-net.shake { animation: pen-net .7s ease-out; }
+.mt-score {
+  display: flex;
+  align-items: center;
+  gap: 1.5vmin;
+  padding: .3vmin 2.5vmin;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .1);
+}
+.mt-team { font-size: clamp(30px, 7.5vmin, 62px); line-height: 1; }
+.mt-team .pp, .mt-team .pp * { animation: none !important; }
+.mt-goals { font-size: clamp(26px, 7vmin, 56px); font-weight: 900; min-width: 1ch; text-align: center; font-variant-numeric: tabular-nums; }
+.mt-dash { font-size: clamp(20px, 5vmin, 40px); font-weight: 900; opacity: .5; }
+.mt-final { position: relative; z-index: 3; font-size: clamp(34px, 10vmin, 84px); font-weight: 900; color: var(--ink); }
+
+/* Mientras se juega sin pregunta */
+.mt-waiting {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 2vmin;
+  font-size: clamp(20px, 5vmin, 40px);
+  font-weight: 900;
+  color: var(--ink);
+  background: rgba(255, 255, 255, .6);
+  border-radius: 4vmin;
+}
+.sport-quiz.idle .mt-waiting { display: flex; }
+.sport-quiz.idle .ask, .sport-quiz.idle .options { display: none; }
+
+/* ---------- Trofeos ---------- */
+
+.game-pill.trofeos { background: linear-gradient(160deg, #ffc93c, #e08a00); }
+.trophy { display: inline-block; line-height: 0; }
+.trophy-art { display: block; width: 100%; height: 100%; overflow: visible; }
+.tr-spark { transform-box: fill-box; transform-origin: center; animation: twinkle 1.4s ease-in-out infinite; }
+
+.trophy-shelf {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(84px, 17vmin, 150px), 1fr));
+  gap: 2.5vmin;
+  align-content: start;
+  padding: 1vmin 1vmin 3vmin;
+}
+.trophy-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1vmin;
+  padding: 1.5vmin 1vmin 1.2vmin;
+  border-radius: 3vmin;
+  background: rgba(255, 255, 255, .12);
+  box-shadow: inset 0 -1.2vmin 0 rgba(0, 0, 0, .18);
+  color: #fff;
+}
+.trophy-slot .trophy { width: 80%; aspect-ratio: 100 / 130; }
+.trophy-slot:not(.have) .trophy { filter: brightness(0) opacity(.35); }
+.trophy-slot.have { background: radial-gradient(circle at 50% 40%, rgba(255, 244, 176, .45), rgba(255, 255, 255, .12) 70%); }
+.trophy-slot.shine .trophy { animation: pop .6s; }
+.trophy-slot-name { font-size: clamp(11px, 2.4vmin, 17px); font-weight: bold; text-align: center; line-height: 1.15; }
+.trophy-lock { font-size: clamp(12px, 2.8vmin, 20px); font-weight: 900; opacity: .85; }
+.trophy-slot:active { translate: 0 .5vmin; }
+
+.trophy-stage { gap: 2vmin; }
+.trophy-big { position: relative; z-index: 1; width: clamp(120px, 34vmin, 300px); aspect-ratio: 100 / 130; animation: coinin .9s cubic-bezier(.3, 1.6, .5, 1) both; }
+.trophy-new-label, .trophy-name {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-weight: 900;
+  color: var(--ink);
+  -webkit-text-stroke: .5vmin #fff;
+  paint-order: stroke fill;
+}
+.trophy-new-label { font-size: clamp(24px, 7vmin, 60px); color: #ff5a8a; }
+.trophy-name { font-size: clamp(18px, 5vmin, 42px); }
+.trophy-prize { width: clamp(60px, 14vmin, 120px); aspect-ratio: 100 / 130; }
+
+@keyframes twinkle { 50% { transform: scale(.4); opacity: .4; } }
 
 /* ---------- Animaciones ---------- */
 

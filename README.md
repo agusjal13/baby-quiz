@@ -71,6 +71,20 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Respuesta correcta = gol (el arquero se tira al otro lado); incorrecta = ataja y se muestra la correcta.
 - Con 2 goles o más se gana el partido y **1 moneda** (siempre, cada partido ganado). Código en `js/penales.js`.
 
+## Partidito
+
+- Botón ⚽ Partidito en el mapa. Cancha 4 vs 4: tu equipo (tu personaje con su ropa) contra otro
+  personaje al azar. Juegan solos y cada tanto se arma una jugada de gol con una pregunta:
+  ataque propio (bien = gol, mal = ataja el rival) o ataque rival (bien = ataja tu arquero, mal = gol de ellos).
+- Gana el primero en llegar a 3 goles (alrededor de un minuto). Código en `js/partido.js`;
+  lo que comparte con los penales (preguntas, panel y pantalla final) está en `js/sport.js`.
+
+## Trofeos
+
+- Cada partido ganado (penales o partidito) da **1 moneda** y suma para los **20 trofeos**
+  (de la medalla de bronce con 1 partido a la copa del mundo con 50). Se ven en 🏆 Trofeos.
+- La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
+
 ## Bingo familiar (online)
 
 - Botón 🎱 en el mapa de mundos. Uno crea la partida (código de 4 letras + link para compartir)

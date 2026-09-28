@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   /*
@@ -26,19 +26,8 @@
 
   let S = null; // partido actual
 
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const wait = BQ.sport.wait;
   const alive = (s) => S === s && s.screen.isConnected;
-
-  // Pregunta de cualquier mundo (menos los de dibujar), con nivel según lo que ya jugó en ese mundo
-  function randomQuestion(used) {
-    for (let i = 0; i < 40; i++) {
-      const world = U.pick(BQ.worlds);
-      const top = Math.max(1, Math.min(world.levels, store.completed(world.id) + 1));
-      const q = BQ.nextQuestion(world, 1 + U.rand(top), used);
-      if (q.kind !== 'connect') return q;
-    }
-    return BQ.nextQuestion(BQ.worlds[0], 1, used);
-  }
 
   // ---------- La cancha ----------
 
@@ -101,23 +90,15 @@
 
   function startMatch() {
     const scene = h('div', { class: 'pen-scene', html: sceneSvg() });
-    const flash = h('div', { class: 'pen-flash', hidden: true });
+    const flash = h('div', { class: 'sport-flash', hidden: true });
     scene.append(flash);
     const score = h('div', { class: 'pen-score' },
       Array.from({ length: KICKS }, () => h('span', { class: 'pen-slot' })));
-    const speakBtn = h('button', { class: 'speak-btn', 'aria-label': 'Repetir pregunta', onpointerdown: ui().tap(() => S && S.q && voice.say(S.q.say)) },
-      h('span', { class: 'emoji' }, '🔊'));
-    const promptBox = h('button', { class: 'prompt', onpointerdown: ui().tap(() => S && S.q && voice.say(S.q.say)) });
-    const qtext = h('p', { class: 'qtext' });
-    const options = h('div', { class: 'options' });
+    const quiz = BQ.sport.quiz();
 
     const screen = h('div', { class: 'screen penales' },
       ui().topbar(ui().backBtn(() => { S = null; ui().showWorlds(); }), score, h('span', { class: 'spacer' })),
-      h('div', { class: 'pen-body' },
-        scene,
-        h('div', { class: 'pen-quiz' },
-          h('div', { class: 'ask' }, h('div', { class: 'ask-row' }, speakBtn, promptBox), qtext),
-          options)));
+      h('div', { class: 'pen-body' }, scene, quiz.el));
     ui().show(screen, THEME);
 
     // El pateador: el personaje del jugador, con su ropa, parado al lado de la pelota
@@ -131,11 +112,11 @@
     kicker.append(pp);
 
     const s = {
-      screen, scene, svg, flash, score, promptBox, qtext, options, kicker,
+      screen, scene, svg, flash, score, quiz, kicker,
       keeper: svg.querySelector('.pen-keeper-dive'),
       ball: svg.querySelector('.pen-ball'),
       net: svg.querySelector('.pen-net'),
-      kick: 0, goals: 0, used: new Set(), q: null,
+      kick: 0, goals: 0, used: new Set(),
     };
     S = s;
 
@@ -145,33 +126,10 @@
       .then(() => { if (alive(s)) nextKick(s); });
   }
 
-  function nextKick(s) {
-    s.q = randomQuestion(s.used);
-    s.promptBox.hidden = !s.q.prompt;
-    s.promptBox.replaceChildren(s.q.prompt ? BQ.renderVisual(s.q.prompt) : '');
-    s.qtext.textContent = s.q.text;
-    s.options.replaceChildren(...s.q.options.map((o, k) => {
-      const b = h('button', { class: 'option', style: { '--k': k }, onpointerdown: ui().tap(() => answer(s, o, b)) }, BQ.renderVisual(o));
-      o.el = b;
-      return b;
-    }));
-    s.options.classList.remove('locked');
+  async function nextKick(s) {
     s.score.children[s.kick].classList.add('now');
-    voice.say(`Penal ${s.kick + 1}. ${s.q.say}`);
-  }
-
-  async function answer(s, o, b) {
-    if (!alive(s) || s.options.classList.contains('locked')) return;
-    s.options.classList.add('locked');
-    const goal = o.correct;
-    if (goal) {
-      b.classList.add('right');
-      sfx.correct();
-    } else {
-      b.classList.add('wrong');
-      s.q.options.find((x) => x.correct).el.classList.add('hint'); // que vea cuál era
-    }
-    voice.stop();
+    const goal = await s.quiz.ask(BQ.sport.randomQuestion(s.used), `Penal ${s.kick + 1}.`);
+    if (!alive(s)) return;
     await shoot(s, goal);
     if (!alive(s)) return;
 
@@ -225,20 +183,14 @@
       s.net.classList.add('shake');
       sfx.cheer();
       sfx.win();
-      showFlash(s, '¡GOOOL!', 'goal');
+      BQ.sport.flash(s.flash, '¡GOOOL!', 'goal');
       ui().burst(s.scene);
       s.svg.classList.add('celebrate');
     } else {
       sfx.aww();
-      showFlash(s, '¡ATAJÓ!', 'saved');
+      BQ.sport.flash(s.flash, '¡ATAJÓ!', 'saved');
     }
     await wait(400);
-  }
-
-  function showFlash(s, text, kind) {
-    s.flash.hidden = false;
-    s.flash.className = 'pen-flash ' + kind;
-    s.flash.replaceChildren(...[...text].map((ch, i) => h('span', { style: { '--i': i } }, ch)));
   }
 
   function resetShot(s) {
@@ -250,65 +202,17 @@
 
   // ---------- Final del partido ----------
 
-  async function finish(s) {
-    const won = s.goals >= WIN_GOALS;
-    if (won) store.addCoin();
-    const canBuy = store.data.coins >= BQ.wardrobe.PRICE;
-
-    const hero = ui().playable(h('div', { class: 'party-hero pen-hero' }, BQ.puppet.el(store.data.character)));
-    const title = won ? '¡Ganaste!' : '¡Casi!';
-    const counter = ui().coinCounter();
-    counter.classList.add('party-coins');
-    if (won) counter.querySelector('.coin-n').textContent = String(store.data.coins - 1);
-
-    const again = h('button', { class: 'btn-next', 'aria-label': 'Jugar otra vez', onpointerdown: ui().tap(startMatch) }, h('span', { class: 'play-tri' }));
-    const actions = h('div', { class: 'party-actions' },
-      h('button', { class: 'btn-round', 'aria-label': 'Mundos', onpointerdown: ui().tap(() => { S = null; ui().showWorlds(); }) }, h('span', { class: 'emoji' }, '🗺️')),
-      again,
-      canBuy && h('button', { class: 'btn-shop mini', 'aria-label': 'Tienda', onpointerdown: ui().tap(() => { S = null; ui().showShop(); }) }, h('span', { class: 'emoji' }, '🛍️')));
-
-    const party = h('div', { class: 'party' + (won ? '' : ' pen-lost') },
-      h('div', { class: 'party-rays' }),
-      won && ui().confetti(),
-      h('h2', { class: 'party-title' }, [...title].map((ch, i) => h('span', {
-        style: { '--i': i, color: ui().LOGO_COLORS[i % ui().LOGO_COLORS.length] },
-      }, ch))),
-      hero,
-      h('div', { class: 'pen-final' },
+  function finish(s) {
+    BQ.sport.result({
+      screen: s.screen,
+      won: s.goals >= WIN_GOALS,
+      detail: h('div', { class: 'pen-final' },
         Array.from({ length: KICKS }, (_, i) => h('span', { class: 'pen-slot ' + (s.score.children[i].classList.contains('goal') ? 'goal' : 'saved') }))),
-      won && h('div', { class: 'party-prize emoji' }, '🏆'),
-      actions);
-    s.screen.append(party);
-    party.append(counter);
-
-    if (won) {
-      sfx.cheer();
-      sfx.win();
-      setTimeout(() => alive(s) && BQ.puppet.use(hero.querySelector('.avatar'), 'kick'), 900);
-      await Promise.all([voice.say('¡Ganaste el partido! ¡Te ganaste una moneda!'), wait(1800)]);
-      if (!alive(s)) return;
-      // Moneda que aparece y vuela al contador
-      const coin = ui().coinEl('big-coin pen-coin');
-      party.append(coin);
-      sfx.coin();
-      await wait(1300);
-      if (!alive(s)) return;
-      const from = coin.getBoundingClientRect();
-      const to = counter.querySelector('.coin').getBoundingClientRect();
-      const fly = coin.animate([
-        { transform: 'translate(0, 0)' },
-        { transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(${to.width / from.width})` },
-      ], { duration: 700, easing: 'cubic-bezier(.5,0,.7,1)', fill: 'forwards' });
-      await Promise.race([fly.finished.catch(() => {}), wait(900)]);
-      if (!alive(s)) return;
-      coin.remove();
-      sfx.coin();
-      counter.set(store.data.coins);
-    } else {
-      sfx.aww();
-      await voice.say(s.goals === 1 ? '¡Casi! Hiciste un gol. ¡Jugá otra vez!' : '¡No importa! ¡Jugá otra vez, que vos podés!');
-    }
-    if (alive(s)) party.classList.add('settled');
+      onAgain: startMatch,
+      winSay: '¡Ganaste el partido! ¡Te ganaste una moneda!',
+      loseSay: s.goals === 1 ? '¡Casi! Hiciste un gol. ¡Jugá otra vez!' : '¡No importa! ¡Jugá otra vez, que vos podés!',
+      isAlive: () => alive(s),
+    });
   }
 
   BQ.penales = { open };

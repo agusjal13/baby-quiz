@@ -9,6 +9,7 @@
     coins: 0,
     coinLevels: null, // niveles que ya dieron su moneda ("mundo:nivel")
     wardrobe: {}, // { [charId]: { owned: [itemId], worn: [itemId] } }
+    wins: 0, // partidos ganados (penales y partidito): dan los trofeos
     settings: { voiceURI: null, rate: 0.9, sfx: true },
   });
 
