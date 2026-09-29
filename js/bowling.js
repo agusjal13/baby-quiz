@@ -94,7 +94,8 @@
     listen(s);
 
     sfx.whistle();
-    voice.say('¡A jugar al bowling! Arrastrá la bola hacia arriba para tirar. ¡Voltiá quince pinos para ganar!')
+    // Corto, para arrancar rápido: cómo se tira lo muestra la manito
+    voice.say('¡Golpeá quince pinos!')
       .then(() => { if (alive(s)) readyToThrow(s); });
   }
 
