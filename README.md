@@ -88,7 +88,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Bowling
 
-- Botón 🎳 Bowling en el mapa. Se juega arrastrando el dedo hacia arriba sobre la bola (sin preguntas);
+- Botón 🎳 Bowling en el mapa. Vista en 3D desde atrás de la bola (canvas con perspectiva; la cámara
+  acompaña la bola hasta los pinos). Se juega arrastrando el dedo hacia arriba sobre la bola (sin preguntas);
   cuanto más rápido, más fuerte. 3 cuadros de hasta 2 tiros, con strike y spare.
   Gana si voltea 15 pinos o más (de 30). Código en `js/bowling.js`.
 
