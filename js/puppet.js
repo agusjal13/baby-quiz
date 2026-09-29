@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   /*
@@ -181,6 +181,8 @@
     let design = '';
     if (j.kind === 'stripes') design = [36, 44, 52, 60].map((x) => `<rect x="${x}" y="60" width="4" height="50" fill="${j.b}"/>`).join('');
     if (j.kind === 'hstripes') design = [70, 80, 90, 100].map((y) => `<rect x="28" y="${y}" width="44" height="5" fill="${j.b}"/>`).join('');
+    // Mitad y mitad (a = izquierda mirando de frente), con estrella en el corazón (derecha mirando de frente)
+    if (j.kind === 'split') design = `<rect x="50" y="60" width="22" height="50" fill="${j.b}"/><polygon points="${star(57.5, 75, 4.6, 1.9)}" fill="${j.star}"/>`;
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
     return `<defs><clipPath id="pp-shirt-${id}"><path d="${TORSO}"/></clipPath></defs>`
@@ -228,6 +230,14 @@
     const id = ++uid;
     const shirt = bySlot.body && bySlot.body.jersey;
     const sleeve = shirt ? shirt.sleeve : look.sleeve;
+    const sleeveL = shirt && shirt.sleeveL ? shirt.sleeveL : sleeve; // camisetas con una manga de cada color
+    // Zapatos, o botines con raya y tapones si tiene puestos
+    const boots = bySlot.feet && bySlot.feet.boots;
+    const shoe = (x) => (boots
+      ? `<ellipse cx="${x}" cy="121" rx="8" ry="4.8" fill="${boots.fill}" ${S}/>`
+        + `<path d="M${x - 4} 119.5 L${x + 3} 122.5" stroke="${boots.stripe}" stroke-width="1.8" stroke-linecap="round"/>`
+        + [-4, 0, 4].map((d) => `<rect x="${x + d - 1}" y="125" width="2" height="2.4" rx=".6" fill="${OUT}"/>`).join('')
+      : `<ellipse cx="${x}" cy="121" rx="7.5" ry="4.8" fill="${look.shoes}" ${S}/>`);
 
     const torso = look.robot
       ? `<path d="${ROBOT_TORSO}" fill="${look.torso}" ${S}/>`
@@ -243,11 +253,11 @@
       + `<ellipse class="pp-shadow" cx="50" cy="127" rx="22" ry="4" fill="rgba(0,0,0,.14)"/>`
       + `<g class="pp-all">`
       + `<g class="pp-back">${look.back || ''}${bySlot.back ? `<g class="pp-bitem">${itemSvg(bySlot.back, look)}</g>` : ''}</g>`
-      + `<g class="pp-leg pp-leg-l">${limb(45, 98, 44, 117, look.pants, 9)}<ellipse cx="42.5" cy="121" rx="7.5" ry="4.8" fill="${look.shoes}" ${S}/></g>`
-      + `<g class="pp-leg pp-leg-r">${limb(55, 98, 56, 117, look.pants, 9)}<ellipse cx="57.5" cy="121" rx="7.5" ry="4.8" fill="${look.shoes}" ${S}/></g>`
+      + `<g class="pp-leg pp-leg-l">${limb(45, 98, 44, 117, look.pants, 9)}${shoe(42.5)}</g>`
+      + `<g class="pp-leg pp-leg-r">${limb(55, 98, 56, 117, look.pants, 9)}${shoe(57.5)}</g>`
       + ball
       + `<g class="pp-body">${torso}${belly}${look.chest || ''}${shirt ? shirtSvg(shirt, id) : ''}</g>`
-      + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeve, 8)}<circle cx="30" cy="90" r="5" fill="${look.hands}" ${S}/></g>`
+      + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}<circle cx="30" cy="90" r="5" fill="${look.hands}" ${S}/></g>`
       + `<g class="pp-head">${look.headBack || ''}${look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
       + `<g class="pp-arm pp-arm-r">${limb(63, 70, 70, 89, sleeve, 8)}`
@@ -259,7 +269,7 @@
   // ---------- Acciones ("usar" lo que tiene puesto) ----------
 
   const USE_MS = { magic: 1400, raise: 1400, block: 1100, hop: 900, wiggle: 900, spin: 1000, flutter: 1200, kick: 1100, fire: 1100, wave: 1400, shine: 1000 };
-  const DEFAULT_USE = { head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter', ball: 'kick' };
+  const DEFAULT_USE = { head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter', ball: 'kick', feet: 'kick' };
 
   function spawn(char, x, y, count, spread, size) {
     for (let i = 0; i < count; i++) {

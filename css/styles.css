@@ -355,7 +355,8 @@ button {
 .shop-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3vmin; }
 .shop-grid.many { grid-template-columns: repeat(3, auto); gap: 2.2vmin; }
 .shop-grid.many .shop-item { width: clamp(76px, 18vmin, 150px); }
-.shop-item {
+.shop-grid.lots { grid-template-columns: repeat(4, auto); gap: 1.8vmin; }
+.shop-grid.lots .shop-item { width: clamp(62px, 14.5vmin, 124px); }.shop-item {
   position: relative;
   width: clamp(88px, 21vmin, 170px);
   aspect-ratio: 1;
@@ -1376,10 +1377,7 @@ button {
   background: rgba(255, 255, 255, .4);
   border: .5vmin dashed rgba(0, 0, 0, .25);
 }
-.pl-slot.now { border-style: solid; border-color: var(--gold); animation: pulse 1s ease-in-out infinite; }
-.pl-slot.in { background: radial-gradient(circle, #fff 0 28%, var(--c) 30%); border: .5vmin solid #2b2140; }
-.pl-slot.out { background: #ffe0cc; border: .5vmin solid #ff9800; }
-.pl-slot.out::before { content: '✖'; color: #e65100; font-weight: 900; font-size: clamp(12px, 3vmin, 24px); }
+.pl-slot.in { background: radial-gradient(circle, #fff 0 28%, var(--c) 30%); border: .5vmin solid #2b2140; animation: pop .5s; }
 .game-pill { font-size: clamp(15px, 3.8vmin, 30px); }
 
 /* ---------- Animaciones ---------- */

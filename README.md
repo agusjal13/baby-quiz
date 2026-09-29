@@ -81,9 +81,10 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Pool
 
-- Botón 🎱 Pool en el mapa. Mesa con 6 bolas que se juega sola: antes de cada tiro hay una pregunta
-  (bien = entra, mal = pega en el borde y queda afuera). Gana si mete 4 de 6 antes de que se
-  termine el tiempo (1:30). Código en `js/pool.js`.
+- Botón 🎱 Pool en el mapa. Partida con física (las bolas ruedan, chocan, rebotan y se frenan) que se
+  juega sola: arranca con un saque y después tiros sin límite, cada uno con una pregunta
+  (bien = la bola elegida entra; mal = pega en la banda y no entra ninguna, no pasa nada).
+  Gana si mete 4 de 6 antes de que se termine el tiempo (1:30). Código en `js/pool.js`.
 
 ## Trofeos
 

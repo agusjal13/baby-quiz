@@ -27,6 +27,13 @@
     pelota26: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fff" stroke="#2b2140" stroke-width="5"/>'
       + ['#2e9e44', '#e53935', '#1e88e5'].map((c, i) => `<path d="M50 50 C28 40 24 14 50 7 C76 14 72 40 50 50 Z" fill="${c}" stroke="#2b2140" stroke-width="2.5" transform="rotate(${i * 120} 50 50)"/>`).join('')
       + '<circle cx="50" cy="50" r="6" fill="#fff" stroke="#2b2140" stroke-width="3"/></svg>',
+    // Botín visto de costado, con raya y tapones
+    botin: (fill, stripe) => '<svg viewBox="0 0 100 70">'
+      + `<path d="M14 18 Q14 8 26 8 L46 8 Q50 8 52 14 L56 26 Q84 26 92 40 Q96 48 88 52 L14 52 Q8 52 8 44 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
+      + `<path d="M30 30 L60 44 M36 22 L66 36" stroke="${stripe}" stroke-width="5" stroke-linecap="round"/>`
+      + '<rect x="8" y="50" width="86" height="7" rx="3" fill="#2b2140"/>'
+      + [18, 38, 62, 82].map((x) => `<rect x="${x - 4}" y="56" width="8" height="8" rx="2" fill="#2b2140"/>`).join('')
+      + '</svg>',
     capa: (c) =>`<svg viewBox="0 0 100 100"><path d="M28 6 Q50 16 72 6 L94 94 Q50 102 6 94 Z" fill="${c}" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linejoin="round"/>`
       + `<polygon points="${star(50, 62, 12, 5)}" fill="rgba(255,255,255,.7)"/></svg>`,
   };
@@ -40,13 +47,28 @@
     verdeAmarilla: { kind: 'band', a: '#ffd200', b: '#2e9e44', sleeve: '#ffd200', css: 'linear-gradient(#ffd200 0 42%, #2e9e44 42% 58%, #ffd200 58%)' },
     rojaAmarilla: { kind: 'hstripes', a: '#e53935', b: '#ffd200', sleeve: '#e53935', css: 'repeating-linear-gradient(180deg, #e53935 0 14%, #ffd200 14% 28%)' },
     azulRoja: { kind: 'stripes', a: '#a50044', b: '#004d98', sleeve: '#004d98', css: 'repeating-linear-gradient(90deg, #a50044 0 14%, #004d98 14% 28%)' },
+    // Mitad negra y mitad celeste. El celeste va del lado izquierdo de quien la lleva (a la derecha
+    // mirándolo de frente), con la estrellita negra en el corazón.
+    celesteNegra: {
+      kind: 'split', a: '#1a1a1a', b: '#74acdf', star: '#1a1a1a', sleeveL: '#1a1a1a', sleeve: '#74acdf',
+      css: `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><polygon points="${star(10, 10.5, 9, 3.8)}" fill="#1a1a1a"/></svg>`)}") 66% 30% / 16% no-repeat, linear-gradient(90deg, #1a1a1a 0 50%, #74acdf 50%)`,
+    },
   };
+
+  // Botines del futbolista: reemplazan los zapatos (lugar "feet")
+  const BOOTS = {
+    botinesOro: { fill: '#ffd23f', stripe: '#ffffff' },
+    botinesFluo: { fill: '#c6ff00', stripe: '#ff4081' },
+    botinesAzules: { fill: '#1e88e5', stripe: '#ffffff' },
+  };
+  const boots = (id, name) => ({ id, name, slot: 'feet', boots: BOOTS[id], use: 'kick' });
   const jersey = (id, name) => ({ id, name, slot: 'body', jersey: JERSEYS[id], shirt: JERSEYS[id].css });
 
   /*
-   * Catálogo por personaje. Cada cosa va en un lugar del cuerpo (slot): head, neck, hand, body o back.
+   * Catálogo por personaje. Cada cosa va en un lugar del cuerpo (slot): head, neck, hand, body, back,
+   * ball (pelota del pie) o feet (botines).
    * Una sola cosa por lugar: ponerse otra en el mismo lugar reemplaza la anterior.
-   *   emoji | art (bastón, varita) | bow (corbatita) | cape (capa) | jersey (camiseta)
+   *   emoji | art (bastón, varita, pelota) | bow (corbatita) | cape (capa) | jersey (camiseta) | boots (botines)
    *   use   lo que hace al usarla (si no, depende del lugar: ver puppet.js)
    */
   const CATALOG = {
@@ -68,7 +90,11 @@
       jersey('verdeAmarilla', 'la camiseta verde y amarilla'),
       jersey('rojaAmarilla', 'la camiseta roja y amarilla'),
       jersey('azulRoja', 'la camiseta azul y roja a rayas'),
+      jersey('celesteNegra', 'la camiseta celeste y negra'),
       { id: 'pelota26', name: 'la pelota del mundial', slot: 'ball', art: 'pelota26', use: 'kick' },
+      boots('botinesOro', 'los botines dorados'),
+      boots('botinesFluo', 'los botines verde flúor'),
+      boots('botinesAzules', 'los botines azules'),
       { id: 'copa', name: 'la copa', slot: 'hand', emoji: '🏆' },
     ],
     princesa: [
@@ -159,7 +185,10 @@
     card(item) {
       if (item.emoji) return h('span', { class: 'card-art emoji' }, item.emoji);
       if (item.jersey) return h('span', { class: 'card-art' }, h('span', { class: 'shirt', style: { background: item.shirt } }));
-      const svg = item.art ? ART[item.art] : item.bow ? ART.corbatita(...item.bow) : item.cape ? ART.capa(item.cape) : '';
+      const svg = item.art ? ART[item.art]
+        : item.boots ? ART.botin(item.boots.fill, item.boots.stripe)
+          : item.bow ? ART.corbatita(...item.bow)
+            : item.cape ? ART.capa(item.cape) : '';
       return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : ''), html: svg });
     },
   };

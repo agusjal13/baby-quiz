@@ -300,8 +300,9 @@
     const W = BQ.wardrobe;
     const counter = coinCounter();
     const hero = h('div', { class: 'shop-hero' });
-    // Con muchas prendas (el futbolista tiene 7), 3 columnas para que entren en pantalla
-    const grid = h('div', { class: 'shop-grid' + (W.items(c.id).length > 4 ? ' many' : '') });
+    // Con muchas prendas, más columnas para que entren en pantalla (el futbolista tiene 14)
+    const count = W.items(c.id).length;
+    const grid = h('div', { class: 'shop-grid' + (count > 9 ? ' lots' : count > 4 ? ' many' : '') });
 
     function paint() {
       hero.replaceChildren(avatarEl(c));
