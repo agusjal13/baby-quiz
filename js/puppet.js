@@ -180,6 +180,7 @@
   function shirtSvg(j, id) {
     let design = '';
     if (j.kind === 'stripes') design = [36, 44, 52, 60].map((x) => `<rect x="${x}" y="60" width="4" height="50" fill="${j.b}"/>`).join('');
+    if (j.kind === 'hstripes') design = [70, 80, 90, 100].map((y) => `<rect x="28" y="${y}" width="44" height="5" fill="${j.b}"/>`).join('');
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
     return `<defs><clipPath id="pp-shirt-${id}"><path d="${TORSO}"/></clipPath></defs>`

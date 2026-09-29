@@ -33,8 +33,8 @@
     azul: { kind: 'band', a: '#1a3d8f', b: '#ffd200', sleeve: '#1a3d8f', css: 'linear-gradient(#1a3d8f 0 38%, #ffd200 38% 62%, #1a3d8f 62%)' },
     roja: { kind: 'diagonal', a: '#ffffff', b: '#e53935', sleeve: '#ffffff', css: 'linear-gradient(135deg, #ffffff 0 36%, #e53935 36% 60%, #ffffff 60%)' },
     celesteLisa: { kind: 'solid', a: '#74acdf', b: '#74acdf', sleeve: '#74acdf', css: '#74acdf' },
-    verdeAmarilla: { kind: 'band', a: '#2e9e44', b: '#ffd200', sleeve: '#2e9e44', css: 'linear-gradient(#2e9e44 0 38%, #ffd200 38% 62%, #2e9e44 62%)' },
-    rojaAmarilla: { kind: 'stripes', a: '#e53935', b: '#ffd200', sleeve: '#e53935', css: 'repeating-linear-gradient(90deg, #e53935 0 14%, #ffd200 14% 28%)' },
+    verdeAmarilla: { kind: 'band', a: '#ffd200', b: '#2e9e44', sleeve: '#ffd200', css: 'linear-gradient(#ffd200 0 42%, #2e9e44 42% 58%, #ffd200 58%)' },
+    rojaAmarilla: { kind: 'hstripes', a: '#e53935', b: '#ffd200', sleeve: '#e53935', css: 'repeating-linear-gradient(180deg, #e53935 0 14%, #ffd200 14% 28%)' },
     azulRoja: { kind: 'stripes', a: '#a50044', b: '#004d98', sleeve: '#004d98', css: 'repeating-linear-gradient(90deg, #a50044 0 14%, #004d98 14% 28%)' },
   };
   const jersey = (id, name) => ({ id, name, slot: 'body', jersey: JERSEYS[id], shirt: JERSEYS[id].css });
