@@ -3,10 +3,17 @@
 
   const synth = window.speechSynthesis;
 
-  // Prioridad de voces: instaladas en el dispositivo (funcionan sin internet) y acento rioplatense/latino.
+  // Voces "naturales" (neuronales): suenan mucho más reales, pero casi siempre necesitan internet.
+  // Por ejemplo, en Edge: "Microsoft Elena Online (Natural) - Spanish (Argentina)".
+  const isNatural = (v) => /natural|neural|premium|enhanced|wavenet|online/i.test(v.name);
+  const quality = (v) => (isNatural(v) ? 3 : /google/i.test(v.name) ? 2 : 0);
+  const usable = (v) => v.localService || navigator.onLine; // sin internet, solo las instaladas
+
+  // Prioridad: con internet, la voz más natural; sin internet, las instaladas. Después, el acento
+  // (rioplatense primero, después latino, después de España).
   function score(v) {
-    let s = 0;
-    if (v.localService) s += 10;
+    let s = usable(v) ? 0 : -100;
+    s += navigator.onLine ? quality(v) * 10 : v.localService ? 10 : 0;
     const lang = v.lang.toLowerCase().replace('_', '-');
     if (lang === 'es-ar') s += 6;
     else if (['es-419', 'es-us', 'es-mx', 'es-uy', 'es-cl', 'es-co'].includes(lang)) s += 4;
@@ -29,18 +36,33 @@
       };
       load();
       synth.onvoiceschanged = load;
+      // Si se corta o vuelve internet, se vuelve a elegir la voz
+      window.addEventListener('online', () => this.choose());
+      window.addEventListener('offline', () => this.choose());
     },
 
     spanishVoices() {
       return this.voices.filter((v) => /^es([-_]|$)/i.test(v.lang));
     },
 
+    best() {
+      return this.spanishVoices().sort((a, b) => score(b) - score(a))[0] || null;
+    },
+
     choose() {
-      const list = this.spanishVoices();
-      const saved = BQ.store.data.settings.voiceURI;
-      this.current = list.find((v) => v.voiceURI === saved)
-        || list.slice().sort((a, b) => score(b) - score(a))[0]
-        || null;
+      const saved = this.spanishVoices().find((v) => v.voiceURI === BQ.store.data.settings.voiceURI);
+      // La elegida en las opciones, salvo que necesite internet y no haya
+      this.current = (saved && usable(saved) ? saved : null) || this.best();
+    },
+
+    // Plan B si la voz natural no arranca (por ejemplo, se cortó internet): la mejor instalada
+    fallbackToLocal() {
+      const local = this.spanishVoices().filter((v) => v.localService).sort((a, b) => score(b) - score(a))[0];
+      if (local && local !== this.current) {
+        this.current = local;
+        return true;
+      }
+      return false;
     },
 
     // En iOS/Android la primera locución tiene que salir de un toque del usuario.
@@ -82,7 +104,8 @@
           if (this.current) u.voice = this.current;
           u.lang = this.current ? this.current.lang : 'es-AR';
           u.rate = rate;
-          u.pitch = 1.15;
+          // A las voces robóticas les queda bien un tono un poco más agudo; a las naturales no
+          u.pitch = this.current && isNatural(this.current) ? 1 : 1.15;
           u.onstart = () => {
             started = true;
             clearTimeout(fallback);
@@ -90,7 +113,16 @@
             fallback = setTimeout(finish, (2000 + text.length * 110) / rate);
           };
           u.onend = finish;
-          u.onerror = () => { if (started || !retry) finish(); };
+          u.onerror = () => {
+            if (started) return finish();
+            // La voz natural falló (sin internet): reintentar enseguida con una instalada
+            if (retry && this.current && !this.current.localService && this.fallbackToLocal()) {
+              clearTimeout(watchdog);
+              setTimeout(() => speak(false), 60);
+              return;
+            }
+            if (!retry) finish();
+          };
           this._utterance = u;
           synth.resume(); // Chrome a veces queda "pausado" y no habla
           synth.speak(u);
@@ -99,6 +131,7 @@
             if (started || done) return;
             if (retry) {
               synth.cancel();
+              if (this.current && !this.current.localService) this.fallbackToLocal();
               setTimeout(() => speak(false), 120);
             } else {
               finish();

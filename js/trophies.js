@@ -191,11 +191,7 @@
         'aria-label': have ? BQ.trophies.title(t) : 'Trofeo bloqueado',
         onpointerdown: ui.tap(() => {
           if (have) {
-            slot.classList.remove('shine');
-            void slot.offsetWidth;
-            slot.classList.add('shine');
-            sfx.notes([[1568, 0, 0.12, 'sine', 0.08], [2093, 0.08, 0.2, 'sine', 0.08]]);
-            voice.say(U.cap(t.name));
+            showBig(t);
           } else {
             const left = t.wins - won;
             sfx.tap();
@@ -219,6 +215,38 @@
     voice.say(n === 0
       ? '¡Ganá partidos de penales o partidito para conseguir trofeos!'
       : `¡Tenés ${n === 1 ? 'un trofeo' : `${n} trofeos`}!` + (nx ? ` Para el próximo te ${nx.wins - won === 1 ? 'falta un partido' : `faltan ${nx.wins - won} partidos`}.` : ' ¡Los tenés todos!'));
+  }
+
+  // Trofeo en grande, girando como una moneda. Tocarlo lo hace girar más rápido y largar brillitos.
+  function showBig(t) {
+    const ui = BQ.ui;
+    const voice = BQ.voice;
+    const sfx = BQ.sfx;
+    const chime = () => sfx.notes([[1568, 0, 0.12, 'sine', 0.08], [2093, 0.08, 0.12, 'sine', 0.08], [2637, 0.16, 0.25, 'sine', 0.08]]);
+    const spinner = h('div', { class: 'trophy-spin' }, BQ.trophies.el(t, 'trophy-spin-art'));
+    const stage = h('button', {
+      class: 'trophy-view-stage',
+      'aria-label': BQ.trophies.title(t),
+      onpointerdown: ui.tap((e) => {
+        e.stopPropagation();
+        spinner.classList.remove('fast');
+        void spinner.offsetWidth;
+        spinner.classList.add('fast');
+        chime();
+        ui.burst(stage);
+        voice.say(U.cap(t.name));
+      }),
+    }, spinner);
+    const close = () => view.remove();
+    const view = h('div', { class: 'trophy-view', onpointerdown: ui.tap(close) },
+      h('div', { class: 'party-rays' }),
+      h('button', { class: 'btn-round trophy-view-close', 'aria-label': 'Cerrar', onpointerdown: ui.tap(close) }, h('span', { class: 'emoji' }, '✖️')),
+      stage,
+      h('p', { class: 'trophy-view-name' }, BQ.trophies.title(t)),
+      h('p', { class: 'trophy-view-hint' }, '¡Tocalo para hacerlo girar!'));
+    document.getElementById('app').append(view);
+    chime();
+    voice.say(`¡${U.cap(t.name)}!`);
   }
 
   const wins = () => store.data.wins || 0;

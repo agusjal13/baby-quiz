@@ -668,13 +668,17 @@
     const settings = store.data.settings;
     const voices = voice.spanishVoices();
 
+    const natural = (v) => /natural|neural|premium|enhanced|wavenet|online/i.test(v.name);
     const voiceSel = h('select', {},
       voices.length
-        ? voices.map((v) => h('option', { value: v.voiceURI, selected: voice.current && v.voiceURI === voice.current.voiceURI ? 'selected' : null },
-          `${v.name} (${v.lang})${v.localService ? '' : ' · necesita internet'}`))
+        ? [
+          h('option', { value: '', selected: settings.voiceURI ? null : 'selected' }, '✨ Automática (la más natural que haya)'),
+          ...voices.map((v) => h('option', { value: v.voiceURI, selected: settings.voiceURI === v.voiceURI ? 'selected' : null },
+            `${natural(v) ? '✨ ' : ''}${v.name} (${v.lang})${v.localService ? '' : ' · necesita internet'}`)),
+        ]
         : h('option', {}, 'No hay voces en español instaladas'));
     voiceSel.addEventListener('change', () => {
-      settings.voiceURI = voiceSel.value;
+      settings.voiceURI = voiceSel.value || null;
       store.save();
       voice.choose();
       voice.say('Hola, así suena mi voz');
@@ -702,7 +706,9 @@
       h('label', {}, 'Voz'),
       voiceSel,
       !voice.supported && h('p', { class: 'note' }, 'Este navegador no permite leer en voz alta.'),
-      h('p', { class: 'note' }, 'Para jugar sin internet elegí una voz que no diga "necesita internet".'),
+      h('p', { class: 'note' }, 'Las voces con ✨ son las más reales y necesitan internet. En "Automática", sin internet se usa una voz instalada. '
+        + 'En la PC, el navegador Edge trae voces argentinas naturales (Elena y Tomás).'),
+      voice.current && h('p', { class: 'note' }, `Ahora habla: ${voice.current.name}`),
       h('label', {}, 'Velocidad de la voz'),
       rate,
       h('label', { class: 'check' }, sfxChk, ' Efectos de sonido'),
