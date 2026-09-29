@@ -30,7 +30,11 @@
   const BALL_START = [100, 355];
   const LANE_END = 335; // profundidad donde termina la pista (después está el foso)
   const CAM_START = -60;
-  const CAM_MAX = 165; // hasta dónde se acerca la cámara (se ven de frente la caja, la pantalla y los pinos)
+  const CAM_MAX = 165; // hasta dónde se acerca la cámara como máximo (en pantallas anchas, menos)
+  // La cámara arranca alta (para apuntar) y, mientras sigue a la bola, baja casi a la altura de
+  // los pinos, así se ven enteros por debajo de la caja y se nota cuántos caen.
+  const CAM_LOW = 24; // altura final de la cámara (los pinos miden 38)
+  const HORIZON_LOW = 0.5; // dónde queda el horizonte (fracción del alto) con la cámara baja
   // Caja del final de la pista: frente un poco antes del primer pino, boca hasta BOX_OPEN de alto
   const BOX_FRONT = 222;
   const BOX_BACK = LANE_END + 30;
@@ -113,17 +117,19 @@
     s.F = 0.34 * Math.min(s.W, s.H * 1.3);
     s.horizonHigh = s.H * 0.2;
     s.camHigh = ((0.8 - 0.2) * s.H * 65) / s.F;
+    // Cuánto se puede acercar la cámara sin que la pantalla de la caja se salga por arriba.
+    // En pantallas anchas (PC) el lente es más grande y tiene que quedarse más lejos.
+    const minDist = ((BOX_TOP - CAM_LOW) * s.F) / (s.H * (HORIZON_LOW - 0.06));
+    s.camMax = Math.max(CAM_START + 10, Math.min(CAM_MAX, BOX_FRONT - minDist));
     aimCamera(s);
   }
 
-  // La cámara arranca alta (para apuntar) y, mientras sigue a la bola, baja casi a la altura de
-  // los pinos, así se ven enteros por debajo de la caja y se nota cuántos caen.
-  const CAM_LOW = 24; // altura final de la cámara (los pinos miden 38)
+  // Altura y horizonte según qué tan adelante está la cámara (ver CAM_LOW)
   function aimCamera(s) {
-    const t = Math.max(0, Math.min(1, (s.camZ - CAM_START) / (CAM_MAX - CAM_START)));
+    const t = Math.max(0, Math.min(1, (s.camZ - CAM_START) / (s.camMax - CAM_START)));
     const e = t * t * (3 - 2 * t); // suave al empezar y al terminar
     s.camH = s.camHigh + (CAM_LOW - s.camHigh) * e;
-    s.horizon = s.horizonHigh + (s.H * 0.5 - s.horizonHigh) * e;
+    s.horizon = s.horizonHigh + (s.H * HORIZON_LOW - s.horizonHigh) * e;
   }
 
   // Punto de la pista (x, altura, profundidad) en la pantalla; k es la escala a esa distancia
@@ -617,7 +623,7 @@
           if (p.down && p.tilt < 1.45) p.tilt = Math.min(1.45, p.tilt + 0.13); // cae de costado
         }
         // La cámara sigue a la bola hasta cerca de los pinos
-        s.camTarget = b.y > -40 ? Math.max(CAM_START, Math.min(CAM_MAX, depth(b.y) - 85)) : s.camTarget;
+        s.camTarget = b.y > -40 ? Math.max(CAM_START, Math.min(s.camMax, depth(b.y) - 85)) : s.camTarget;
         s.camZ += (s.camTarget - s.camZ) * 0.14;
         render(s);
         const pinsMoving = s.pins.some((p) => !p.gone && (p.vx || p.vy || (p.down && p.tilt < 1.45)));
