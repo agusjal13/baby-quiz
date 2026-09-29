@@ -1380,6 +1380,71 @@ button {
 .pl-slot.in { background: radial-gradient(circle, #fff 0 28%, var(--c) 30%); border: .5vmin solid #2b2140; animation: pop .5s; }
 .game-pill { font-size: clamp(15px, 3.8vmin, 30px); }
 
+/* ---------- Bowling ---------- */
+
+.game-pill.bowling { background: linear-gradient(160deg, #6a4c9c, #2b2d5c); }
+.bowling { gap: 1.5vmin; }
+.bw-body { flex: 1; min-height: 0; display: flex; align-items: stretch; justify-content: center; gap: 4vmin; }
+@media (orientation: portrait) {
+  .bw-body { flex-direction: column; align-items: center; gap: 1.5vmin; }
+  .bw-side { flex-direction: row; }
+}
+.bw-side { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vmin; }
+.bw-hero { font-size: clamp(60px, 22vmin, 190px); }
+.bw-tip {
+  margin: 0;
+  max-width: 34vmin;
+  padding: .5em .9em;
+  border-radius: 3vmin;
+  background: rgba(255, 255, 255, .9);
+  font-size: clamp(14px, 3.4vmin, 26px);
+  font-weight: bold;
+  text-align: center;
+}
+.bw-lane-box {
+  position: relative;
+  flex: none;
+  height: 100%;
+  aspect-ratio: 1 / 2;
+  max-width: 100%;
+  container-type: size;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+@media (orientation: portrait) {
+  .bw-lane-box { flex: 1; height: auto; min-height: 0; }
+}
+.bw-lane { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1vmin 0 rgba(0, 0, 0, .25)); }
+.bw-lane * { transform-box: view-box; }
+.bw-hand { z-index: 4; }
+.bw-board { display: flex; gap: 1.2vmin; }
+.bw-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: clamp(44px, 10vmin, 84px);
+  padding: .4vmin .8vmin;
+  border-radius: 1.5vmin;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 .6vmin 0 rgba(0, 0, 0, .15);
+  font-weight: 900;
+  line-height: 1.1;
+}
+.bw-frame-n { font-size: clamp(10px, 2.2vmin, 16px); opacity: .6; }
+.bw-throws { display: flex; gap: .6vmin; }
+.bw-t {
+  display: grid;
+  place-items: center;
+  min-width: 1.4em;
+  min-height: 1.4em;
+  border: .3vmin solid rgba(0, 0, 0, .15);
+  border-radius: .8vmin;
+  font-size: clamp(11px, 2.6vmin, 20px);
+}
+.bw-frame-total { font-size: clamp(13px, 3vmin, 24px); min-height: 1.2em; }
+.bw-frame-total.big { font-size: clamp(20px, 5vmin, 40px); color: var(--accent); }
+
 /* ---------- Animaciones ---------- */
 
 @keyframes drift { to { transform: translateY(-2.5vmin) rotate(6deg); } }

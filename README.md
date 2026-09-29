@@ -86,9 +86,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   (bien = la bola elegida entra; mal = pega en la banda y no entra ninguna, no pasa nada).
   Gana si mete 4 de 6 antes de que se termine el tiempo (1:30). Código en `js/pool.js`.
 
+## Bowling
+
+- Botón 🎳 Bowling en el mapa. Se juega arrastrando el dedo hacia arriba sobre la bola (sin preguntas);
+  cuanto más rápido, más fuerte. 3 cuadros de hasta 2 tiros, con strike y spare.
+  Gana si voltea 15 pinos o más (de 30). Código en `js/bowling.js`.
+
 ## Trofeos
 
-- Cada partido ganado (penales, partidito o pool) da **1 moneda** y suma para los **20 trofeos**
+- Cada partido ganado (penales, partidito, pool o bowling) da **1 moneda** y suma para los **20 trofeos**
   (de la medalla de bronce con 1 partido a la copa del mundo con 50). Se ven en 🏆 Trofeos.
 - La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
 
