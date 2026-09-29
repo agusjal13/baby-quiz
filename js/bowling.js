@@ -30,7 +30,7 @@
   const BALL_START = [100, 355];
   const LANE_END = 335; // profundidad donde termina la pista (después está el foso)
   const CAM_START = -60;
-  const CAM_MAX = 140; // hasta dónde se acerca la cámara (se ven de frente la caja, la pantalla y los pinos)
+  const CAM_MAX = 165; // hasta dónde se acerca la cámara (se ven de frente la caja, la pantalla y los pinos)
   // Caja del final de la pista: frente un poco antes del primer pino, boca hasta BOX_OPEN de alto
   const BOX_FRONT = 222;
   const BOX_BACK = LANE_END + 30;
@@ -110,8 +110,19 @@
     s.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     // Lente y altura de la cámara: la bola, al principio, queda abajo en la pantalla
     s.F = 0.34 * Math.min(s.W, s.H * 1.3);
-    s.horizon = s.H * 0.2;
-    s.camH = ((0.8 - 0.2) * s.H * 65) / s.F;
+    s.horizonHigh = s.H * 0.2;
+    s.camHigh = ((0.8 - 0.2) * s.H * 65) / s.F;
+    aimCamera(s);
+  }
+
+  // La cámara arranca alta (para apuntar) y, mientras sigue a la bola, baja casi a la altura de
+  // los pinos, así se ven enteros por debajo de la caja y se nota cuántos caen.
+  const CAM_LOW = 24; // altura final de la cámara (los pinos miden 38)
+  function aimCamera(s) {
+    const t = Math.max(0, Math.min(1, (s.camZ - CAM_START) / (CAM_MAX - CAM_START)));
+    const e = t * t * (3 - 2 * t); // suave al empezar y al terminar
+    s.camH = s.camHigh + (CAM_LOW - s.camHigh) * e;
+    s.horizon = s.horizonHigh + (s.H * 0.5 - s.horizonHigh) * e;
   }
 
   // Punto de la pista (x, altura, profundidad) en la pantalla; k es la escala a esa distancia
@@ -142,6 +153,7 @@
   function render(s) {
     const g = s.ctx;
     const { W, H } = s;
+    aimCamera(s);
     const near = s.camZ + 6;
 
     // Fondo del salón
