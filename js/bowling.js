@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   /*
@@ -58,9 +58,8 @@
   function startGame() {
     const canvas = h('canvas', { class: 'bw-canvas' });
     const lane = h('div', { class: 'bw-lane-box' }, canvas);
-    const flash = h('div', { class: 'sport-flash', hidden: true });
     const hand = h('span', { class: 'hand emoji bw-hand', hidden: true }, '👆');
-    lane.append(flash, hand);
+    lane.append(hand);
     const board = h('div', { class: 'bw-board' },
       Array.from({ length: FRAMES }, (_, i) => h('div', { class: 'bw-frame' },
         h('span', { class: 'bw-frame-n' }, String(i + 1)),
@@ -76,7 +75,7 @@
     ui().show(screen, THEME);
 
     const s = {
-      screen, lane, canvas, ctx: canvas.getContext('2d'), flash, hand, board, hero, tip,
+      screen, lane, canvas, ctx: canvas.getContext('2d'), hand, board, hero, tip,
       ball: { x: BALL_START[0], y: BALL_START[1], vx: 0, vy: 0, gutter: false, spin: 0 },
       pins: PIN_SPOTS.map(([x, y], i) => ({ i, x, y, vx: 0, vy: 0, down: false, gone: false, tilt: 0, side: 1 })),
       camZ: CAM_START, camTarget: CAM_START,
@@ -157,6 +156,7 @@
       g.fillRect(0, 0, W, H);
     }
     quad(s, 0, 200, LANE_END, LANE_END + 60, -6, '#08060f');
+    drawScreen(s);
 
     // Laterales, canaletas y pista de madera
     quad(s, -40, 8, near, LANE_END, 6, '#3d3563');
@@ -205,6 +205,62 @@
     const things = s.pins.filter((p) => !p.gone).map((p) => ({ z: depth(p.y), draw: () => drawPin(s, p) }));
     if (s.ball.y > -40) things.push({ z: depth(s.ball.y), draw: () => drawBall(s) });
     things.sort((p, q) => q.z - p.z).forEach((t) => t.draw());
+  }
+
+  // Pantalla arriba del foso, como en los bowlings de verdad: muestra el cuadro y el resultado del tiro
+  function drawScreen(s) {
+    const z = LANE_END + 30;
+    const tl = project(s, 38, 118, z);
+    const br = project(s, 162, 62, z);
+    if (!tl || !br) return;
+    const g = s.ctx;
+    const w = br.x - tl.x;
+    const hgt = br.y - tl.y;
+    // Marco, soportes y vidrio
+    g.fillStyle = '#1b1830';
+    g.fillRect(tl.x - w * 0.03, tl.y - hgt * 0.06, w * 1.06, hgt * 1.12);
+    g.fillStyle = '#2d2850';
+    g.fillRect(tl.x + w * 0.2, br.y + hgt * 0.06, w * 0.04, hgt * 0.35);
+    g.fillRect(tl.x + w * 0.76, br.y + hgt * 0.06, w * 0.04, hgt * 0.35);
+    const glass = g.createLinearGradient(0, tl.y, 0, br.y);
+    glass.addColorStop(0, '#0b1a3a');
+    glass.addColorStop(1, '#050b1c');
+    g.fillStyle = glass;
+    g.fillRect(tl.x, tl.y, w, hgt);
+    // Texto de neón
+    const msg = s.screenMsg || { text: '¡A JUGAR!', color: '#4dd0e1' };
+    const color = msg.colors ? msg.colors[Math.floor(performance.now() / 180) % msg.colors.length] : msg.color;
+    let size = hgt * 0.42;
+    g.font = `900 ${size}px ${getComputedStyle(document.body).fontFamily}`;
+    const tw = g.measureText(msg.text).width;
+    if (tw > w * 0.9) {
+      size *= (w * 0.9) / tw;
+      g.font = `900 ${size}px ${getComputedStyle(document.body).fontFamily}`;
+    }
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = color;
+    g.shadowBlur = size * 0.5;
+    g.fillStyle = color;
+    g.fillText(msg.text, tl.x + w / 2, tl.y + hgt / 2);
+    g.shadowBlur = 0;
+    // Brillo del vidrio
+    g.fillStyle = 'rgba(255, 255, 255, .06)';
+    g.fillRect(tl.x, tl.y, w, hgt * 0.35);
+  }
+
+  // Cambia el mensaje de la pantalla; con varios colores, titila un rato
+  function screenShow(s, text, color, colors) {
+    s.screenMsg = { text, color, colors };
+    render(s);
+    if (!colors) return;
+    const until = Date.now() + 1800;
+    const blink = () => {
+      if (!alive(s) || s.screenMsg.text !== text) return;
+      render(s);
+      if (Date.now() < until) setTimeout(blink, 90);
+    };
+    blink();
   }
 
   function pinPath(g, w, H) {
@@ -257,16 +313,22 @@
   // Bola con brillo y los agujeros de los dedos girando a medida que rueda
   function drawBall(s) {
     const b = s.ball;
-    const alt = b.gutter ? BALL_R - 5 : BALL_R;
+    // Pasado el final de la pista, la bola cae al foso: baja y se va apagando
+    const past = Math.max(0, depth(b.y) - LANE_END);
+    const alt = (b.gutter ? BALL_R - 5 : BALL_R) - past * 1.4;
     const c = project(s, b.x, alt, depth(b.y));
     const floor = project(s, b.x, b.gutter ? -3 : 0, depth(b.y));
     if (!c || !floor) return;
     const g = s.ctx;
     const r = BALL_R * c.k;
-    g.fillStyle = 'rgba(0, 0, 0, .3)';
-    g.beginPath();
-    g.ellipse(floor.x, floor.y, r * 1.05, r * 0.32, 0, 0, Math.PI * 2);
-    g.fill();
+    g.save();
+    g.globalAlpha = Math.max(0, 1 - past / 28);
+    if (!past) {
+      g.fillStyle = 'rgba(0, 0, 0, .3)';
+      g.beginPath();
+      g.ellipse(floor.x, floor.y, r * 1.05, r * 0.32, 0, 0, Math.PI * 2);
+      g.fill();
+    }
 
     const shine = g.createRadialGradient(c.x - r * 0.35, c.y - r * 0.4, r * 0.08, c.x, c.y, r);
     shine.addColorStop(0, '#d9c8ff');
@@ -298,6 +360,7 @@
       g.fill();
     }
     g.restore();
+    g.restore(); // transparencia de la caída al foso
   }
 
   // ---------- Arrastrar para tirar ----------
@@ -354,6 +417,7 @@
   function readyToThrow(s) {
     s.ready = true;
     s.tip.textContent = `Cuadro ${s.frame + 1} · tiro ${s.throwN + 1}: ¡arrastrá la bola hacia arriba!`;
+    screenShow(s, `CUADRO ${s.frame + 1} · TIRO ${s.throwN + 1}`, '#4dd0e1');
     if (!s.shownHint) {
       s.shownHint = true;
       showHint(s);
@@ -415,6 +479,11 @@
             b.x += b.vx / 3;
             b.y += b.vy / 3;
             b.spin += Math.hypot(b.vx, b.vy) / 3 / BALL_R; // rueda: gira según lo que avanza
+            if (!b.inPit && depth(b.y) > LANE_END) { // cae al foso: golpe seco
+              b.inPit = true;
+              sfx.noise(0.3, 'lowpass', 140, 0.6, 0.01);
+              sfx.notes([[70, 0, 0.25, 'sine', 0.3]]);
+            }
             if (!b.gutter && (b.x - BALL_R < LANE[0] || b.x + BALL_R > LANE[1])) {
               // A la canaleta: sigue derecho por el costado sin tocar pinos
               b.gutter = true;
@@ -531,8 +600,9 @@
 
     let say;
     let done = false;
+    const party = ['#ff5a8a', '#ffd23f', '#35c46a', '#2f9bff', '#b36bff'];
     if (s.throwN === 0 && knocked === 10) {
-      BQ.sport.flash(s.flash, '¡STRIKE!', 'goal');
+      screenShow(s, '¡STRIKE!', null, party);
       sfx.cheer();
       sfx.win();
       ui().burst(s.lane);
@@ -540,20 +610,20 @@
       say = '¡Strike! ¡Tiraste todos los pinos!';
       done = true;
     } else if (s.throwN === 1 && standing === 0) {
-      BQ.sport.flash(s.flash, '¡SPARE!', 'goal');
+      screenShow(s, '¡SPARE!', null, party);
       sfx.cheer();
       ui().burst(s.lane);
       say = '¡Spare! ¡Los tiraste todos!';
       done = true;
     } else {
       if (knocked > 0) sfx.correct(); else sfx.aww();
-      if (s.ball.gutter && knocked === 0) BQ.sport.flash(s.flash, '¡CANALETA!', 'saved');
+      if (s.ball.gutter && knocked === 0) screenShow(s, 'CANALETA', '#ff9800');
+      else screenShow(s, knocked === 1 ? '1 PINO' : `${knocked} PINOS`, knocked ? '#ffd23f' : '#ff9800');
       say = knocked === 0 ? '¡Uy! No tiraste ninguno.' : `¡Tiraste ${knocked === 1 ? 'un pino' : `${knocked} pinos`}!`;
       done = s.throwN === 1;
     }
     await Promise.all([voice.say(say), wait(1600)]);
     if (!alive(s)) return;
-    s.flash.hidden = true;
 
     if (done) {
       s.frame++;
@@ -582,7 +652,7 @@
   }
 
   function resetBall(s) {
-    Object.assign(s.ball, { x: BALL_START[0], y: BALL_START[1], vx: 0, vy: 0, gutter: false, spin: 0 });
+    Object.assign(s.ball, { x: BALL_START[0], y: BALL_START[1], vx: 0, vy: 0, gutter: false, spin: 0, inPit: false });
   }
 
   const total = (s) => s.scores.flat().reduce((a, b) => a + b, 0);
