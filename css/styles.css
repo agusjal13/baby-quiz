@@ -1344,6 +1344,44 @@ button {
 
 @keyframes twinkle { 50% { transform: scale(.4); opacity: .4; } }
 
+/* ---------- Pool ---------- */
+
+.game-pill.pool { background: linear-gradient(160deg, #1f8f4e, #0b4d27); }
+.pool { gap: 1.5vmin; }
+.pl-scene { background: #5d4037; }
+.pl-table { display: block; width: 100%; height: 100%; }
+.pl-top { display: flex; align-items: center; gap: 2.5vmin; }
+.pl-clock-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 1vmin;
+  padding: .2em .6em;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .9);
+  font-size: clamp(18px, 4.8vmin, 38px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .12);
+}
+.pl-clock-box.hurry { background: #ffe1e1; color: #c62828; animation: pulse .8s ease-in-out infinite; }
+.pl-slots, .pl-final { display: flex; gap: 1.2vmin; }
+.pl-final { position: relative; z-index: 3; }
+.pl-slot {
+  --c: #fff;
+  display: grid;
+  place-items: center;
+  width: clamp(24px, 6vmin, 48px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .4);
+  border: .5vmin dashed rgba(0, 0, 0, .25);
+}
+.pl-slot.now { border-style: solid; border-color: var(--gold); animation: pulse 1s ease-in-out infinite; }
+.pl-slot.in { background: radial-gradient(circle, #fff 0 28%, var(--c) 30%); border: .5vmin solid #2b2140; }
+.pl-slot.out { background: #ffe0cc; border: .5vmin solid #ff9800; }
+.pl-slot.out::before { content: '✖'; color: #e65100; font-weight: 900; font-size: clamp(12px, 3vmin, 24px); }
+.game-pill { font-size: clamp(15px, 3.8vmin, 30px); }
+
 /* ---------- Animaciones ---------- */
 
 @keyframes drift { to { transform: translateY(-2.5vmin) rotate(6deg); } }

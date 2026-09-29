@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   /*
@@ -57,7 +57,7 @@
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin O/0 ni I/1, que se confunden
   const THEME = {
     sky1: '#ffe3b3', sky2: '#ffc9c9', ground: '#a8dba8',
-    decor: ['🎱', '🎈', '⭐', '🎉', '✨'],
+    decor: ['🎟️', '🎈', '⭐', '🎉', '✨'],
   };
   const BALL_COLORS = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa'];
 
@@ -381,7 +381,7 @@
 
     const back = ui().backBtn(() => ui().showWorlds());
     ui().show(h('div', { class: 'screen bingo-lobby' },
-      ui().topbar(back, h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🎱'), ' Bingo familiar'), h('span', { class: 'spacer' })),
+      ui().topbar(back, h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🎟️'), ' Bingo familiar'), h('span', { class: 'spacer' })),
       h('div', { class: 'bingo-panel' },
         h('div', { class: 'bingo-me' }, BQ.puppet.el(charId()),
           h('label', { class: 'bingo-label', for: 'bingo-name' }, '¿Cómo te llamás?'), name),
@@ -422,7 +422,7 @@
 
     const back = ui().backBtn(() => showLobby());
     ui().show(h('div', { class: 'screen bingo-room' },
-      ui().topbar(back, h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🎱'), ' Bingo familiar'), h('span', { class: 'spacer' })),
+      ui().topbar(back, h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🎟️'), ' Bingo familiar'), h('span', { class: 'spacer' })),
       h('div', { class: 'bingo-panel' },
         h('div', { class: 'bingo-code-box' },
           h('span', { class: 'bingo-label' }, 'Código de la partida'),
@@ -459,7 +459,7 @@
     if (S.host) {
       autoBtn = h('button', { class: 'bingo-small auto' + (st.auto ? ' on' : ''), onclick: () => setAuto(!S.host.auto) }, '⏱️ Automático');
       controls = h('div', { class: 'bingo-controls' },
-        h('button', { class: 'bingo-draw', 'aria-label': 'Sacar', onpointerdown: ui().tap(() => draw()) }, h('span', { class: 'emoji' }, '🎱'), ' Sacar'),
+        h('button', { class: 'bingo-draw', 'aria-label': 'Sacar', onpointerdown: ui().tap(() => draw()) }, h('span', { class: 'emoji' }, '🎟️'), ' Sacar'),
         autoBtn);
     }
 

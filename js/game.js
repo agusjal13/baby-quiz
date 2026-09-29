@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   const U = BQ.util;
@@ -246,7 +246,8 @@
     const games = h('div', { class: 'games-row' },
       h('button', { class: 'game-pill penales', onpointerdown: tap(() => BQ.penales.open()) }, h('span', { class: 'emoji' }, '🥅'), ' Penales'),
       h('button', { class: 'game-pill partido', onpointerdown: tap(() => BQ.partido.open()) }, h('span', { class: 'emoji' }, '⚽'), ' Partidito'),
-      h('button', { class: 'game-pill bingo', onpointerdown: tap(() => BQ.bingo.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Bingo'),
+      h('button', { class: 'game-pill pool', onpointerdown: tap(() => BQ.pool.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Pool'),
+      h('button', { class: 'game-pill bingo', onpointerdown: tap(() => BQ.bingo.open()) }, h('span', { class: 'emoji' }, '🎟️'), ' Bingo'),
       h('button', { class: 'game-pill trofeos', onpointerdown: tap(() => BQ.trophies.open()) }, h('span', { class: 'emoji' }, '🏆'), ' Trofeos'));
 
     show(h('div', { class: 'screen worlds' },

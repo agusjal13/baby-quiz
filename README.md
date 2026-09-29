@@ -79,15 +79,21 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Gana el primero en llegar a 3 goles (alrededor de un minuto). Código en `js/partido.js`;
   lo que comparte con los penales (preguntas, panel y pantalla final) está en `js/sport.js`.
 
+## Pool
+
+- Botón 🎱 Pool en el mapa. Mesa con 6 bolas que se juega sola: antes de cada tiro hay una pregunta
+  (bien = entra, mal = pega en el borde y queda afuera). Gana si mete 4 de 6 antes de que se
+  termine el tiempo (1:30). Código en `js/pool.js`.
+
 ## Trofeos
 
-- Cada partido ganado (penales o partidito) da **1 moneda** y suma para los **20 trofeos**
+- Cada partido ganado (penales, partidito o pool) da **1 moneda** y suma para los **20 trofeos**
   (de la medalla de bronce con 1 partido a la copa del mundo con 50). Se ven en 🏆 Trofeos.
 - La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
 
 ## Bingo familiar (online)
 
-- Botón 🎱 en el mapa de mundos. Uno crea la partida (código de 4 letras + link para compartir)
+- Botón 🎟️ Bingo en el mapa de mundos. Uno crea la partida (código de 4 letras + link para compartir)
   y los demás se unen. Cartón 4x4 con dibujos (los 11 personajes y 19 cosas conocidas, lista `PICS` en
   `js/bingo.js`): línea (fila, columna o diagonal) y bingo. En automático sale uno cada 6 segundos,
   con cuenta regresiva en todas las pantallas.
