@@ -30,7 +30,12 @@
   const BALL_START = [100, 355];
   const LANE_END = 335; // profundidad donde termina la pista (después está el foso)
   const CAM_START = -60;
-  const CAM_MAX = 185; // hasta dónde se acerca la cámara a los pinos
+  const CAM_MAX = 140; // hasta dónde se acerca la cámara (se ven de frente la caja, la pantalla y los pinos)
+  // Caja del final de la pista: frente un poco antes del primer pino, boca hasta BOX_OPEN de alto
+  const BOX_FRONT = 222;
+  const BOX_BACK = LANE_END + 30;
+  const BOX_OPEN = 52;
+  const BOX_TOP = 112;
   const PIN_SPOTS = [
     [100, 120],
     [90, 104], [110, 104],
@@ -146,17 +151,9 @@
     g.fillStyle = bg;
     g.fillRect(0, 0, W, H);
 
-    // Foso y fondo iluminado detrás de los pinos
-    const back = project(s, 100, 0, LANE_END);
-    if (back) {
-      const glow = g.createRadialGradient(W / 2, back.y - 30 * back.k, 5, W / 2, back.y - 30 * back.k, 140 * back.k);
-      glow.addColorStop(0, 'rgba(255, 220, 150, .35)');
-      glow.addColorStop(1, 'rgba(255, 220, 150, 0)');
-      g.fillStyle = glow;
-      g.fillRect(0, 0, W, H);
-    }
-    quad(s, 0, 200, LANE_END, LANE_END + 60, -6, '#08060f');
-    drawScreen(s);
+    // Interior de la caja del final: foso, pared del fondo y paredes de adentro (oscuros)
+    quad(s, 8, 192, LANE_END, BOX_BACK, -6, '#08060f');
+    poly(s, [[8, -8, BOX_BACK], [192, -8, BOX_BACK], [192, BOX_OPEN, BOX_BACK], [8, BOX_OPEN, BOX_BACK]], '#07050d');
 
     // Laterales, canaletas y pista de madera
     quad(s, -40, 8, near, LANE_END, 6, '#3d3563');
@@ -201,17 +198,75 @@
     }
     quad(s, 26, 174, depth(331), depth(329), 0.1, '#e53935');
 
-    // Pinos y bola, de atrás hacia adelante
+    // Paredes de adentro de la caja y luz sobre los pinos
+    poly(s, [[8, 0, BOX_FRONT], [8, 0, BOX_BACK], [8, BOX_OPEN, BOX_BACK], [8, BOX_OPEN, BOX_FRONT]], '#14102a');
+    poly(s, [[192, 0, BOX_FRONT], [192, 0, BOX_BACK], [192, BOX_OPEN, BOX_BACK], [192, BOX_OPEN, BOX_FRONT]], '#14102a');
+    const lamp = project(s, 100, 25, 262);
+    if (lamp) {
+      const glow = g.createRadialGradient(lamp.x, lamp.y, 2, lamp.x, lamp.y, 90 * lamp.k);
+      glow.addColorStop(0, 'rgba(255, 225, 160, .45)');
+      glow.addColorStop(1, 'rgba(255, 225, 160, 0)');
+      g.fillStyle = glow;
+      g.fillRect(0, 0, W, H);
+    }
+
+    // Pinos y bola, de atrás hacia adelante: primero lo que está adentro de la caja,
+    // después el frente de la caja (con la pantalla) y por último lo que está delante
     const things = s.pins.filter((p) => !p.gone).map((p) => ({ z: depth(p.y), draw: () => drawPin(s, p) }));
     if (s.ball.y > -40) things.push({ z: depth(s.ball.y), draw: () => drawBall(s) });
-    things.sort((p, q) => q.z - p.z).forEach((t) => t.draw());
+    things.sort((p, q) => q.z - p.z);
+    things.filter((t) => t.z >= BOX_FRONT).forEach((t) => t.draw());
+    drawBox(s);
+    things.filter((t) => t.z < BOX_FRONT).forEach((t) => t.draw());
   }
 
-  // Pantalla arriba del foso, como en los bowlings de verdad: muestra el cuadro y el resultado del tiro
+  // Polígono con puntos [x, altura, profundidad]
+  function poly(s, pts, fill) {
+    const P = pts.map(([x, alt, z]) => project(s, x, alt, z));
+    if (P.some((p) => !p)) return;
+    const g = s.ctx;
+    g.beginPath();
+    P.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)));
+    g.closePath();
+    g.fillStyle = fill;
+    g.fill();
+  }
+
+  // Caja del final de la pista (como la de los bowlings): tapa la parte de arriba de los pinos,
+  // la bola entra y desaparece adentro. En el frente, arriba de los pinos, está la pantalla.
+  function drawBox(s) {
+    const g = s.ctx;
+    // Techo y costados de afuera
+    poly(s, [[-12, BOX_TOP, BOX_FRONT], [212, BOX_TOP, BOX_FRONT], [212, BOX_TOP, BOX_BACK], [-12, BOX_TOP, BOX_BACK]], '#231e40');
+    poly(s, [[-12, 0, BOX_FRONT], [8, 0, BOX_FRONT], [8, BOX_OPEN, BOX_FRONT], [-12, BOX_OPEN, BOX_FRONT]], '#2d2752');
+    poly(s, [[192, 0, BOX_FRONT], [212, 0, BOX_FRONT], [212, BOX_OPEN, BOX_FRONT], [192, BOX_OPEN, BOX_FRONT]], '#2d2752');
+    // Frente
+    const tl = project(s, -12, BOX_TOP, BOX_FRONT);
+    const br = project(s, 212, BOX_OPEN, BOX_FRONT);
+    if (tl && br) {
+      const front = g.createLinearGradient(0, tl.y, 0, br.y);
+      front.addColorStop(0, '#3a3370');
+      front.addColorStop(1, '#231e48');
+      g.fillStyle = front;
+      g.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+      // Borde de luces abajo, sobre la boca de la caja
+      g.fillStyle = '#ffd23f';
+      const lights = 14;
+      for (let i = 0; i < lights; i++) {
+        const lx = tl.x + ((i + 0.5) / lights) * (br.x - tl.x);
+        g.beginPath();
+        g.arc(lx, br.y - (br.y - tl.y) * 0.05, Math.max(1.2, (br.y - tl.y) * 0.035), 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+    drawScreen(s);
+  }
+
+  // Pantalla en el frente de la caja, arriba de los pinos: muestra el cuadro y el resultado del tiro
   function drawScreen(s) {
-    const z = LANE_END + 30;
-    const tl = project(s, 38, 118, z);
-    const br = project(s, 162, 62, z);
+    const z = BOX_FRONT - 0.5;
+    const tl = project(s, 42, BOX_TOP - 7, z);
+    const br = project(s, 158, BOX_OPEN + 10, z);
     if (!tl || !br) return;
     const g = s.ctx;
     const w = br.x - tl.x;
