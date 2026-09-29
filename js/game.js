@@ -299,7 +299,8 @@
     const W = BQ.wardrobe;
     const counter = coinCounter();
     const hero = h('div', { class: 'shop-hero' });
-    const grid = h('div', { class: 'shop-grid' });
+    // Con muchas prendas (el futbolista tiene 7), 3 columnas para que entren en pantalla
+    const grid = h('div', { class: 'shop-grid' + (W.items(c.id).length > 4 ? ' many' : '') });
 
     function paint() {
       hero.replaceChildren(avatarEl(c));

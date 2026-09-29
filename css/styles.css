@@ -352,6 +352,8 @@ button {
   flex: none;
 }
 .shop-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3vmin; }
+.shop-grid.many { grid-template-columns: repeat(3, auto); gap: 2.2vmin; }
+.shop-grid.many .shop-item { width: clamp(76px, 18vmin, 150px); }
 .shop-item {
   position: relative;
   width: clamp(88px, 21vmin, 170px);
