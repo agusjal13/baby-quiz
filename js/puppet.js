@@ -233,9 +233,11 @@
       ? `<path d="${ROBOT_TORSO}" fill="${look.torso}" ${S}/>`
       : `<path d="${look.dress ? DRESS : TORSO}" fill="${look.torso}" ${S}/>`;
     const belly = look.belly ? `<ellipse cx="50" cy="86" rx="10" ry="13" fill="${look.belly}"/>` : '';
-    const ball = look.ball
-      ? `<g class="pp-ball"><circle cx="69" cy="123" r="6.5" fill="#fff" ${S}/><polygon points="69,119.5 72.3,122 71,125.8 67,125.8 65.7,122" fill="${OUT}"/></g>`
-      : '';
+    // Pelota en el pie (futbolista); se puede cambiar por una de la tienda (lugar "ball")
+    const ball = !look.ball ? ''
+      : bySlot.ball
+        ? `<g class="pp-ball"><svg x="62" y="116" width="14" height="14" viewBox="0 0 100 100">${inner(BQ.wardrobe.ART[bySlot.ball.art])}</svg></g>`
+        : `<g class="pp-ball"><circle cx="69" cy="123" r="6.5" fill="#fff" ${S}/><polygon points="69,119.5 72.3,122 71,125.8 67,125.8 65.7,122" fill="${OUT}"/></g>`;
 
     return `<svg class="pp" viewBox="0 0 100 140" overflow="visible" aria-hidden="true">`
       + `<ellipse class="pp-shadow" cx="50" cy="127" rx="22" ry="4" fill="rgba(0,0,0,.14)"/>`
@@ -257,7 +259,7 @@
   // ---------- Acciones ("usar" lo que tiene puesto) ----------
 
   const USE_MS = { magic: 1400, raise: 1400, block: 1100, hop: 900, wiggle: 900, spin: 1000, flutter: 1200, kick: 1100, fire: 1100, wave: 1400, shine: 1000 };
-  const DEFAULT_USE = { head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter' };
+  const DEFAULT_USE = { head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter', ball: 'kick' };
 
   function spawn(char, x, y, count, spread, size) {
     for (let i = 0; i < count; i++) {

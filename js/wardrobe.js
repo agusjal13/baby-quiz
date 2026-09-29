@@ -23,7 +23,11 @@
     corbatita: (c, dark) => `<svg viewBox="0 0 100 60"><path d="M50 30 L8 5 Q0 30 8 55 Z" fill="${c}" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>`
       + `<path d="M50 30 L92 5 Q100 30 92 55 Z" fill="${c}" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>`
       + `<circle cx="50" cy="30" r="11" fill="${dark}"/></svg>`,
-    capa: (c) => `<svg viewBox="0 0 100 100"><path d="M28 6 Q50 16 72 6 L94 94 Q50 102 6 94 Z" fill="${c}" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linejoin="round"/>`
+    // Pelota con los colores del Mundial 2026: tres pétalos verde, rojo y azul
+    pelota26: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fff" stroke="#2b2140" stroke-width="5"/>'
+      + ['#2e9e44', '#e53935', '#1e88e5'].map((c, i) => `<path d="M50 50 C28 40 24 14 50 7 C76 14 72 40 50 50 Z" fill="${c}" stroke="#2b2140" stroke-width="2.5" transform="rotate(${i * 120} 50 50)"/>`).join('')
+      + '<circle cx="50" cy="50" r="6" fill="#fff" stroke="#2b2140" stroke-width="3"/></svg>',
+    capa: (c) =>`<svg viewBox="0 0 100 100"><path d="M28 6 Q50 16 72 6 L94 94 Q50 102 6 94 Z" fill="${c}" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linejoin="round"/>`
       + `<polygon points="${star(50, 62, 12, 5)}" fill="rgba(255,255,255,.7)"/></svg>`,
   };
 
@@ -64,6 +68,7 @@
       jersey('verdeAmarilla', 'la camiseta verde y amarilla'),
       jersey('rojaAmarilla', 'la camiseta roja y amarilla'),
       jersey('azulRoja', 'la camiseta azul y roja a rayas'),
+      { id: 'pelota26', name: 'la pelota del mundial', slot: 'ball', art: 'pelota26', use: 'kick' },
       { id: 'copa', name: 'la copa', slot: 'hand', emoji: '🏆' },
     ],
     princesa: [
@@ -155,7 +160,7 @@
       if (item.emoji) return h('span', { class: 'card-art emoji' }, item.emoji);
       if (item.jersey) return h('span', { class: 'card-art' }, h('span', { class: 'shirt', style: { background: item.shirt } }));
       const svg = item.art ? ART[item.art] : item.bow ? ART.corbatita(...item.bow) : item.cape ? ART.capa(item.cape) : '';
-      return h('span', { class: 'card-art card-svg' + (item.art ? ' tall' : ''), html: svg });
+      return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : ''), html: svg });
     },
   };
 })(window.BQ);

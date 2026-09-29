@@ -200,6 +200,7 @@ button {
 .card-art { display: grid; place-items: center; line-height: 1; }
 .card-svg svg { width: 1em; height: .7em; display: block; }
 .card-svg.tall svg { width: .5em; height: 1em; }
+.card-svg.round svg { width: .9em; height: .9em; }
 .shirt {
   display: block;
   width: 1em;
