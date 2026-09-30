@@ -145,6 +145,7 @@
     BQ.sport.result({
       screen: s.screen,
       won,
+      perfect: won && s.rival === 0,
       detail: h('div', { class: 'mt-final' }, `${s.me} - ${s.rival}`),
       onAgain: startGame,
       winSay: `¡Ganaste ${s.me} a ${s.rival}! ¡Te ganaste una moneda!`,

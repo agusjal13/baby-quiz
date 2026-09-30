@@ -258,7 +258,8 @@ button {
 .shop-btn:active { translate: 0 .6vmin; }
 
 /* Premio: moneda gigante */
-.party.coin-time .party-hero, .party.coin-time .party-title, .party.coin-time .party-prize { opacity: .2; transition: opacity .4s; }
+.party.coin-time .party-hero, .party.coin-time .party-title, .party.coin-time .party-prize,
+.party.coin-time .mt-final, .party.coin-time .pen-final, .party.coin-time .pl-final, .party.coin-time .perfect-badge { opacity: .2; transition: opacity .4s; }
 .party-coins { position: absolute; top: max(2vmin, env(safe-area-inset-top)); right: max(2vmin, env(safe-area-inset-right)); z-index: 7; }
 .coin-stage {
   position: absolute;
@@ -1231,7 +1232,89 @@ button {
 .pen-final { position: relative; z-index: 3; display: flex; gap: 2vmin; }
 .sport-hero { font-size: clamp(90px, 26vmin, 220px); }
 .party.sport-lost { background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, .92), rgba(214, 234, 255, .85) 70%); }
-.sport-coin { position: absolute; left: 50%; top: 42%; margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 8; }
+.sport-coins {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  translate: -50% -50%;
+  z-index: 8;
+  display: flex;
+  gap: 3vmin;
+  pointer-events: none;
+}
+.sport-coins .big-coin:nth-child(2) { animation-delay: .25s, 1.15s; }
+.sport-coins:has(> :nth-child(2)) .big-coin { --s: clamp(100px, 30vmin, 260px); }
+.perfect-badge {
+  position: relative;
+  z-index: 3;
+  padding: .2em .8em;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #ff5a8a, #ffd23f, #43a047, #1e88e5, #9c27b0);
+  color: #fff;
+  font-size: clamp(18px, 5vmin, 40px);
+  font-weight: 900;
+  -webkit-text-stroke: .12em rgba(0, 0, 0, .25);
+  paint-order: stroke fill;
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .15);
+  animation: popin .5s 1s both, pulse 1s ease-in-out 1.5s infinite;
+}
+
+/* Camino al próximo trofeo */
+.tp-stage { gap: 3vmin; padding: 0 3vmin; }
+.tp-label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: clamp(22px, 6vmin, 50px);
+  font-weight: 900;
+  color: var(--ink);
+  -webkit-text-stroke: .5vmin #fff;
+  paint-order: stroke fill;
+  animation: popin .4s both;
+}
+.tp-row {
+  --c: clamp(22px, min(6.5vmin, 7vw), 48px);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.3vmin, 12px);
+  padding: 14vmin 3vmin 2.5vmin;
+  border-radius: 4vmin;
+  background: #fff;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .12);
+  animation: popin .4s both;
+}
+.tp-cell {
+  position: relative;
+  flex: none;
+  width: var(--c);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eceff1;
+  border: .5vmin dashed rgba(0, 0, 0, .2);
+  transition: background .3s, border-color .3s;
+}
+.tp-cell.on { background: radial-gradient(circle at 35% 30%, #fff3a8, #ffd23f 50%, #f2a900); border: .5vmin solid #b07800; }
+.tp-cell.just { animation: pop .5s .35s; }
+.tp-cell.start { background: none; border: none; font-size: calc(var(--c) * .9); }
+.tp-cell.goal { width: calc(var(--c) * 1.9); aspect-ratio: auto; height: calc(var(--c) * 2.2); border: none; background: none; border-radius: 0; }
+.tp-trophy { width: 100%; height: 100%; animation: pulse 1s ease-in-out infinite; }
+.tp-trophy svg { width: 100%; height: 100%; display: block; }
+.tp-walker {
+  position: absolute;
+  left: 50%;
+  bottom: 70%;
+  margin-left: calc(var(--c) * -1.1);
+  width: calc(var(--c) * 2.2);
+  font-size: calc(var(--c) * 2.2);
+  z-index: 2;
+  pointer-events: none;
+}
+.tp-cell.goal .tp-walker { bottom: 85%; }
+
 
 @keyframes pen-keeper { from { transform: translateX(-9px); } to { transform: translateX(9px); } }
 @keyframes pen-net { 20% { transform: scale(1.05, 1.08) translateY(-2px); } 45% { transform: scale(.97, .95); } 70% { transform: scale(1.02, 1.03); } }

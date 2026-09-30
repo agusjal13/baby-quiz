@@ -206,6 +206,7 @@
     BQ.sport.result({
       screen: s.screen,
       won: s.goals >= WIN_GOALS,
+      perfect: s.goals === KICKS,
       detail: h('div', { class: 'pen-final' },
         Array.from({ length: KICKS }, (_, i) => h('span', { class: 'pen-slot ' + (s.score.children[i].classList.contains('goal') ? 'goal' : 'saved') }))),
       onAgain: startMatch,

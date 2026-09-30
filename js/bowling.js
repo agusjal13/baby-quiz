@@ -748,6 +748,7 @@
     BQ.sport.result({
       screen: s.screen,
       won,
+      perfect: pins >= 30,
       detail: h('div', { class: 'mt-final' }, `${pins} pinos`),
       onAgain: startGame,
       winSay: `¡Ganaste! Tiraste ${pins} pinos. ¡Te ganaste una moneda!`,

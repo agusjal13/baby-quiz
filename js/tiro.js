@@ -214,6 +214,7 @@
     BQ.sport.result({
       screen: s.screen,
       won,
+      perfect: s.score > 15,
       detail: h('div', { class: 'mt-final' }, h('span', { class: 'emoji' }, '🎯'), ` ${s.score}`),
       onAgain: startGame,
       winSay: `¡Ganaste! ¡Hiciste ${s.score} puntos! ¡Te ganaste una moneda!`,

@@ -407,6 +407,7 @@
     BQ.sport.result({
       screen: s.screen,
       won,
+      perfect: s.made === BALLS,
       detail: h('div', { class: 'pl-final' }, [...s.slots.children].map((sl) => sl.cloneNode(true))),
       onAgain: startGame,
       winSay: `¡Ganaste! ${made}. ¡Te ganaste una moneda!`,
