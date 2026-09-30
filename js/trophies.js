@@ -2,10 +2,11 @@
   'use strict';
 
   /*
-   * Trofeos: se ganan con los partidos ganados (penales y partidito), de más chicos a más lindos.
+   * Trofeos: se ganan con los partidos ganados (penales, partidito, pool, bowling, piedra papel o
+   * tijera), de más chicos a más lindos.
    * Cada trofeo se dibuja en SVG (100 x 130, apoyado abajo) combinando forma, metal y adornos.
-   *   type      medal | cup | star | ball | boot | shield | crown
-   *   metal     bronze | silver | gold | diamond | rainbow
+   *   type      medal | cup | star | ball | boot | shield | crown | heart | rocket | planet | bolt | gem
+   *   metal     bronze | silver | gold | diamond | ruby | emerald | sapphire | rose | rainbow | fire | galaxy
    *   scale     tamaño (los primeros son chiquitos)
    *   tiers     escalones de la base (0 = sin base)
    *   gem, topper, laurel, wings, crown, sparkles   adornos
@@ -37,6 +38,27 @@
     { wins: 40, name: 'la copa arcoíris', type: 'cup', metal: 'rainbow', scale: 0.96, tiers: 3, gem: '#ffffff', laurel: true, sparkles: true },
     { wins: 45, name: 'la súper copa estelar', type: 'star', metal: 'rainbow', scale: 0.98, tiers: 3, wings: true, sparkles: true },
     { wins: 50, name: 'la copa del mundo de Baby Quiz', type: 'cup', metal: 'rainbow', scale: 1, tiers: 3, wings: true, laurel: true, crown: true, gem: '#e53935', sparkles: true },
+    // Segunda vitrina: formas y materiales nuevos
+    { wins: 55, name: 'la medalla de rubí', type: 'medal', metal: 'ruby', scale: 0.9, tiers: 0 },
+    { wins: 60, name: 'el corazón de oro', type: 'heart', metal: 'gold', scale: 0.9, tiers: 2 },
+    { wins: 65, name: 'la copa esmeralda', type: 'cup', metal: 'emerald', scale: 0.9, tiers: 2, gem: '#ffd23f' },
+    { wins: 70, name: 'el cohete de plata', type: 'rocket', metal: 'silver', scale: 0.92, tiers: 2 },
+    { wins: 75, name: 'la estrella de zafiro', type: 'star', metal: 'sapphire', scale: 0.92, tiers: 2, sparkles: true },
+    { wins: 80, name: 'el rayo de oro', type: 'bolt', metal: 'gold', scale: 0.92, tiers: 2 },
+    { wins: 85, name: 'la copa rosa', type: 'cup', metal: 'rose', scale: 0.93, tiers: 3, gem: '#ffffff', topper: true },
+    { wins: 90, name: 'el planeta dorado', type: 'planet', metal: 'gold', scale: 0.93, tiers: 2, sparkles: true },
+    { wins: 95, name: 'el escudo de diamante', type: 'shield', metal: 'diamond', scale: 0.94, tiers: 3, gem: '#e53935', laurel: true },
+    { wins: 100, name: 'la copa de los cien partidos', type: 'cup', metal: 'gold', scale: 0.96, tiers: 3, crown: true, laurel: true, gem: '#1e88e5', sparkles: true },
+    { wins: 110, name: 'el diamante gigante', type: 'gem', metal: 'diamond', scale: 0.95, tiers: 3, sparkles: true },
+    { wins: 120, name: 'el cohete de fuego', type: 'rocket', metal: 'fire', scale: 0.96, tiers: 3, sparkles: true },
+    { wins: 130, name: 'la corona de rubí', type: 'crown', metal: 'ruby', scale: 0.96, tiers: 3, laurel: true },
+    { wins: 140, name: 'el corazón arcoíris', type: 'heart', metal: 'rainbow', scale: 0.97, tiers: 3, wings: true, sparkles: true },
+    { wins: 150, name: 'la copa galáctica', type: 'cup', metal: 'galaxy', scale: 0.97, tiers: 3, wings: true, gem: '#ffd23f', sparkles: true },
+    { wins: 160, name: 'el planeta arcoíris', type: 'planet', metal: 'rainbow', scale: 0.98, tiers: 3, laurel: true, sparkles: true },
+    { wins: 170, name: 'la estrella de fuego', type: 'star', metal: 'fire', scale: 0.98, tiers: 3, wings: true, sparkles: true },
+    { wins: 180, name: 'la pelota galáctica', type: 'ball', metal: 'galaxy', scale: 0.99, tiers: 3, laurel: true, wings: true },
+    { wins: 190, name: 'el rayo arcoíris', type: 'bolt', metal: 'rainbow', scale: 0.99, tiers: 3, wings: true, laurel: true, sparkles: true },
+    { wins: 200, name: 'la súper copa legendaria', type: 'cup', metal: 'galaxy', scale: 1, tiers: 3, wings: true, laurel: true, crown: true, gem: '#ff80ab', topper: true, sparkles: true },
   ];
 
   const METALS = {
@@ -44,8 +66,17 @@
     silver: ['#ffffff', '#c9ced8', '#8a94a6'],
     gold: ['#fff4b0', '#ffd23f', '#d99a00'],
     diamond: ['#ffffff', '#b3e5fc', '#29b6f6'],
+    ruby: ['#ffb3b3', '#e53935', '#8e0000'],
+    emerald: ['#c8ffd9', '#2e9e44', '#1b5e20'],
+    sapphire: ['#cfe6ff', '#1e88e5', '#0d47a1'],
+    rose: ['#ffe0ee', '#ff80ab', '#c2185b'],
   };
-  const RAINBOW = ['#ff5a5a', '#ffb84d', '#ffe14d', '#5fd35f', '#4fa8ff', '#b36bff'];
+  // Materiales de muchos colores (degradé) y el color oscuro que los acompaña
+  const MULTI = {
+    rainbow: { stops: ['#ff5a5a', '#ffb84d', '#ffe14d', '#5fd35f', '#4fa8ff', '#b36bff'], dark: '#8e44ad' },
+    fire: { stops: ['#fff176', '#ffb300', '#ff6d00', '#e53935'], dark: '#b71c1c' },
+    galaxy: { stops: ['#ff80ab', '#7c4dff', '#304ffe', '#00bcd4'], dark: '#1a237e' },
+  };
 
   let uid = 0;
 
@@ -60,17 +91,21 @@
   }
 
   function gradient(id, metal) {
-    const stops = metal === 'rainbow'
-      ? RAINBOW.map((c, i) => `<stop offset="${(i / (RAINBOW.length - 1)) * 100}%" stop-color="${c}"/>`).join('')
-      : METALS[metal].map((c, i) => `<stop offset="${i * 50}%" stop-color="${c}"/>`).join('');
-    return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient>`;
+    const list = MULTI[metal] ? MULTI[metal].stops : METALS[metal];
+    const stops = list.map((c, i) => `<stop offset="${(i / (list.length - 1)) * 100}%" stop-color="${c}"/>`).join('');
+    // La galaxia lleva estrellitas encima del degradé
+    const dots = metal === 'galaxy'
+      ? `<pattern id="${id}s" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="url(#${id}g)"/>`
+        + '<circle cx="3" cy="4" r="1" fill="#fff"/><circle cx="10" cy="10" r=".8" fill="#fff" opacity=".8"/></pattern>'
+      : '';
+    return `<linearGradient id="${metal === 'galaxy' ? id + 'g' : id}" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient>${dots}`;
   }
 
   // Dibujo de un trofeo (string SVG)
   function art(t) {
     const id = 'tg' + ++uid;
-    const fill = `url(#${id})`;
-    const dark = t.metal === 'rainbow' ? '#8e44ad' : METALS[t.metal][2];
+    const fill = t.metal === 'galaxy' ? `url(#${id}s)` : `url(#${id})`;
+    const dark = MULTI[t.metal] ? MULTI[t.metal].dark : METALS[t.metal][2];
     const S = `stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round"`;
     const baseTop = 130 - t.tiers * 9;
     let base = '';
@@ -151,6 +186,41 @@
           + `<path d="M24 ${y + 34} L24 ${y + 8} L37 ${y + 20} L50 ${y} L63 ${y + 20} L76 ${y + 8} L76 ${y + 34} Z" fill="${fill}" ${S}/>`
           + `<circle cx="24" cy="${y + 8}" r="4" fill="#1e88e5" ${S}/><circle cx="50" cy="${y}" r="4.5" fill="#e53935" ${S}/><circle cx="76" cy="${y + 8}" r="4" fill="#43a047" ${S}/>`
           + `<rect x="24" y="${y + 26}" width="52" height="8" fill="${dark}" ${S}/>`;
+        break;
+      }
+      case 'heart': {
+        const y = top - 64;
+        body = stem(top - 18)
+          + `<path d="M50 ${y + 46} C14 ${y + 24} 16 ${y} 35 ${y} C44 ${y} 50 ${y + 8} 50 ${y + 12} C50 ${y + 8} 56 ${y} 65 ${y} C84 ${y} 86 ${y + 24} 50 ${y + 46} Z" fill="${fill}" ${S}/>`
+          + `<path d="M30 ${y + 12} Q31 ${y + 6} 37 ${y + 6}" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="3.5" stroke-linecap="round"/>`;
+        break;
+      }
+      case 'rocket': {
+        body = `<path d="M42 ${top - 20} Q50 ${top} 58 ${top - 20} Z" fill="#ffb300" ${S}/>`
+          + `<path d="M38 ${top - 42} L24 ${top - 16} L38 ${top - 22} Z" fill="${dark}" ${S}/><path d="M62 ${top - 42} L76 ${top - 16} L62 ${top - 22} Z" fill="${dark}" ${S}/>`
+          + `<path d="M50 ${top - 86} Q66 ${top - 66} 62 ${top - 30} L62 ${top - 20} L38 ${top - 20} L38 ${top - 30} Q34 ${top - 66} 50 ${top - 86} Z" fill="${fill}" ${S}/>`
+          + `<circle cx="50" cy="${top - 54}" r="7.5" fill="#b3e5fc" ${S}/><circle cx="48" cy="${top - 56}" r="2" fill="#fff"/>`;
+        break;
+      }
+      case 'planet': {
+        const c = top - 42;
+        body = stem(top - 16)
+          + `<ellipse cx="50" cy="${c}" rx="34" ry="8" fill="none" stroke="${dark}" stroke-width="4" transform="rotate(-16 50 ${c})"/>`
+          + `<circle cx="50" cy="${c}" r="20" fill="${fill}" ${S}/>`
+          + `<path d="M22 ${c + 6} Q50 ${c + 16} 80 ${c - 10}" fill="none" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`
+          + `<circle cx="42" cy="${c - 8}" r="4" fill="rgba(255,255,255,.55)"/>`;
+        break;
+      }
+      case 'bolt':
+        body = `<path d="M58 ${top - 88} L28 ${top - 42} L47 ${top - 42} L38 ${top - 6} L72 ${top - 56} L53 ${top - 56} Z" fill="${fill}" ${S}/>`
+          + `<path d="M55 ${top - 78} L38 ${top - 48}" stroke="rgba(255,255,255,.7)" stroke-width="3" stroke-linecap="round"/>`;
+        break;
+      case 'gem': {
+        const y = top - 70;
+        body = stem(top - 16)
+          + `<path d="M30 ${y} L70 ${y} L84 ${y + 16} L50 ${y + 56} L16 ${y + 16} Z" fill="${fill}" ${S}/>`
+          + `<path d="M16 ${y + 16} L84 ${y + 16} M30 ${y} L40 ${y + 16} L50 ${y + 56} L60 ${y + 16} L70 ${y} M40 ${y + 16} L50 ${y} L60 ${y + 16}" fill="none" stroke="${dark}" stroke-width="1.8" stroke-linejoin="round"/>`
+          + `<path d="M24 ${y + 12} L31 ${y + 4}" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`;
         break;
       }
       default:

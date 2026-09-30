@@ -93,10 +93,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   cuanto más rápido, más fuerte. 3 cuadros de hasta 2 tiros, con strike y spare.
   Gana si voltea 15 pinos o más (de 30). Código en `js/bowling.js`.
 
+## Piedra, papel o tijera
+
+- Botón ✊✋✌️ en el mapa. Al mejor de 3 (gana el primero que llega a 2; los empates se repiten).
+  El chico elige abajo y un personaje rival elige al azar arriba. Código en `js/ppt.js`.
+
 ## Trofeos
 
-- Cada partido ganado (penales, partidito, pool o bowling) da **1 moneda** y suma para los **20 trofeos**
-  (de la medalla de bronce con 1 partido a la copa del mundo con 50). Se ven en 🏆 Trofeos.
+- Cada partido ganado (penales, partidito, pool, bowling o piedra papel o tijera) da **1 moneda** y suma para los **40 trofeos**
+  (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos.
 - La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
 
 ## Bingo familiar (online)

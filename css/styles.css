@@ -1488,6 +1488,75 @@ button {
 .bw-frame-total { font-size: clamp(13px, 3vmin, 24px); min-height: 1.2em; }
 .bw-frame-total.big { font-size: clamp(20px, 5vmin, 40px); color: var(--accent); }
 
+/* ---------- Piedra, papel o tijera ---------- */
+
+.game-pill.ppt { background: linear-gradient(160deg, #ff9800, #e65100); letter-spacing: .1em; }
+.ppt { gap: 1.5vmin; }
+.ppt-arena {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4vmin;
+  background: rgba(255, 255, 255, .35);
+  padding: 1.5vmin 3vmin;
+}
+.ppt-side { display: flex; align-items: center; gap: 5vmin; }
+.ppt-hero { font-size: clamp(40px, 12vmin, 110px); }
+.ppt-hand {
+  display: inline-block;
+  font-size: clamp(56px, 17vmin, 160px);
+  line-height: 1;
+  filter: drop-shadow(0 1vmin 0 rgba(0, 0, 0, .18));
+  transition: filter .3s, opacity .3s;
+}
+.ppt-hand.rival { rotate: 180deg; }
+.ppt-hand.shake { animation: ppt-shake 1s ease-in-out; }
+.ppt-hand.reveal { animation: pop .45s; }
+.ppt-hand.win { filter: drop-shadow(0 0 3vmin #ffd23f) drop-shadow(0 1vmin 0 rgba(0, 0, 0, .18)); }
+.ppt-hand.lose { opacity: .45; filter: grayscale(.6); }
+.ppt-middle {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+.ppt-middle .sport-flash { align-items: center; padding: 0; font-size: clamp(26px, min(40cqh, 13cqw), 90px); }
+@media (orientation: portrait) {
+  .ppt-hand { font-size: clamp(70px, 26vw, 180px); }
+  .ppt-hero { font-size: clamp(50px, 17vw, 120px); }
+}
+.ppt-vs { font-size: clamp(20px, 6vmin, 48px); font-weight: 900; color: rgba(59, 42, 90, .35); }
+.ppt-middle .sport-flash:not([hidden]) + .ppt-vs { display: none; }
+.ppt-choices { flex: none; display: flex; justify-content: center; gap: 3vmin; }
+.ppt-choices.locked { pointer-events: none; }
+.ppt-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5vmin;
+  width: clamp(80px, 20vmin, 170px);
+  padding: 1.5vmin 0 1vmin;
+  border-radius: 4vmin;
+  background: #fff;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
+  font-size: clamp(40px, 11vmin, 96px);
+  line-height: 1;
+}
+.ppt-choice-name { font-size: clamp(13px, 3vmin, 24px); font-weight: 900; }
+.ppt-choices.locked .ppt-choice:not(.picked) { opacity: .4; }
+.ppt-choice.picked { box-shadow: 0 0 0 1vmin var(--gold), 0 1vmin 0 rgba(0, 0, 0, .15); }
+.ppt-choice:active { translate: 0 .6vmin; }
+@keyframes ppt-shake {
+  0%, 33%, 66%, 100% { translate: 0 0; }
+  16%, 50%, 83% { translate: 0 -3.5vmin; }
+}
+
 /* ---------- Animaciones ---------- */
 
 @keyframes drift { to { transform: translateY(-2.5vmin) rotate(6deg); } }
