@@ -220,16 +220,38 @@
     party.classList.remove('coin-time');
   }
 
+  // Escenario del camino según el personaje: dónde queda, con qué arranca, qué marca cada casillero y adornos
+  const PATHS = {
+    futbolista: { place: 'cancha', start: '🥅', dot: '⚽', decor: ['🚩', '📣', '🏟️', '🚩'] },
+    robot: { place: 'lab', start: '🔋', dot: '💡', decor: ['🧪', '⚙️', '🔬', '🛰️'] },
+    mago: { place: 'magia', start: '🎩', dot: '⭐', decor: ['🔮', '🌙', '🍄', '✨'] },
+    hada: { place: 'jardin', start: '🌷', dot: '🌸', decor: ['🦋', '🍄', '🌼', '🦋'] },
+    unicornio: { place: 'nubes', start: '☁️', dot: '💖', decor: ['🌈', '☁️', '⭐', '🍭'] },
+    duende: { place: 'bosque', start: '🌈', dot: '🍀', decor: ['🍄', '🌳', '🌲', '🍄'] },
+    princesa: { place: 'castillo', start: '🚪', dot: '💎', decor: ['🏰', '🚩', '👑', '🌹'] },
+    dragon: { place: 'volcan', start: '🥚', dot: '🔥', decor: ['🌋', '⛰️', '🔥', '🌋'] },
+    dinosaurio: { place: 'selva', start: '🥚', dot: '🦴', decor: ['🌴', '🌋', '🌿', '🌴'] },
+    superheroe: { place: 'ciudad', start: '🏠', dot: '⚡', decor: ['🏢', '🌙', '🏙️', '🚁'] },
+    gatito: { place: 'casita', start: '🧺', dot: '🐟', decor: ['🧶', '🐭', '🌻', '🥛'] },
+  };
+
   function buildPath(from, next, w) {
     const n = next.wins - from;
+    const look = PATHS[store.data.character] || PATHS.futbolista;
     const cells = Array.from({ length: n + 1 }, (_, i) => h('span', {
       class: 'tp-cell' + (i === 0 ? ' start' : '') + (i === n ? ' goal' : '') + (i <= w - from ? ' on' : ''),
-    }, i === 0 ? h('span', { class: 'emoji' }, '🏁') : i === n ? BQ.trophies.el(next, 'tp-trophy') : ''));
+    }, i === 0 ? h('span', { class: 'emoji' }, look.start)
+      : i === n ? BQ.trophies.el(next, 'tp-trophy')
+      : h('span', { class: 'tp-dot emoji' }, look.dot)));
+    const decor = look.decor.map((d, i) => h('span', {
+      class: 'tp-decor emoji',
+      style: { left: [10, 37, 63, 90][i] + '%', top: i % 2 ? '6vmin' : '1.5vmin', '--i': i },
+    }, d));
     const walker = h('span', { class: 'tp-walker' }, BQ.puppet.el(store.data.character));
     cells[w - from].append(walker);
     const el = h('div', { class: 'coin-stage tp-stage' },
       h('p', { class: 'tp-label' }, 'Próximo trofeo'),
-      h('div', { class: 'tp-row' }, cells));
+      h('div', { class: 'tp-row tp-' + look.place }, decor, cells));
     return {
       el,
       next,

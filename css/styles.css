@@ -1279,8 +1279,12 @@ button {
   display: flex;
   align-items: center;
   gap: clamp(4px, 1.3vmin, 12px);
-  padding: 14vmin 3vmin 2.5vmin;
+  padding: 17vmin 4vmin 5vmin;
+  min-width: min(84vw, 72vmin);
+  justify-content: center;
   border-radius: 4vmin;
+  overflow: hidden;
+  border: .8vmin solid #fff;
   background: #fff;
   box-shadow: 0 1vmin 0 rgba(0, 0, 0, .12);
   animation: popin .4s both;
@@ -1293,11 +1297,71 @@ button {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #eceff1;
-  border: .5vmin dashed rgba(0, 0, 0, .2);
+  background: rgba(255, 255, 255, .55);
+  border: .5vmin dashed rgba(0, 0, 0, .25);
   transition: background .3s, border-color .3s;
 }
-.tp-cell.on { background: radial-gradient(circle at 35% 30%, #fff3a8, #ffd23f 50%, #f2a900); border: .5vmin solid #b07800; }
+.tp-cell.on { background: #fff; border: .5vmin solid #ffd23f; box-shadow: 0 0 1.5vmin #ffd23f; }
+.tp-dot { font-size: calc(var(--c) * .62); line-height: 1; opacity: .25; filter: grayscale(1); transition: opacity .3s, filter .3s; }
+.tp-cell.on .tp-dot { opacity: 1; filter: none; }
+.tp-decor {
+  position: absolute;
+  translate: -50% 0;
+  z-index: 0;
+  font-size: calc(var(--c) * 1.25);
+  line-height: 1;
+  opacity: .9;
+  animation: bob 2.4s ease-in-out calc(var(--i) * -.6s) infinite;
+  pointer-events: none;
+}
+/* Escenarios */
+.tp-cancha {
+  background:
+    linear-gradient(90deg, transparent calc(50% - .4vmin), rgba(255, 255, 255, .85) calc(50% - .4vmin) calc(50% + .4vmin), transparent 0),
+    radial-gradient(circle, transparent 9vmin, rgba(255, 255, 255, .85) 9vmin 9.8vmin, transparent 0),
+    repeating-linear-gradient(90deg, #43a047 0 7vmin, #4caf50 7vmin 14vmin);
+}
+.tp-lab {
+  border-color: #90a4ae;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .18) 0 1px, transparent 1px 4vmin),
+    repeating-linear-gradient(90deg, rgba(0, 229, 255, .18) 0 1px, transparent 1px 4vmin),
+    linear-gradient(#455a64, #263238);
+}
+.tp-lab .tp-cell.on { border-color: #00e5ff; box-shadow: 0 0 2vmin #00e5ff; }
+.tp-magia {
+  border-color: #ce93d8;
+  background:
+    radial-gradient(circle at 12% 25%, #fff 0 .35vmin, transparent .6vmin),
+    radial-gradient(circle at 40% 12%, #fff 0 .3vmin, transparent .5vmin),
+    radial-gradient(circle at 70% 30%, #fff 0 .35vmin, transparent .6vmin),
+    radial-gradient(circle at 88% 15%, #fff 0 .3vmin, transparent .5vmin),
+    radial-gradient(circle at 55% 45%, #fff 0 .25vmin, transparent .45vmin),
+    linear-gradient(#311b92, #7b1fa2 70%, #4a148c);
+}
+.tp-jardin { border-color: #f8bbd0; background: linear-gradient(#fce4ec 0 50%, #a5d6a7 50%, #66bb6a); }
+.tp-nubes { border-color: #f8bbd0; background: linear-gradient(#ffcdd2, #fff9c4 25%, #c8e6c9 50%, #bbdefb 75%, #e1bee7); }
+.tp-bosque { border-color: #a5d6a7; background: linear-gradient(#c5e1a5, #66bb6a 55%, #2e7d32); }
+.tp-castillo {
+  border-color: #f48fb1;
+  background:
+    repeating-linear-gradient(0deg, rgba(120, 100, 140, .35) 0 .4vmin, transparent .4vmin 5vmin),
+    repeating-linear-gradient(90deg, rgba(120, 100, 140, .3) 0 .4vmin, transparent .4vmin 9vmin),
+    linear-gradient(#f3e5f5, #e1bee7);
+}
+.tp-castillo .tp-cell.on { border-color: #f06292; box-shadow: 0 0 1.5vmin #f06292; }
+.tp-volcan { border-color: #ffab91; background: linear-gradient(#ffccbc, #ff8a65 45%, #6d4c41 46%, #4e342e); }
+.tp-volcan .tp-cell.on { border-color: #ff5722; box-shadow: 0 0 2vmin #ff5722; }
+.tp-selva { border-color: #c5e1a5; background: linear-gradient(#fff59d, #aed581 45%, #689f38 46%, #33691e); }
+.tp-ciudad {
+  border-color: #9fa8da;
+  background:
+    linear-gradient(transparent 60%, #283593 60%),
+    repeating-linear-gradient(90deg, #3949ab 0 6vmin, #303f9f 6vmin 9vmin, transparent 9vmin 11vmin),
+    linear-gradient(#1a237e, #3f51b5);
+}
+.tp-ciudad .tp-cell.on { border-color: #ffeb3b; box-shadow: 0 0 2vmin #ffeb3b; }
+.tp-casita { border-color: #ffcc80; background: linear-gradient(transparent 62%, #a1887f 62%, #8d6e63), repeating-linear-gradient(90deg, #ffe0b2 0 3vmin, #fff3e0 3vmin 6vmin); }
 .tp-cell.just { animation: pop .5s .35s; }
 .tp-cell.start { background: none; border: none; font-size: calc(var(--c) * .9); }
 .tp-cell.goal { width: calc(var(--c) * 1.9); aspect-ratio: auto; height: calc(var(--c) * 2.2); border: none; background: none; border-radius: 0; }

@@ -112,7 +112,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - **Resultado perfecto** (penales 3-0, partidito 3-0, pool con las 6 bolas, bowling 30 pinos,
   piedra papel o tijera 2-0 y tiro al blanco con más de 15 puntos): vale doble, **2 monedas** y cuenta como 2 partidos.
 - Al ganar, aparece el camino al próximo trofeo: el personaje avanza un casillero por partido ganado
-  (dos si fue perfecto) y, si llega al trofeo, lo gana. Está en `js/sport.js` (`result`, `trophyPath`).
+  (dos si fue perfecto) y, si llega al trofeo, lo gana. El escenario depende del personaje
+  (cancha, laboratorio, castillo, volcán...): lista `PATHS` en `js/sport.js`. Está en `js/sport.js` (`result`, `trophyPath`).
 - La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
 
 ## Bingo familiar (online)
