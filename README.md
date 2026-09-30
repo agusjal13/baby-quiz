@@ -98,9 +98,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Botón ✊✋✌️ en el mapa. Al mejor de 3 (gana el primero que llega a 2; los empates se repiten).
   El chico elige abajo y un personaje rival elige al azar arriba. Código en `js/ppt.js`.
 
+## Tiro al blanco
+
+- Botón 🎯 Tiro al blanco en el mapa. Durante 40 segundos aparecen blancos en lugares al azar que se van
+  solos al rato; tocar uno suma 1 punto. Cada tanto aparece una bomba 💣: tocarla resta 1 (nunca baja de 0).
+  Gana con 6 puntos o más. Código en `js/tiro.js` (tiempo, puntos para ganar y frecuencia de bombas arriba de todo).
+
 ## Trofeos
 
-- Cada partido ganado (penales, partidito, pool, bowling o piedra papel o tijera) da **1 moneda** y suma para los **40 trofeos**
+- Cada partido ganado (penales, partidito, pool, bowling, piedra papel o tijera o tiro al blanco) da **1 moneda** y suma para los **40 trofeos**
   (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos.
 - La lista y los dibujos están en `js/trophies.js` (`TROPHIES`: partidos necesarios, forma, metal y adornos).
 

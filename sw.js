@@ -1,6 +1,6 @@
 ﻿// Guarda todos los archivos del juego para que funcione sin internet.
 // Al cambiar cualquier archivo, subir la versión para que los dispositivos se actualicen.
-const CACHE = 'baby-quiz-v39';
+const CACHE = 'baby-quiz-v40';
 
 const ASSETS = [
   './',
@@ -31,6 +31,7 @@ const ASSETS = [
   'js/pool.js',
   'js/bowling.js',
   'js/ppt.js',
+  'js/tiro.js',
   'js/game.js',
   'icons/icon.svg',
   'icons/icon-192.png',

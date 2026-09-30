@@ -1557,6 +1557,79 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Tiro al blanco ---------- */
+
+.game-pill.tiro { background: linear-gradient(160deg, #e53935, #8e0000); }
+.tb-score.bump { animation: pop .35s; }
+.tb-slots { display: flex; gap: .8vmin; }
+.tb-slot {
+  width: clamp(14px, 3.6vmin, 30px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .6);
+  border: .4vmin dashed rgba(0, 0, 0, .2);
+  transition: background .2s, transform .2s;
+}
+.tb-slot.on { background: radial-gradient(circle, #ffd23f 0 25%, #e53935 26% 55%, #fff 56%); border: .4vmin solid #8d6e63; transform: scale(1.1); }
+.tb-slots.done .tb-slot { animation: pulse .8s ease-in-out infinite; }
+.tb-scene {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  border-radius: 3vmin;
+  overflow: hidden;
+  background: linear-gradient(#b3e5fc, #e1f5fe 60%, #c5e1a5 60.5%, #9ccc65);
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .15);
+  touch-action: none;
+  user-select: none;
+}
+.tb-scene.shake { animation: shake .4s; }
+.tb-field { position: absolute; inset: 0; }
+.tb-hero { position: absolute; left: 1.5cqmin; bottom: 1cqmin; font-size: 26cqmin; z-index: 1; pointer-events: none; }
+.tb-thing {
+  position: absolute;
+  width: 22cqmin;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 2;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: popin .3s ease-out, tb-wobble 1.2s ease-in-out .3s infinite alternate;
+}
+.tb-thing svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1cqmin 0 rgba(0, 0, 0, .18)); }
+.tb-thing .emoji { display: block; font-size: 18cqmin; line-height: 1; }
+.tb-thing.bad .emoji { animation: tb-fuse .25s ease-in-out infinite alternate; }
+.tb-thing.leave { animation: tb-leave .35s ease-in forwards; pointer-events: none; }
+.tb-thing.hit { animation: tb-hit .5s ease-out forwards; pointer-events: none; }
+.tb-thing.boom { animation: tb-boom .7s ease-out forwards; pointer-events: none; }
+.tb-stars { position: absolute; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.tb-stars .burst { font-size: 7cqmin; }
+.tb-pop {
+  position: absolute;
+  translate: -50% -50%;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 12cqmin;
+  font-weight: 900;
+  color: #2e7d32;
+  -webkit-text-stroke: .08em #fff;
+  paint-order: stroke fill;
+  animation: tb-rise .9s ease-out forwards;
+}
+.tb-pop.bad { color: #c62828; }
+.tiro .sport-flash { align-items: center; padding: 0; }
+@keyframes tb-wobble { from { rotate: -6deg; } to { rotate: 6deg; } }
+@keyframes tb-fuse { to { scale: 1.08; rotate: 8deg; } }
+@keyframes tb-leave { to { scale: 0; opacity: 0; } }
+@keyframes tb-hit { 30% { scale: 1.25; } to { scale: .2; opacity: 0; rotate: 90deg; } }
+@keyframes tb-boom { 25% { scale: 1.6; } to { scale: 2; opacity: 0; } }
+@keyframes tb-rise { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -14cqmin; } }
+
 /* ---------- Animaciones ---------- */
 
 @keyframes drift { to { transform: translateY(-2.5vmin) rotate(6deg); } }
