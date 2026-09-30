@@ -1,4 +1,4 @@
-(function (BQ) {
+﻿(function (BQ) {
   'use strict';
 
   /*
@@ -18,9 +18,9 @@
 
   const TO_WIN = 2;
   const MOVES = {
-    piedra: { emoji: '✊', name: 'la piedra', beats: 'tijera', verb: 'rompe' },
-    papel: { emoji: '✋', name: 'el papel', beats: 'piedra', verb: 'envuelve' },
-    tijera: { emoji: '✌️', name: 'la tijera', beats: 'papel', verb: 'corta' },
+    piedra: { emoji: '✊', name: 'la piedra', beats: 'tijera' },
+    papel: { emoji: '✋', name: 'el papel', beats: 'piedra' },
+    tijera: { emoji: '✌️', name: 'la tijera', beats: 'papel' },
   };
   const THEME = { sky1: '#ffb74d', sky2: '#ffe0b2', ground: '#8d6e63', decor: ['✊', '✋', '✌️', '⭐', '✨'] };
 
@@ -68,7 +68,7 @@
 
     const s = { screen, rivalHand, myHand, flash, buttons, scoreMe, scoreRival, myHero, rivalHero, me: 0, rival: 0, busy: false };
     S = s;
-    voice.say('¡Piedra, papel o tijera! Elegí abajo. ¡Gana el primero que haga dos puntos!');
+    voice.say('¡Elegí!');
   }
 
   async function play(s, move) {
@@ -109,7 +109,7 @@
     if (move === rival) {
       BQ.sport.flash(s.flash, '¡EMPATE!', 'saved');
       sfx.tap();
-      say = `¡Empate! Los dos eligieron ${MOVES[move].name}. ¡Otra vez!`;
+      say = '¡Empate!';
     } else if (MOVES[move].beats === rival) {
       s.me++;
       s.scoreMe.textContent = String(s.me);
@@ -119,7 +119,7 @@
       sfx.correct();
       ui().burst(s.myHero);
       BQ.puppet.use(s.myHero.querySelector('.avatar'));
-      say = `¡${U.cap(MOVES[move].name)} ${MOVES[move].verb} ${MOVES[rival].name}! ¡Punto para vos!`;
+      say = '¡Punto!';
     } else {
       s.rival++;
       s.scoreRival.textContent = String(s.rival);
@@ -128,9 +128,9 @@
       BQ.sport.flash(s.flash, 'PUNTO RIVAL', 'saved');
       sfx.aww();
       BQ.puppet.use(s.rivalHero.querySelector('.avatar'));
-      say = `¡${U.cap(MOVES[rival].name)} ${MOVES[rival].verb} ${MOVES[move].name}! Punto para el otro.`;
+      say = '¡Punto del otro!';
     }
-    await Promise.all([voice.say(say), wait(1800)]);
+    await Promise.all([voice.say(say), wait(1300)]);
     if (!alive(s)) return;
 
     if (s.me >= TO_WIN || s.rival >= TO_WIN) return finish(s);
@@ -138,7 +138,6 @@
     s.buttons.classList.remove('locked');
     s.buttons.querySelectorAll('.picked').forEach((b) => b.classList.remove('picked'));
     s.busy = false;
-    voice.say('¡Elegí otra vez!');
   }
 
   function finish(s) {
