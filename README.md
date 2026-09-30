@@ -108,7 +108,9 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 ## Trofeos
 
 - Cada partido ganado (penales, partidito, pool, bowling, piedra papel o tijera o tiro al blanco) da **1 moneda** y suma para los **40 trofeos**
-  (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos.
+  (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
+  un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
+  trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
 - **Resultado perfecto** (penales 3-0, partidito 3-0, pool con las 6 bolas, bowling 30 pinos,
   piedra papel o tijera 2-0 y tiro al blanco con más de 15 puntos): vale doble, **2 monedas** y cuenta como 2 partidos.
 - Al ganar, aparece el camino al próximo trofeo: el personaje avanza un casillero por partido ganado

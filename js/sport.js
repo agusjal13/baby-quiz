@@ -299,5 +299,5 @@
     el.replaceChildren(...[...text].map((ch, i) => h('span', { style: { '--i': i } }, ch === ' ' ? ' ' : ch)));
   }
 
-  BQ.sport = { randomQuestion, quiz, result, flash, wait };
+  BQ.sport = { randomQuestion, quiz, result, flash, wait, PATHS };
 })(window.BQ);

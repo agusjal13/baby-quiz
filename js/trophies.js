@@ -245,46 +245,182 @@
       + `<g transform="translate(50 130) scale(${sc}) translate(-50 -130)">${back}${base}${body}${front}</g></svg>`;
   }
 
-  // ---------- Vitrina ----------
+  // ---------- Mapa de trofeos ----------
+  // Un caminito que serpentea con los trofeos en orden; entre trofeo y trofeo hay un casillero por
+  // partido. El personaje está parado en los partidos que lleva ganados. Páginas de PAGE trofeos:
+  // si se agregan más trofeos a la lista, aparecen solas más páginas.
 
   const THEME = { sky1: '#3a2a7a', sky2: '#7b5cff', ground: '#2c205f', decor: ['⭐', '✨', '🏆', '🌟', '✨'] };
+  const PAGE = 20;
 
   function open() {
     const ui = BQ.ui;
     const voice = BQ.voice;
-    const sfx = BQ.sfx;
     const won = wins();
-    const shelf = h('div', { class: 'trophy-shelf' }, TROPHIES.map((t) => {
-      const have = won >= t.wins;
-      const slot = h('button', {
-        class: 'trophy-slot' + (have ? ' have' : ''),
-        'aria-label': have ? BQ.trophies.title(t) : 'Trofeo bloqueado',
-        onpointerdown: ui.tap(() => {
-          if (have) {
-            showBig(t);
-          } else {
-            const left = t.wins - won;
-            sfx.tap();
-            voice.say(left === 1 ? 'Ganá un partido más para conseguirlo.' : `Ganá ${left} partidos más para conseguirlo.`);
-          }
-        }),
-      },
-      BQ.trophies.el(t),
-      have
-        ? h('span', { class: 'trophy-slot-name' }, BQ.trophies.title(t))
-        : h('span', { class: 'trophy-lock' }, h('span', { class: 'emoji' }, '🔒'), ' ', String(t.wins)));
-      return slot;
-    }));
+    const pages = Math.ceil(TROPHIES.length / PAGE);
+    const nx = next();
+    // Arranca en la página del próximo trofeo (o la última si tiene todos)
+    let page = nx ? Math.floor(TROPHIES.indexOf(nx) / PAGE) : pages - 1;
+
+    const look = (BQ.sport.PATHS && BQ.sport.PATHS[store.data.character]) || { place: 'cancha', start: '🏁', dot: '⭐', decor: [] };
+    const board = h('div', { class: 'tm-board tp-' + look.place });
+    const prev = h('button', { class: 'btn-round tm-arrow', 'aria-label': 'Página anterior', onpointerdown: ui.tap(() => go(page - 1)) }, h('span', { class: 'emoji' }, '⬅️'));
+    const nextBtn = h('button', { class: 'btn-round tm-arrow', 'aria-label': 'Página siguiente', onpointerdown: ui.tap(() => go(page + 1)) }, h('span', { class: 'emoji' }, '➡️'));
+    const dots = h('div', { class: 'tm-pages' });
 
     const n = unlocked().length;
-    ui.show(h('div', { class: 'screen trophies' },
-      ui.topbar(ui.backBtn(() => ui.showWorlds()),
-        h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🏆'), ` Mis trofeos: ${n} de ${TROPHIES.length}`)),
-      shelf), THEME);
-    const nx = next();
+    const screen = h('div', { class: 'screen trophies' },
+      ui.topbar(ui.backBtn(() => { removeEventListener('resize', onResize); ui.showWorlds(); }),
+        h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🏆'), ` ${n} de ${TROPHIES.length}`),
+        h('span', { class: 'spacer' })),
+      h('div', { class: 'tm-wrap' }, prev, board, nextBtn),
+      dots);
+    ui.show(screen, THEME);
+
+    function go(p) {
+      if (p < 0 || p >= pages) return;
+      page = p;
+      BQ.sfx.tap();
+      draw();
+    }
+
+    function draw() {
+      prev.disabled = page === 0;
+      nextBtn.disabled = page === pages - 1;
+      dots.replaceChildren(...Array.from({ length: pages }, (_, i) => h('span', { class: 'tm-dot' + (i === page ? ' on' : '') })));
+      drawPage(board, page, look, won);
+    }
+
+    let timer = null;
+    const onResize = () => {
+      if (!screen.isConnected) return removeEventListener('resize', onResize);
+      clearTimeout(timer);
+      timer = setTimeout(draw, 150);
+    };
+    addEventListener('resize', onResize);
+    draw();
+    if (!board.clientWidth) setTimeout(draw, 100);
+
     voice.say(n === 0
-      ? '¡Ganá partidos de penales o partidito para conseguir trofeos!'
+      ? '¡Ganá partidos para avanzar por el camino y conseguir trofeos!'
       : `¡Tenés ${n === 1 ? 'un trofeo' : `${n} trofeos`}!` + (nx ? ` Para el próximo te ${nx.wins - won === 1 ? 'falta un partido' : `faltan ${nx.wins - won} partidos`}.` : ' ¡Los tenés todos!'));
+  }
+
+  function drawPage(board, page, look, won) {
+    const ui = BQ.ui;
+    const voice = BQ.voice;
+    const list = TROPHIES.slice(page * PAGE, page * PAGE + PAGE);
+    const startWins = page === 0 ? 0 : TROPHIES[page * PAGE - 1].wins;
+    const W = board.clientWidth;
+    const H = board.clientHeight;
+    if (!W || !H) return;
+
+    // Paradas (salida + trofeos) en una grilla que va y vuelve, como un juego de la oca
+    const stops = list.length + 1;
+    const cols = W >= H ? (stops > 12 ? 6 : 4) : 3;
+    const rows = Math.ceil(stops / cols);
+    const padX = W / cols / 2;
+    const padY = H / rows / 2;
+    const pts = Array.from({ length: stops }, (_, i) => {
+      const r = Math.floor(i / cols);
+      const c = r % 2 ? cols - 1 - (i % cols) : i % cols;
+      return [padX + c * ((W - padX * 2) / Math.max(1, cols - 1)), padY + r * ((H - padY * 2) / Math.max(1, rows - 1))];
+    });
+    // Camino suave: rectas en cada fila y media vuelta al cambiar de fila
+    let d = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1];
+      const [x1, y1] = pts[i];
+      if (y0 === y1) d += ` L ${x1} ${y1}`;
+      else {
+        const out = x0 > W / 2 ? padX * 0.9 : -padX * 0.9;
+        d += ` C ${x0 + out} ${y0}, ${x1 + out} ${y1}, ${x1} ${y1}`;
+      }
+    }
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'tm-svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const road = (cls) => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('class', cls);
+      svg.append(p);
+      return p;
+    };
+    road('tm-road-edge');
+    const main = road('tm-road');
+    board.replaceChildren(svg);
+
+    // Largo del camino hasta cada parada, para repartir los casilleros entre trofeos
+    const lens = [0];
+    {
+      const probe = document.createElementNS(NS, 'path');
+      let acc = `M ${pts[0][0]} ${pts[0][1]}`;
+      const segs = d.split(/(?= [LC] )/).slice(1);
+      segs.forEach((seg) => {
+        acc += seg;
+        probe.setAttribute('d', acc);
+        svg.append(probe);
+        lens.push(probe.getTotalLength());
+        probe.remove();
+      });
+    }
+    const at = (len) => {
+      const p = main.getPointAtLength(len);
+      return [p.x, p.y];
+    };
+
+    const size = Math.min(W / cols, H / rows);
+    board.style.setProperty('--stop', size * 0.6 + 'px');
+    board.style.setProperty('--step', Math.max(10, size * 0.16) + 'px');
+
+    // Posición del personaje: partidos ganados dentro de esta página
+    let walkerAt = null;
+    const place = (x, y, el) => {
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      board.append(el);
+      return el;
+    };
+
+    // Salida
+    place(...pts[0], h('span', { class: 'tm-start emoji' }, page === 0 ? look.start : '🏆'));
+    if (won <= startWins) walkerAt = pts[0];
+
+    let from = startWins;
+    list.forEach((t, k) => {
+      const gap = t.wins - from;
+      // Casilleros intermedios
+      for (let j = 1; j < gap; j++) {
+        const w = from + j;
+        const [x, y] = at(lens[k] + (lens[k + 1] - lens[k]) * (j / gap));
+        place(x, y, h('span', { class: 'tm-step' + (won >= w ? ' on' : '') }, won >= w ? h('span', { class: 'emoji' }, look.dot) : ''));
+        if (won === w) walkerAt = [x, y];
+      }
+      // Trofeo
+      const have = won >= t.wins;
+      const isNext = !have && (k === 0 ? won >= from : won >= list[k - 1].wins);
+      const stop = h('button', {
+        class: 'tm-stop' + (have ? ' have' : '') + (isNext ? ' next' : ''),
+        'aria-label': have ? BQ.trophies.title(t) : 'Trofeo bloqueado',
+        onpointerdown: ui.tap(() => {
+          if (have) return showBig(t);
+          const left = t.wins - won;
+          BQ.sfx.tap();
+          voice.say(left === 1 ? 'Ganá un partido más para conseguirlo.' : `Ganá ${left} partidos más para conseguirlo.`);
+        }),
+      }, BQ.trophies.el(t), !have && h('span', { class: 'tm-need' }, String(t.wins)));
+      place(...pts[k + 1], stop);
+      if (won === t.wins || (k === list.length - 1 && won > t.wins)) walkerAt = pts[k + 1];
+      from = t.wins;
+    });
+
+    if (walkerAt) {
+      const walker = place(...walkerAt, h('span', { class: 'tm-walker' }, BQ.puppet.el(store.data.character)));
+      walker.animate([{ translate: '-50% -130%' }, { translate: '-50% -100%' }], { duration: 500, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+    }
   }
 
   // Trofeo en grande, girando como una moneda. Tocarlo lo hace girar más rápido y largar brillitos.
