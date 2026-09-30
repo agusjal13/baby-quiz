@@ -306,7 +306,8 @@
       : `¡Tenés ${n === 1 ? 'un trofeo' : `${n} trofeos`}!` + (nx ? ` Para el próximo te ${nx.wins - won === 1 ? 'falta un partido' : `faltan ${nx.wins - won} partidos`}.` : ' ¡Los tenés todos!'));
   }
 
-  function drawPage(board, page, look, won) {
+  // hopFrom: [x, y] donde estaba el personaje, para que salte desde ahí (al ganar un partido)
+  function drawPage(board, page, look, won, hopFrom) {
     const ui = BQ.ui;
     const voice = BQ.voice;
     const list = TROPHIES.slice(page * PAGE, page * PAGE + PAGE);
@@ -396,14 +397,14 @@
       for (let j = 1; j < gap; j++) {
         const w = from + j;
         const [x, y] = at(lens[k] + (lens[k + 1] - lens[k]) * (j / gap));
-        place(x, y, h('span', { class: 'tm-step' + (won >= w ? ' on' : '') }, won >= w ? h('span', { class: 'emoji' }, look.dot) : ''));
+        place(x, y, h('span', { class: 'tm-step' + (won >= w ? ' on' : '') + (hopFrom && won === w ? ' just' : '') }, won >= w ? h('span', { class: 'emoji' }, look.dot) : ''));
         if (won === w) walkerAt = [x, y];
       }
       // Trofeo
       const have = won >= t.wins;
       const isNext = !have && (k === 0 ? won >= from : won >= list[k - 1].wins);
       const stop = h('button', {
-        class: 'tm-stop' + (have ? ' have' : '') + (isNext ? ' next' : ''),
+        class: 'tm-stop' + (have ? ' have' : '') + (isNext ? ' next' : '') + (hopFrom && won === t.wins ? ' just' : ''),
         'aria-label': have ? BQ.trophies.title(t) : 'Trofeo bloqueado',
         onpointerdown: ui.tap(() => {
           if (have) return showBig(t);
@@ -419,8 +420,41 @@
 
     if (walkerAt) {
       const walker = place(...walkerAt, h('span', { class: 'tm-walker' }, BQ.puppet.el(store.data.character)));
-      walker.animate([{ translate: '-50% -130%' }, { translate: '-50% -100%' }], { duration: 500, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+      if (hopFrom) {
+        const dx = hopFrom[0] - walkerAt[0];
+        const dy = hopFrom[1] - walkerAt[1];
+        walker.animate([
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: `translate(${dx / 2}px, ${dy / 2 - size * 0.5}px)` },
+          { transform: 'translate(0, 0)' },
+        ], { duration: 600, easing: 'ease-in-out' });
+      } else {
+        walker.animate([{ translate: '-50% -130%' }, { translate: '-50% -100%' }], { duration: 500, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+      }
     }
+    return walkerAt;
+  }
+
+  // Página donde está el trofeo al que va (o al que acaba de llegar) alguien con w partidos
+  const pageOf = (w) => {
+    const i = TROPHIES.findIndex((t) => t.wins >= w);
+    return Math.floor((i < 0 ? TROPHIES.length - 1 : i) / PAGE);
+  };
+
+  // Mapa para la pantalla de ganar: se dibuja en w partidos y step() hace saltar al personaje
+  function mapView(look) {
+    const board = h('div', { class: 'tm-board tp-' + look.place });
+    let at = null;
+    let page = -1;
+    return {
+      board,
+      draw(w, hop) {
+        const p = pageOf(w);
+        at = drawPage(board, p, look, w, hop && p === page ? at : null);
+        page = p;
+        return board.querySelector('.tm-stop.just');
+      },
+    };
   }
 
   // Trofeo en grande, girando como una moneda. Tocarlo lo hace girar más rápido y largar brillitos.
@@ -462,6 +496,7 @@
   BQ.trophies = {
     open,
     list: TROPHIES,
+    mapView,
     art,
     wins,
     next,

@@ -175,49 +175,58 @@
   }
 
   /*
-   * Camino al próximo trofeo: una fila de casilleros desde el último trofeo hasta el próximo,
-   * con el personaje parado donde está. Avanza un casillero por partido ganado; si llega al
-   * trofeo, lo gana (se muestra en grande) y sigue en el camino siguiente.
+   * Camino al próximo trofeo: se abre el mapa grande de trofeos (el de 🏆) y el personaje salta un
+   * casillero por partido ganado; si llega a un trofeo, lo gana (se muestra en grande) y sigue.
    */
   async function trophyPath(party, wins, steps, isAlive) {
     const T = BQ.trophies.list;
-    let path = null;
-    const open = (w) => {
-      const next = T.find((t) => t.wins > w);
-      if (!next) return null;
-      const prev = [...T].reverse().find((t) => t.wins <= w);
-      path = buildPath(prev ? prev.wins : 0, next, w);
-      party.classList.add('coin-time');
-      party.append(path.el);
-      return path;
+    if (!T.find((t) => t.wins > wins)) return; // ya tenía todos
+    const look = PATHS[store.data.character] || PATHS.futbolista;
+    const map = BQ.trophies.mapView(look);
+    const el = h('div', { class: 'tm-overlay' }, h('p', { class: 'tp-label' }, '¡A avanzar!'), map.board);
+    const showMap = () => {
+      party.classList.add('coin-time', 'map-time');
+      party.append(el);
+      map.draw(wins);
     };
+    const hideMap = () => {
+      el.remove();
+      party.classList.remove('coin-time', 'map-time');
+    };
+    showMap();
 
     for (let i = 0; i < steps; i++) {
-      if (!path && !open(wins)) return;
-      await wait(i === 0 ? 900 : 350);
+      await wait(i === 0 ? 1200 : 500);
       if (!isAlive()) return;
       wins++;
-      path.move(wins);
-      await wait(900);
+      const reached = map.draw(wins, true);
+      sfx.notes([[660, 0.1, 0.1, 'triangle', 0.12], [880, 0.3, 0.15, 'triangle', 0.12]]);
+      await wait(1000);
       if (!isAlive()) return;
-      if (wins === path.next.wins) {
-        path.el.remove();
-        path = null;
-        party.classList.remove('coin-time');
+      if (reached) {
+        // Llegó a un trofeo: brilla en el mapa y después se muestra en grande
+        ui().burst(reached);
+        sfx.cheer();
+        await wait(1200);
+        if (!isAlive()) return;
+        hideMap();
         await revealTrophy(party, T.find((t) => t.wins === wins), isAlive);
         if (!isAlive()) return;
+        if (!T.find((t) => t.wins > wins)) return;
+        showMap();
       }
     }
 
-    if (!path && !open(wins)) return;
-    const left = path.next.wins - wins;
-    await Promise.all([
-      voice.say(left === 1 ? '¡Te falta un partido para el próximo trofeo!' : `Te faltan ${left} partidos para el próximo trofeo.`),
-      wait(1500),
-    ]);
+    const next = T.find((t) => t.wins > wins);
+    if (next) {
+      const left = next.wins - wins;
+      await Promise.all([
+        voice.say(left === 1 ? '¡Te falta un partido para el próximo trofeo!' : `Te faltan ${left} partidos para el próximo trofeo.`),
+        wait(2500),
+      ]);
+    }
     if (!isAlive()) return;
-    path.el.remove();
-    party.classList.remove('coin-time');
+    hideMap();
   }
 
   // Escenario del camino según el personaje: dónde queda, con qué arranca, qué marca cada casillero y adornos
@@ -234,44 +243,6 @@
     superheroe: { place: 'ciudad', start: '🏠', dot: '⚡', decor: ['🏢', '🌙', '🏙️', '🚁'] },
     gatito: { place: 'casita', start: '🧺', dot: '🐟', decor: ['🧶', '🐭', '🌻', '🥛'] },
   };
-
-  function buildPath(from, next, w) {
-    const n = next.wins - from;
-    const look = PATHS[store.data.character] || PATHS.futbolista;
-    const cells = Array.from({ length: n + 1 }, (_, i) => h('span', {
-      class: 'tp-cell' + (i === 0 ? ' start' : '') + (i === n ? ' goal' : '') + (i <= w - from ? ' on' : ''),
-    }, i === 0 ? h('span', { class: 'emoji' }, look.start)
-      : i === n ? BQ.trophies.el(next, 'tp-trophy')
-      : h('span', { class: 'tp-dot emoji' }, look.dot)));
-    const decor = look.decor.map((d, i) => h('span', {
-      class: 'tp-decor emoji',
-      style: { left: [10, 37, 63, 90][i] + '%', top: i % 2 ? '6vmin' : '1.5vmin', '--i': i },
-    }, d));
-    const walker = h('span', { class: 'tp-walker' }, BQ.puppet.el(store.data.character));
-    cells[w - from].append(walker);
-    const el = h('div', { class: 'coin-stage tp-stage' },
-      h('p', { class: 'tp-label' }, 'Próximo trofeo'),
-      h('div', { class: 'tp-row tp-' + look.place }, decor, cells));
-    return {
-      el,
-      next,
-      // Salta al casillero del partido número nw (FLIP: se mide antes y después y se anima el salto)
-      move(nw) {
-        const target = cells[nw - from];
-        const a = walker.getBoundingClientRect();
-        target.append(walker);
-        const b = walker.getBoundingClientRect();
-        const dx = a.left - b.left;
-        walker.animate([
-          { transform: `translate(${dx}px, 0)` },
-          { transform: `translate(${dx / 2}px, -5vmin)` },
-          { transform: 'translate(0, 0)' },
-        ], { duration: 550, easing: 'ease-in-out' });
-        target.classList.add('on', 'just');
-        sfx.notes([[660, 0.1, 0.1, 'triangle', 0.12], [880, 0.25, 0.15, 'triangle', 0.12]]);
-      },
-    };
-  }
 
   // Trofeo nuevo: aparece gigante con rayos, se anuncia y después queda chico en la fiesta
   async function revealTrophy(party, t, isAlive) {

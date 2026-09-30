@@ -1259,8 +1259,23 @@ button {
   animation: popin .5s 1s both, pulse 1s ease-in-out 1.5s infinite;
 }
 
-/* Camino al próximo trofeo */
-.tp-stage { gap: 3vmin; padding: 0 3vmin; }
+/* Al ganar: el mapa de trofeos encima de la fiesta */
+.tm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.5vmin;
+  padding: max(2vmin, env(safe-area-inset-top)) 3vmin 3vmin;
+  pointer-events: none;
+}
+.tm-overlay .tp-label { align-self: center; }
+.tm-overlay .tm-board { flex: 1; animation: popin .4s both; }
+.party.map-time .party-actions, .party.map-time .party-coins { opacity: 0; }
+.tm-step.just { animation: pop .5s .4s; box-shadow: 0 0 0 .6vmin #ffd23f, 0 0 2vmin #ffd23f; }
+.tm-stop.just { animation: pop .6s .4s; box-shadow: 0 0 0 .8vmin #ffd23f, 0 0 4vmin #ffd23f; }
 .tp-label {
   position: relative;
   z-index: 1;
@@ -1271,48 +1286,6 @@ button {
   -webkit-text-stroke: .5vmin #fff;
   paint-order: stroke fill;
   animation: popin .4s both;
-}
-.tp-row {
-  --c: clamp(22px, min(6.5vmin, 7vw), 48px);
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: clamp(4px, 1.3vmin, 12px);
-  padding: 17vmin 4vmin 5vmin;
-  min-width: min(84vw, 72vmin);
-  justify-content: center;
-  border-radius: 4vmin;
-  overflow: hidden;
-  border: .8vmin solid #fff;
-  background: #fff;
-  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .12);
-  animation: popin .4s both;
-}
-.tp-cell {
-  position: relative;
-  flex: none;
-  width: var(--c);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, .55);
-  border: .5vmin dashed rgba(0, 0, 0, .25);
-  transition: background .3s, border-color .3s;
-}
-.tp-cell.on { background: #fff; border: .5vmin solid #ffd23f; box-shadow: 0 0 1.5vmin #ffd23f; }
-.tp-dot { font-size: calc(var(--c) * .62); line-height: 1; opacity: .25; filter: grayscale(1); transition: opacity .3s, filter .3s; }
-.tp-cell.on .tp-dot { opacity: 1; filter: none; }
-.tp-decor {
-  position: absolute;
-  translate: -50% 0;
-  z-index: 0;
-  font-size: calc(var(--c) * 1.25);
-  line-height: 1;
-  opacity: .9;
-  animation: bob 2.4s ease-in-out calc(var(--i) * -.6s) infinite;
-  pointer-events: none;
 }
 /* Escenarios */
 .tp-cancha {
@@ -1328,7 +1301,6 @@ button {
     repeating-linear-gradient(90deg, rgba(0, 229, 255, .18) 0 1px, transparent 1px 4vmin),
     linear-gradient(#455a64, #263238);
 }
-.tp-lab .tp-cell.on { border-color: #00e5ff; box-shadow: 0 0 2vmin #00e5ff; }
 .tp-magia {
   border-color: #ce93d8;
   background:
@@ -1349,9 +1321,7 @@ button {
     repeating-linear-gradient(90deg, rgba(120, 100, 140, .3) 0 .4vmin, transparent .4vmin 9vmin),
     linear-gradient(#f3e5f5, #e1bee7);
 }
-.tp-castillo .tp-cell.on { border-color: #f06292; box-shadow: 0 0 1.5vmin #f06292; }
 .tp-volcan { border-color: #ffab91; background: linear-gradient(#ffccbc, #ff8a65 45%, #6d4c41 46%, #4e342e); }
-.tp-volcan .tp-cell.on { border-color: #ff5722; box-shadow: 0 0 2vmin #ff5722; }
 .tp-selva { border-color: #c5e1a5; background: linear-gradient(#fff59d, #aed581 45%, #689f38 46%, #33691e); }
 .tp-ciudad {
   border-color: #9fa8da;
@@ -1360,24 +1330,7 @@ button {
     repeating-linear-gradient(90deg, #3949ab 0 6vmin, #303f9f 6vmin 9vmin, transparent 9vmin 11vmin),
     linear-gradient(#1a237e, #3f51b5);
 }
-.tp-ciudad .tp-cell.on { border-color: #ffeb3b; box-shadow: 0 0 2vmin #ffeb3b; }
 .tp-casita { border-color: #ffcc80; background: linear-gradient(transparent 62%, #a1887f 62%, #8d6e63), repeating-linear-gradient(90deg, #ffe0b2 0 3vmin, #fff3e0 3vmin 6vmin); }
-.tp-cell.just { animation: pop .5s .35s; }
-.tp-cell.start { background: none; border: none; font-size: calc(var(--c) * .9); }
-.tp-cell.goal { width: calc(var(--c) * 1.9); aspect-ratio: auto; height: calc(var(--c) * 2.2); border: none; background: none; border-radius: 0; }
-.tp-trophy { width: 100%; height: 100%; animation: pulse 1s ease-in-out infinite; }
-.tp-trophy svg { width: 100%; height: 100%; display: block; }
-.tp-walker {
-  position: absolute;
-  left: 50%;
-  bottom: 70%;
-  margin-left: calc(var(--c) * -1.1);
-  width: calc(var(--c) * 2.2);
-  font-size: calc(var(--c) * 2.2);
-  z-index: 2;
-  pointer-events: none;
-}
-.tp-cell.goal .tp-walker { bottom: 85%; }
 
 
 @keyframes pen-keeper { from { transform: translateX(-9px); } to { transform: translateX(9px); } }
