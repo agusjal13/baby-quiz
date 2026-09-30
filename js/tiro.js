@@ -2,9 +2,9 @@
   'use strict';
 
   /*
-   * Tiro al blanco: durante 40 segundos van apareciendo blancos en lugares al azar y se
-   * van solos al rato. Tocar un blanco = +1 punto; cada tanto aparece una bomba, y tocarla
-   * resta 1 (nunca baja de 0). Con 6 puntos o más se gana (moneda y trofeos, como los otros juegos).
+   * Tiro al blanco: durante 20 segundos van apareciendo blancos en lugares al azar y se
+   * van solos al rato. Blanco rojo = +1, azul = +2, multicolor = +5 (raro y rápido); cada tanto
+   * aparece una bomba, y tocarla resta 1 (nunca baja de 0). Con 6 puntos o más se gana (moneda y trofeos, como los otros juegos).
    */
 
   const U = BQ.util;
@@ -15,20 +15,24 @@
   const ui = () => BQ.ui;
   const wait = BQ.sport.wait;
 
-  const TIME = 40; // segundos
+  const TIME = 20; // segundos
   const TO_WIN = 6;
   const MAX_ON = 3; // cosas en pantalla a la vez
-  const BAD_CHANCE = 0.28;
+  const BAD_CHANCE = 0.4;
+  const FAST_AT = 10; // en los últimos segundos salen más rápido
   const between = (a, b) => a + Math.random() * (b - a);
   const THEME = { sky1: '#81d4fa', sky2: '#e1f5fe', ground: '#aed581', decor: ['🎯', '⭐', '☁️', '🎈', '✨'] };
 
-  const TARGET_SVG = `<svg viewBox="0 0 100 100" aria-hidden="true">
-    <circle cx="50" cy="50" r="48" fill="#fff" stroke="#8d6e63" stroke-width="3"/>
-    <circle cx="50" cy="50" r="38" fill="#e53935"/>
-    <circle cx="50" cy="50" r="28" fill="#fff"/>
-    <circle cx="50" cy="50" r="18" fill="#e53935"/>
-    <circle cx="50" cy="50" r="8" fill="#ffd23f"/>
+  const rings = (colors, stroke = '#8d6e63') => `<svg viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="50" cy="50" r="48" fill="${colors[0]}" stroke="${stroke}" stroke-width="3"/>
+    ${colors.slice(1).map((c, i) => `<circle cx="50" cy="50" r="${38 - i * 10}" fill="${c}"/>`).join('')}
   </svg>`;
+  // Blancos: rojo común, azul (+2) y multicolor (+5, que dura menos)
+  const TARGETS = {
+    rojo: { points: 1, svg: rings(['#fff', '#e53935', '#fff', '#e53935', '#ffd23f']) },
+    azul: { points: 2, svg: rings(['#fff', '#1e63d6', '#fff', '#1e63d6', '#fff']) },
+    arcoiris: { points: 5, svg: rings(['#e53935', '#ff9800', '#ffd23f', '#43a047', '#1e88e5'], '#7b1fa2') },
+  };
 
   let S = null;
   const alive = (s) => S === s && s.screen.isConnected;
@@ -96,28 +100,34 @@
     if (!alive(s) || s.over) return;
     if (s.field.querySelectorAll('.tb-thing:not(.gone)').length < MAX_ON) spawn(s);
     // Al principio más tranquilo, después un poco más rápido
-    const gap = s.left > 25 ? between(900, 1300) : between(650, 1000);
+    const gap = s.left > FAST_AT ? between(900, 1300) : between(650, 1000);
     s.spawner = setTimeout(() => spawnLoop(s), gap);
   }
 
   function spawn(s) {
     s.count++;
-    // Las primeras cuatro son siempre blancos; nunca dos bombas seguidas
-    const bad = s.count > 4 && !s.lastBad && Math.random() < BAD_CHANCE;
+    // Los dos primeros son siempre blancos; nunca dos bombas seguidas
+    const bad = s.count > 2 && !s.lastBad && Math.random() < BAD_CHANCE;
     s.lastBad = bad;
     const pos = freeSpot(s);
     if (!pos) return;
-    const life = (s.left > 25 ? 2600 : 2100) + (bad ? 400 : 0);
+    const r = Math.random();
+    // El multicolor sale poco, pero al menos una vez por partido
+    const rainbow = (r < 0.12 && s.count > 3) || (!s.rainbows && s.left <= 12);
+    const kind = bad ? null : rainbow ? 'arcoiris' : r < 0.4 ? 'azul' : 'rojo';
+    if (kind === 'arcoiris') s.rainbows = (s.rainbows || 0) + 1;
+    let life = (s.left > FAST_AT ? 2600 : 2100) + (bad ? 400 : 0);
+    if (kind === 'arcoiris') life = 1600;
     const el = h('button', {
-      class: 'tb-thing' + (bad ? ' bad' : ''),
+      class: 'tb-thing' + (bad ? ' bad' : ' ' + kind),
       'aria-label': bad ? 'Bomba' : 'Blanco',
       style: { left: pos.x + '%', top: pos.y + '%', '--life': life + 'ms' },
-      html: bad ? '<span class="emoji">💣</span>' : TARGET_SVG,
+      html: bad ? '<span class="emoji">💣</span>' : TARGETS[kind].svg,
     });
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      hit(s, el, bad);
+      hit(s, el, bad ? -1 : TARGETS[kind].points);
     });
     s.field.append(el);
     setTimeout(() => {
@@ -139,10 +149,11 @@
     return null;
   }
 
-  function hit(s, el, bad) {
+  function hit(s, el, points) {
+    const bad = points < 0;
     if (!alive(s) || s.over || el.classList.contains('gone')) return;
     el.classList.add('gone');
-    const pop = h('span', { class: 'tb-pop' + (bad ? ' bad' : ''), style: { left: el.style.left, top: el.style.top } }, bad ? '-1' : '+1');
+    const pop = h('span', { class: 'tb-pop' + (bad ? ' bad' : ' p' + points), style: { left: el.style.left, top: el.style.top } }, bad ? '-1' : '+' + points);
     s.field.append(pop);
     setTimeout(() => pop.remove(), 900);
 
@@ -159,19 +170,23 @@
       el.classList.add('hit');
       sfx.pop();
       sfx.correct();
+      if (points >= 5) sfx.win();
+      else if (points >= 2) sfx.coin();
       const stars = h('span', { class: 'tb-stars', style: { left: el.style.left, top: el.style.top } },
-        Array.from({ length: 6 }, (_, i) => {
-          const a = (i / 6) * Math.PI * 2;
-          return h('span', { class: 'burst emoji', style: { '--dx': Math.cos(a) * 16 + 'cqmin', '--dy': Math.sin(a) * 16 + 'cqmin' } }, '⭐');
+        Array.from({ length: 4 + points * 2 }, (_, i, n = 4 + points * 2) => {
+          const a = (i / n) * Math.PI * 2;
+          const d = 16 + (points >= 5 ? 10 : 0);
+          return h('span', { class: 'burst emoji', style: { '--dx': Math.cos(a) * d + 'cqmin', '--dy': Math.sin(a) * d + 'cqmin' } }, points >= 5 ? U.pick(['⭐', '🌟', '✨', '💖']) : '⭐');
         }));
       s.field.append(stars);
       setTimeout(() => stars.remove(), 900);
-      setScore(s, s.score + 1);
-      if (s.score === TO_WIN) {
+      const before = s.score;
+      setScore(s, s.score + points);
+      if (before < TO_WIN && s.score >= TO_WIN) {
         ui().burst(s.hero);
         sfx.cheer();
       }
-      if (s.score % 3 === 0) BQ.puppet.use(s.hero.querySelector('.avatar'));
+      if (points > 1 || s.score % 3 === 0) BQ.puppet.use(s.hero.querySelector('.avatar'));
     }
     setTimeout(() => el.remove(), 800);
   }

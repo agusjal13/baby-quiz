@@ -100,8 +100,9 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Tiro al blanco
 
-- Botón 🎯 Tiro al blanco en el mapa. Durante 40 segundos aparecen blancos en lugares al azar que se van
-  solos al rato; tocar uno suma 1 punto. Cada tanto aparece una bomba 💣: tocarla resta 1 (nunca baja de 0).
+- Botón 🎯 Tiro al blanco en el mapa. Durante 20 segundos aparecen blancos en lugares al azar que se van
+  solos al rato: rojo +1, azul +2 y multicolor +5 (sale poco, gira y dura menos; al menos uno por partido).
+  Cada tanto aparece una bomba 💣: tocarla resta 1 (nunca baja de 0).
   Gana con 6 puntos o más. Código en `js/tiro.js` (tiempo, puntos para ganar y frecuencia de bombas arriba de todo).
 
 ## Trofeos

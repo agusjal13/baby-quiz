@@ -1622,6 +1622,11 @@ button {
   animation: tb-rise .9s ease-out forwards;
 }
 .tb-pop.bad { color: #c62828; }
+.tb-pop.p2 { color: #1e63d6; font-size: 15cqmin; }
+.tb-pop.p5 { font-size: 22cqmin; color: #7b1fa2; animation-duration: 1.2s; }
+.tb-thing.arcoiris svg { filter: drop-shadow(0 0 2.5cqmin #fff) drop-shadow(0 0 4cqmin #ffd23f); }
+.tb-thing.arcoiris:not(.gone) { animation: popin .25s ease-out, tb-spin 1.2s linear .25s infinite; }
+@keyframes tb-spin { to { rotate: 360deg; } }
 .tiro .sport-flash { align-items: center; padding: 0; }
 @keyframes tb-wobble { from { rotate: -6deg; } to { rotate: 6deg; } }
 @keyframes tb-fuse { to { scale: 1.08; rotate: 8deg; } }
