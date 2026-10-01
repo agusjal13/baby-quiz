@@ -185,8 +185,10 @@
     if (j.kind === 'split') design = `<rect x="50" y="60" width="22" height="50" fill="${j.b}"/><polygon points="${star(57.5, 75, 4.6, 1.9)}" fill="${j.star}"/>`;
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
     // Blanca con detalles: costados y ruedo de otro color
-    if (j.kind === 'trim') design = `<rect x="28" y="60" width="6" height="50" fill="${j.b}"/><rect x="66" y="60" width="6" height="50" fill="${j.b}"/><rect x="28" y="101" width="44" height="9" fill="${j.b}"/>`;
+    if (j.kind === 'trim') design = `<rect x="28" y="60" width="6" height="50" fill="${j.b}"/><rect x="66" y="60" width="6" height="50" fill="${j.b}"/><rect x="28" y="95" width="44" height="15" fill="${j.b}"/>`;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
+    // Escudito en el corazón (derecha mirando de frente)
+    if (j.crest) design += `<path d="M51.5 70 Q55.5 68.6 59.5 70 L59.5 74.5 Q59.5 79 55.5 81 Q51.5 79 51.5 74.5 Z" fill="${j.crest}" stroke="#1b7f76" stroke-width="1"/>`;
     return `<defs><clipPath id="pp-shirt-${id}"><path d="${TORSO}"/></clipPath></defs>`
       + `<g clip-path="url(#pp-shirt-${id})"><rect x="28" y="60" width="44" height="50" fill="${j.a}"/>${design}</g>`
       + `<path d="${TORSO}" fill="none" ${S}/>`;

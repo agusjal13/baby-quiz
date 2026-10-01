@@ -88,9 +88,10 @@
   // (agregadas después)
   Object.assign(JERSEYS, {
     // Blanca con detalles rosa: costados, mangas y ruedo rosa
+    // ...y un escudito verde agua en el corazón
     blancaRosa: {
-      kind: 'trim', a: '#ffffff', b: '#ff4f9a', sleeve: '#ff4f9a',
-      css: 'linear-gradient(transparent 82%, #ff4f9a 82%), linear-gradient(90deg, #ff4f9a 0 12%, #ffffff 12% 88%, #ff4f9a 88%)',
+      kind: 'trim', a: '#ffffff', b: '#ff4f9a', sleeve: '#ff4f9a', crest: '#2ec4b6',
+      css: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 24"><path d="M2 3 Q10 0 18 3 L18 11 Q18 19 10 23 Q2 19 2 11 Z" fill="#2ec4b6" stroke="#1b7f76" stroke-width="2"/></svg>')}") 66% 28% / 15% no-repeat, linear-gradient(transparent 82%, #ff4f9a 82%), linear-gradient(90deg, #ff4f9a 0 12%, #ffffff 12% 88%, #ff4f9a 88%)`,
     },
     rosa: { kind: 'solid', a: '#ff6fae', b: '#ff6fae', sleeve: '#ff6fae', css: '#ff6fae' },
     // Mitad rosa (izquierda mirando de frente) y mitad negra, sin estrella
