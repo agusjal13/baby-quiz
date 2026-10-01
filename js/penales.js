@@ -187,10 +187,18 @@
       ui().burst(s.scene);
       s.svg.classList.add('celebrate');
     } else {
+      // El arquero la saca: la pelota rebota en sus guantes hacia afuera y adelante (hacia la cámara)
+      sfx.kick();
       sfx.aww();
       BQ.sport.flash(s.flash, '¡ATAJÓ!', 'saved');
+      const out = [end[0] + (diveLeft ? -70 : 70) - SPOT[0], 150 - SPOT[1]];
+      s.ball.animate([
+        { transform: `translate(${dx}px, ${dy}px) scale(.62) rotate(540deg)` },
+        { transform: `translate(${(dx + out[0]) / 2}px, ${(dy + out[1]) / 2 - 22}px) scale(.85) rotate(380deg)`, offset: 0.5 },
+        { transform: `translate(${out[0]}px, ${out[1]}px) scale(1) rotate(200deg)` },
+      ], { duration: 650, easing: 'ease-out', fill: 'forwards' });
     }
-    await wait(400);
+    await wait(goal ? 400 : 750); // que se vea el rebote
   }
 
   function resetShot(s) {

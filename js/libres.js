@@ -32,8 +32,9 @@
   const BAR = 2.44;
   const BALL_R = 0.17; // más grande que la real, para que se vea bien de lejos
   const WALL_H = 1.85;
-  const CAM_Z = -12;
-  const CAM_H = 4; // cámara alta, como en la tele: el arco se ve por encima de la barrera
+  const CAM_Z = -11;
+  const CAM_H = 7; // cámara bien alta: el arco se ve por encima de la barrera y queda lugar para arrastrar
+  const PEOPLE = 0.8; // los jugadores, un poco más chicos que de verdad, para que no tapen
   const THEME = { sky1: '#29b6f6', sky2: '#b3e5fc', ground: '#2e7d32', decor: ['⚽', '🥅', '⭐', '🎉', '🏆'] };
 
   let S = null;
@@ -99,9 +100,12 @@
     }
     s.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     s.tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // El arco ocupa buena parte del ancho y la pelota queda abajo de todo (en y = 86 %)
-    s.F = Math.min(s.W * 2.9, ((s.H * 0.74) * (0 - CAM_Z)) / CAM_H);
-    s.horizon = Math.max(s.H * 0.12, s.H * 0.86 - (CAM_H * s.F) / (0 - CAM_Z));
+    // La pelota queda abajo de todo (y = 86 %) y el travesaño cerca de arriba (y = 14 %);
+    // el horizonte puede quedar fuera de la pantalla (se ve la tribuna detrás del arco)
+    const near = CAM_H / (0 - CAM_Z);
+    const bar = (CAM_H - BAR) / (GOAL_Z - CAM_Z);
+    s.F = Math.min(s.W * 2.9, (s.H * 0.72) / (near - bar));
+    s.horizon = s.H * 0.86 - near * s.F;
   }
 
   function project(s, x, y, z) {
@@ -134,17 +138,19 @@
     sky.addColorStop(1, '#b3e5fc');
     g.fillStyle = sky;
     g.fillRect(0, 0, W, H);
-    const standTop = s.horizon - s.H * 0.13;
+    const standZ = GOAL_Z + 7;
+    const standTop = project(s, 0, 6, standZ).y;
+    const standBottom = project(s, 0, 0, standZ).y;
     g.fillStyle = '#5c6bc0';
-    g.fillRect(0, standTop, W, s.horizon - standTop);
+    g.fillRect(0, standTop, W, standBottom - standTop);
     // Público: puntitos de colores
     const colors = ['#ffeb3b', '#ff5a8a', '#fff', '#81d4fa', '#ff9800'];
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 90; i++) {
       const x = ((i * 97) % 1000) / 1000 * W;
-      const y = standTop + 4 + ((i * 37) % 100) / 100 * (s.horizon - standTop - 8);
+      const y = standTop + 4 + ((i * 37) % 100) / 100 * (standBottom - standTop - 12);
       g.fillStyle = colors[i % colors.length];
       g.beginPath();
-      g.arc(x, y + Math.sin(performance.now() / 300 + i) * (s.celebrate ? 3 : 0.6), Math.max(2, H * 0.008), 0, Math.PI * 2);
+      g.arc(x, y + Math.sin(performance.now() / 300 + i) * (s.celebrate ? 3 : 0.6), Math.max(2, H * 0.007), 0, Math.PI * 2);
       g.fill();
     }
     // Césped a franjas
@@ -158,7 +164,7 @@
     }
     const far = project(s, 0, 0, 34);
     g.fillStyle = '#4caf50';
-    g.fillRect(0, s.horizon, W, far.y - s.horizon + 1);
+    g.fillRect(0, standBottom, W, far.y - standBottom + 1);
 
     // Líneas del área
     const white = 'rgba(255,255,255,.85)';
@@ -236,6 +242,7 @@
 
   // Los muñequitos se paran en su lugar de la cancha y se achican con la distancia
   function placeAt(s, el, x, z, height, lift = 0) {
+    height *= PEOPLE;
     const p = project(s, x, lift, z);
     if (!p) return;
     el.style.left = p.x + 'px';
@@ -424,7 +431,7 @@
     else if (Math.abs(xEnd) > POST - 0.2) result = 'post';
     else if (Math.abs(xEnd - keeperAt) < reach) result = 'save';
     else result = 'goal';
-    s.last = { xEnd, curve, power, result }; // para revisar los tiros desde la consola
+    s.last = { xEnd, curve, power, result, ball: s.ball }; // para revisar los tiros desde la consola
 
     // La barrera salta, el arquero se tira (llega si ataja; si no, se tira tarde)
     const dir = Math.sign(xEnd - keeperAt) || 1;
@@ -435,7 +442,8 @@
         if (!alive(s)) return done();
         const t = performance.now() - start;
         const uRaw = t / T;
-        const u = result === 'wall' ? Math.min(uRaw, uw) : Math.min(uRaw, 1);
+        const stopAt = result === 'wall' ? uw : result === 'save' ? (GOAL_Z - 0.7) / GOAL_Z : 1;
+        const u = Math.min(uRaw, stopAt);
         s.ball.x = xAt(u);
         s.ball.y = yAt(u);
         s.ball.z = u * GOAL_Z;
@@ -450,11 +458,11 @@
           s.keeperDive = { rot: dir * 70 * kd, lift: 0.4 * Math.sin(kd * Math.PI) };
         }
         render(s);
-        if ((result === 'wall' && uRaw >= uw) || uRaw >= 1) return done();
-        requestAnimationFrame(step);
+        if (uRaw >= stopAt) return done();
+        setTimeout(step, 16);
       };
-      requestAnimationFrame(step);
-      // Tope por si la pantalla queda en segundo plano (requestAnimationFrame no corre)
+      setTimeout(step, 16);
+      // Tope por si algo se traba (con la pantalla en segundo plano los tiempos se estiran)
       setTimeout(done, T + 600);
     });
     if (!alive(s)) return;
@@ -482,8 +490,11 @@
       if (result === 'post') {
         s.postHit = true;
         sfx.notes([[1200, 0, 0.25, 'square', 0.08], [900, 0.05, 0.3, 'square', 0.06]]);
+      } else if (result === 'save') {
+        sfx.kick(); // el manotazo del arquero
+        sfx.aww();
       } else sfx.aww();
-      const back = { wall: { z: WALL_Z - 3, y: 0.3 }, save: { z: GOAL_Z - 4, y: 0.4 }, post: { z: GOAL_Z - 5, y: 0.2, x: s.ball.x * 1.4 } }[result]
+      const back = { wall: { z: WALL_Z - 3, y: 0.3 }, save: { z: GOAL_Z - 10, y: 0.2, x: s.ball.x + (Math.sign(s.ball.x - s.keeperX) || 1) * 2.5, arc: 1.6, ms: 900 }, post: { z: GOAL_Z - 5, y: 0.2, x: s.ball.x * 1.4 } }[result]
         || { z: GOAL_Z + 6, y: result === 'over' ? 4 : 0.5, x: s.ball.x * 1.5 };
       bounce(s, back);
       const text = { wall: '¡BARRERA!', save: '¡ATAJÓ!', post: '¡PALO!', over: '¡ARRIBA!', out: '¡AFUERA!' }[result];
@@ -509,17 +520,17 @@
     const start = performance.now();
     const step = () => {
       if (!alive(s)) return;
-      const t = Math.min(1, (performance.now() - start) / 600);
+      const t = Math.min(1, (performance.now() - start) / (to.ms || 600));
       const e = 1 - (1 - t) * (1 - t);
       s.ball.z = from.z + ((to.z ?? from.z) - from.z) * e;
       s.ball.x = from.x + ((to.x ?? from.x) - from.x) * e;
-      s.ball.y = Math.max(BALL_R, from.y + ((to.y ?? from.y) - from.y) * e + Math.sin(t * Math.PI) * 0.4);
+      s.ball.y = Math.max(BALL_R, from.y + ((to.y ?? from.y) - from.y) * e + Math.sin(t * Math.PI) * (to.arc ?? 0.4));
       s.ball.spin += 0.15;
       s.netShake = Math.max(0, (s.netShake || 0) - 0.02);
       render(s);
-      if (t < 1) requestAnimationFrame(step);
+      if (t < 1) setTimeout(step, 16);
     };
-    requestAnimationFrame(step);
+    setTimeout(step, 16);
   }
 
   function finish(s) {
