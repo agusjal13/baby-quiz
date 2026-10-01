@@ -245,6 +245,7 @@
     // Juegos aparte de los mundos
     const games = h('div', { class: 'games-row' },
       h('button', { class: 'game-pill penales', onpointerdown: tap(() => BQ.penales.open()) }, h('span', { class: 'emoji' }, '🥅'), ' Penales'),
+      h('button', { class: 'game-pill libres', onpointerdown: tap(() => BQ.libres.open()) }, h('span', { class: 'emoji' }, '⚽💨'), ' Tiros libres'),
       h('button', { class: 'game-pill partido', onpointerdown: tap(() => BQ.partido.open()) }, h('span', { class: 'emoji' }, '⚽'), ' Partidito'),
       h('button', { class: 'game-pill pool', onpointerdown: tap(() => BQ.pool.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Pool'),
       h('button', { class: 'game-pill bowling', onpointerdown: tap(() => BQ.bowling.open()) }, h('span', { class: 'emoji' }, '🎳'), ' Bowling'),

@@ -1722,6 +1722,32 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Tiros libres ---------- */
+
+.game-pill.libres { background: linear-gradient(160deg, #26a69a, #00695c); }
+.libres { gap: 1.5vmin; }
+.tl-field {
+  width: 100%;
+  max-width: 125vh;
+  align-self: center;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.tl-canvas, .tl-trail { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.tl-trail { z-index: 150; pointer-events: none; }
+.tl-player { position: absolute; translate: -50% -94%; line-height: 1; pointer-events: none; transform-origin: 50% 90%; }
+.tl-player.keeper { transform-origin: 50% 60%; }
+.tl-hand { z-index: 160; }
+.libres .sport-flash { z-index: 170; align-items: center; padding: 0; font-size: clamp(36px, 16cqmin, 110px); }
+
 /* ---------- Tiro al blanco ---------- */
 
 .game-pill.tiro { background: linear-gradient(160deg, #e53935, #8e0000); }
