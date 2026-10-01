@@ -153,10 +153,23 @@
 
     init() {
       if (!this.ctx) {
+        // iPhone: que suene aunque el celular esté en silencio (como un video, no como un timbre)
+        try {
+          if (navigator.audioSession) navigator.audioSession.type = 'playback';
+        } catch (e) { /* no soportado */ }
         const AC = window.AudioContext || window.webkitAudioContext;
         if (AC) this.ctx = new AC();
       }
-      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.ctx) return;
+      // 'suspended' al empezar, 'interrupted' en iPhone después de una llamada o de bloquear la pantalla
+      if (this.ctx.state !== 'running') {
+        this.ctx.resume().catch(() => {});
+        // Un sonido vacío dentro del toque termina de habilitar el audio en iPhone
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.ctx.createBuffer(1, 1, 22050);
+        src.connect(this.ctx.destination);
+        src.start(0);
+      }
     },
 
     notes(list) {
@@ -259,4 +272,21 @@
       ]);
     },
   };
+
+  // En el celular, el navegador habilita el sonido recién al LEVANTAR el dedo (pointerdown no
+  // alcanza, aunque en la PC sí). Por eso se habilita también al soltar cualquier toque, y se
+  // reactiva al volver al juego (pantalla bloqueada, otra app, llamada).
+  let voiceReady = false;
+  const unlockAll = () => {
+    BQ.sfx.init();
+    if (!voiceReady && BQ.voice.supported) {
+      voiceReady = true;
+      if (!synth.speaking && !synth.pending) BQ.voice.unlock();
+    }
+  };
+  ['touchend', 'pointerup', 'click', 'keydown'].forEach((ev) => document.addEventListener(ev, unlockAll, true));
+  document.addEventListener('visibilitychange', () => {
+    const ctx = BQ.sfx.ctx;
+    if (!document.hidden && ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+  });
 })(window.BQ);
