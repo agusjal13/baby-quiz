@@ -27,6 +27,7 @@
   const KICKS = 5;
   const TO_WIN = 3;
   const GOAL_Z = 20;
+  const KEEPER_Z = GOAL_Z - 0.8; // el arquero, un pasito adelante de la línea
   const WALL_Z = 9;
   const POST = 3.66; // medio ancho del arco
   const BAR = 2.44;
@@ -60,7 +61,9 @@
     const hand = h('span', { class: 'hand emoji tl-hand', hidden: true }, '👆');
     const flash = h('div', { class: 'sport-flash', hidden: true });
     const trail = h('canvas', { class: 'tl-trail' });
-    field.append(...wall, keeper, kicker, trail, hand, flash);
+    // La pelota va en su propia capa, que se pone delante o detrás de cada muñequito según la distancia
+    const ballLayer = h('canvas', { class: 'tl-ball' });
+    field.append(...wall, keeper, kicker, ballLayer, trail, hand, flash);
     const score = h('div', { class: 'pen-score' }, Array.from({ length: KICKS }, () => h('span', { class: 'pen-slot' })));
 
     const screen = h('div', { class: 'screen libres' },
@@ -70,6 +73,7 @@
 
     const s = {
       screen, field, canvas, ctx: canvas.getContext('2d'), trail, tctx: trail.getContext('2d'),
+      ballLayer, bctx: ballLayer.getContext('2d'),
       wall, keeper, kicker, hand, flash, score,
       ball: { x: 0, y: BALL_R, z: 0, spin: 0 },
       wallX: 0, keeperX: 0, keeperHome: 0, keeperDive: null, wallJump: 0,
@@ -94,12 +98,13 @@
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     s.W = Math.max(1, r.width);
     s.H = Math.max(1, r.height);
-    for (const c of [s.canvas, s.trail]) {
+    for (const c of [s.canvas, s.trail, s.ballLayer]) {
       c.width = Math.round(s.W * dpr);
       c.height = Math.round(s.H * dpr);
     }
     s.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     s.tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    s.bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     // La pelota queda abajo de todo (y = 86 %) y el travesaño cerca de arriba (y = 14 %);
     // el horizonte puede quedar fuera de la pantalla (se ve la tribuna detrás del arco)
     const near = CAM_H / (0 - CAM_Z);
@@ -205,8 +210,10 @@
   }
 
   function drawBall(s) {
-    const g = s.ctx;
+    const g = s.bctx;
     const b = s.ball;
+    g.clearRect(0, 0, s.W, s.H);
+    s.ballLayer.style.zIndex = String(Math.round(1000 - b.z * 10)); // igual que los muñequitos (placeAt)
     const sh = project(s, b.x, 0, b.z);
     const c = project(s, b.x, b.y, b.z);
     if (!sh || !c) return;
@@ -248,13 +255,13 @@
     el.style.left = p.x + 'px';
     el.style.top = p.y + 'px';
     el.style.fontSize = (height * p.k) / 1.12 + 'px';
-    el.style.zIndex = String(Math.round(100 - z));
+    el.style.zIndex = String(Math.round(1000 - z * 10));
   }
 
   function placePlayers(s) {
     s.wall.forEach((el, i) => placeAt(s, el, s.wallX + (i - 1.5) * 0.62, WALL_Z, WALL_H + 0.25, s.wallJump));
     const d = s.keeperDive;
-    placeAt(s, s.keeper, s.keeperX, GOAL_Z + 0.3, 2.0, d ? d.lift : 0);
+    placeAt(s, s.keeper, s.keeperX, KEEPER_Z, 2.0, d ? d.lift : 0);
     s.keeper.style.rotate = d ? d.rot + 'deg' : '0deg';
     placeAt(s, s.kicker, -0.9, -0.6, 1.0);
   }
@@ -435,14 +442,15 @@
 
     // La barrera salta, el arquero se tira (llega si ataja; si no, se tira tarde)
     const dir = Math.sign(xEnd - keeperAt) || 1;
-    const diveTo = result === 'save' ? xEnd : keeperAt + dir * Math.min(1.1, Math.abs(xEnd - keeperAt));
+    // (al tirarse queda acostado: las manos quedan medio metro más allá del cuerpo)
+    const diveTo = result === 'save' ? xEnd - dir * 0.5 : keeperAt + dir * Math.min(1.1, Math.abs(xEnd - keeperAt));
     const start = performance.now();
     await new Promise((done) => {
       const step = () => {
         if (!alive(s)) return done();
         const t = performance.now() - start;
         const uRaw = t / T;
-        const stopAt = result === 'wall' ? uw : result === 'save' ? (GOAL_Z - 0.7) / GOAL_Z : 1;
+        const stopAt = result === 'wall' ? uw : result === 'save' ? (KEEPER_Z - 0.4) / GOAL_Z : 1;
         const u = Math.min(uRaw, stopAt);
         s.ball.x = xAt(u);
         s.ball.y = yAt(u);
@@ -455,7 +463,8 @@
         const kd = clamp((uRaw - 0.45) / 0.45, 0, 1);
         if (result !== 'wall' && kd > 0) {
           s.keeperX = keeperAt + (diveTo - keeperAt) * kd;
-          s.keeperDive = { rot: dir * 70 * kd, lift: 0.4 * Math.sin(kd * Math.PI) };
+          // Se estira hacia la pelota: sube según la altura a la que llega el tiro
+          s.keeperDive = { rot: dir * 70 * kd, lift: Math.min(0.9, hEnd * 0.4) * Math.sin(kd * Math.PI / 2) };
         }
         render(s);
         if (uRaw >= stopAt) return done();

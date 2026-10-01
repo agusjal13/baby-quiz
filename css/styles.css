@@ -1741,12 +1741,13 @@ button {
   -webkit-user-select: none;
   user-select: none;
 }
-.tl-canvas, .tl-trail { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-.tl-trail { z-index: 150; pointer-events: none; }
+.tl-canvas, .tl-trail, .tl-ball { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.tl-trail { z-index: 2000; pointer-events: none; }
+.tl-ball { pointer-events: none; }
 .tl-player { position: absolute; translate: -50% -94%; line-height: 1; pointer-events: none; transform-origin: 50% 90%; }
 .tl-player.keeper { transform-origin: 50% 60%; }
-.tl-hand { z-index: 160; }
-.libres .sport-flash { z-index: 170; align-items: center; padding: 0; font-size: clamp(36px, 16cqmin, 110px); }
+.tl-hand { z-index: 2010; }
+.libres .sport-flash { z-index: 2020; align-items: center; padding: 0; font-size: clamp(36px, 16cqmin, 110px); }
 
 /* ---------- Tiro al blanco ---------- */
 

@@ -155,7 +155,9 @@
     const ballLeft = target[0] < 150;
     // Si es gol, el arquero se tira para el otro lado; si ataja, para el mismo y la pelota va a sus guantes
     const diveLeft = goal ? !ballLeft : ballLeft;
-    const end = goal ? target : [diveLeft ? 104 : 196, 84];
+    // Atajada: la pelota se encuentra con el arquero ANTES de la línea (más grande y más abajo que la red)
+    const end = goal ? target : [diveLeft ? 102 : 198, 92];
+    const endScale = goal ? 0.62 : 0.72;
 
     // Carrerita y patada
     s.kicker.animate([{ transform: 'translate(0, 0)' }, { transform: 'translate(10px, -3px)' }], { duration: 320, easing: 'ease-in', fill: 'forwards' });
@@ -167,16 +169,19 @@
     s.keeper.animate([
       { transform: 'translate(0, 0) rotate(0deg)' },
       { transform: `translate(${diveLeft ? -52 : 52}px, 4px) rotate(${diveLeft ? -72 : 72}deg)` },
-    ], { duration: 420, delay: 80, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
+    ], goal
+      ? { duration: 420, delay: 80, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' }
+      // si ataja, se tira rápido: llega a la pelota antes de que pase
+      : { duration: 340, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'forwards' });
 
     const dx = end[0] - SPOT[0];
     const dy = end[1] - SPOT[1];
     s.ball.animate([
       { transform: 'translate(0, 0) scale(1) rotate(0deg)' },
       { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 14}px) scale(.8) rotate(300deg)`, offset: 0.55 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.62) rotate(540deg)` },
-    ], { duration: 560, easing: 'ease-out', fill: 'forwards' });
-    await wait(580);
+      { transform: `translate(${dx}px, ${dy}px) scale(${endScale}) rotate(540deg)` },
+    ], { duration: goal ? 560 : 440, easing: goal ? 'ease-out' : 'linear', fill: 'forwards' });
+    await wait(goal ? 580 : 440);
     if (!alive(s)) return;
 
     if (goal) {
@@ -193,7 +198,7 @@
       BQ.sport.flash(s.flash, '¡ATAJÓ!', 'saved');
       const out = [end[0] + (diveLeft ? -70 : 70) - SPOT[0], 150 - SPOT[1]];
       s.ball.animate([
-        { transform: `translate(${dx}px, ${dy}px) scale(.62) rotate(540deg)` },
+        { transform: `translate(${dx}px, ${dy}px) scale(${endScale}) rotate(540deg)` },
         { transform: `translate(${(dx + out[0]) / 2}px, ${(dy + out[1]) / 2 - 22}px) scale(.85) rotate(380deg)`, offset: 0.5 },
         { transform: `translate(${out[0]}px, ${out[1]}px) scale(1) rotate(200deg)` },
       ], { duration: 650, easing: 'ease-out', fill: 'forwards' });
