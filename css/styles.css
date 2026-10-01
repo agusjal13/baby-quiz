@@ -1727,6 +1727,7 @@ button {
 .game-pill.libres { background: linear-gradient(160deg, #26a69a, #00695c); }
 .libres { gap: 1.5vmin; }
 .tl-field {
+  isolation: isolate; /* los z-index de adentro no tapan la pantalla final */
   width: 100%;
   max-width: 125vh;
   align-self: center;

@@ -544,6 +544,8 @@
 
   function finish(s) {
     const won = s.goals >= TO_WIN;
+    s.flash.hidden = true;
+    s.ready = false;
     BQ.sport.result({
       screen: s.screen,
       won,
