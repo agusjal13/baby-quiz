@@ -27,11 +27,41 @@
     pelota26: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fff" stroke="#2b2140" stroke-width="5"/>'
       + ['#2e9e44', '#e53935', '#1e88e5'].map((c, i) => `<path d="M50 50 C28 40 24 14 50 7 C76 14 72 40 50 50 Z" fill="${c}" stroke="#2b2140" stroke-width="2.5" transform="rotate(${i * 120} 50 50)"/>`).join('')
       + '<circle cx="50" cy="50" r="6" fill="#fff" stroke="#2b2140" stroke-width="3"/></svg>',
-    // Botín visto de costado, con raya y tapones
-    botin: (fill, stripe) => '<svg viewBox="0 0 100 70">'
+    // Pelota clásica blanca con pentágonos negros (la que tenía siempre el futbolista; ahora es gratis)
+    pelota: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fff" stroke="#2b2140" stroke-width="5"/>'
+      + '<polygon points="50,33 66,45 60,64 40,64 34,45" fill="#2b2140"/>'
+      + [0, 72, 144, 216, 288].map((a) => `<path d="M50 9 L58 17 L50 22 L42 17 Z" fill="#2b2140" transform="rotate(${a} 50 50)"/>`).join('')
+      + '</svg>',
+    // Dorada, con brillo
+    pelotaOro: '<svg viewBox="0 0 100 100"><defs><radialGradient id="bq-oro" cx=".35" cy=".3"><stop offset="0" stop-color="#fff6c2"/><stop offset=".5" stop-color="#ffd23f"/><stop offset="1" stop-color="#d49b00"/></radialGradient></defs>'
+      + '<circle cx="50" cy="50" r="44" fill="url(#bq-oro)" stroke="#8a6200" stroke-width="5"/>'
+      + '<polygon points="50,33 66,45 60,64 40,64 34,45" fill="#b07800"/>'
+      + [0, 72, 144, 216, 288].map((a) => `<path d="M50 9 L58 17 L50 22 L42 17 Z" fill="#b07800" transform="rotate(${a} 50 50)"/>`).join('')
+      + `<polygon points="${star(30, 30, 9, 3.5)}" fill="#fff"/></svg>`,
+    // Arcoíris: gajos de colores
+    pelotaArcoiris: '<svg viewBox="0 0 100 100">'
+      + ['#e53935', '#ff9800', '#ffd23f', '#43a047', '#1e88e5', '#8e24aa'].map((c, i) => `<path d="M50 50 L50 6 A44 44 0 0 1 88.1 28 Z" fill="${c}" transform="rotate(${i * 60} 50 50)"/>`).join('')
+      + '<circle cx="50" cy="50" r="14" fill="#fff"/><circle cx="50" cy="50" r="44" fill="none" stroke="#2b2140" stroke-width="5"/></svg>',
+    // De fuego: naranja con llamas
+    pelotaFuego: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#ff9800"/>'
+      + '<path d="M14 62 Q22 40 30 52 Q32 28 46 40 Q50 16 60 36 Q70 24 72 46 Q84 38 86 60 Q70 92 50 92 Q26 92 14 62 Z" fill="#e53935"/>'
+      + '<path d="M30 72 Q36 58 42 66 Q46 50 54 62 Q62 52 66 70 Q60 84 48 84 Q36 84 30 72 Z" fill="#ffd23f"/>'
+      + '<circle cx="50" cy="50" r="44" fill="none" stroke="#2b2140" stroke-width="5"/></svg>',
+    // Galaxia: azul noche con estrellas
+    pelotaGalaxia: '<svg viewBox="0 0 100 100"><defs><radialGradient id="bq-gal" cx=".4" cy=".35"><stop offset="0" stop-color="#7c4dff"/><stop offset="1" stop-color="#1a1150"/></radialGradient></defs>'
+      + '<circle cx="50" cy="50" r="44" fill="url(#bq-gal)" stroke="#2b2140" stroke-width="5"/>'
+      + [[34, 32, 8], [66, 44, 6], [44, 68, 7], [72, 70, 4], [24, 56, 4]].map(([x, y, r]) => `<polygon points="${star(x, y, r, r * 0.42)}" fill="#fff59d"/>`).join('')
+      + '<circle cx="58" cy="24" r="2.5" fill="#fff"/><circle cx="20" cy="40" r="2" fill="#fff"/><circle cx="80" cy="56" r="2" fill="#fff"/></svg>',
+    // De cuero, antigua: marrón con costuras y cordón
+    pelotaRetro: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#a0612d" stroke="#4e2a0e" stroke-width="5"/>'
+      + '<path d="M8 44 Q50 34 92 44 M8 58 Q50 68 92 58 M44 7 Q34 50 44 93 M58 7 Q68 50 58 93" fill="none" stroke="#5d3412" stroke-width="3"/>'
+      + '<path d="M47 36 L55 36 M46 42 L56 42 M46 48 L56 48 M47 54 L55 54" stroke="#f5deb3" stroke-width="3" stroke-linecap="round"/>'
+      + '<ellipse cx="34" cy="28" rx="9" ry="5" fill="rgba(255,255,255,.25)" transform="rotate(-30 34 28)"/></svg>',
+    // Botín visto de costado, con raya y tapones (sole: color de la suela, si no es negra)
+    botin: (fill, stripe, sole = '#2b2140') => '<svg viewBox="0 0 100 70">'
       + `<path d="M14 18 Q14 8 26 8 L46 8 Q50 8 52 14 L56 26 Q84 26 92 40 Q96 48 88 52 L14 52 Q8 52 8 44 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
       + `<path d="M30 30 L60 44 M36 22 L66 36" stroke="${stripe}" stroke-width="5" stroke-linecap="round"/>`
-      + '<rect x="8" y="50" width="86" height="7" rx="3" fill="#2b2140"/>'
+      + `<rect x="8" y="50" width="86" height="7" rx="3" fill="${sole}"/>`
       + [18, 38, 62, 82].map((x) => `<rect x="${x - 4}" y="56" width="8" height="8" rx="2" fill="#2b2140"/>`).join('')
       + '</svg>',
     capa: (c) =>`<svg viewBox="0 0 100 100"><path d="M28 6 Q50 16 72 6 L94 94 Q50 102 6 94 Z" fill="${c}" stroke="rgba(0,0,0,.25)" stroke-width="3" stroke-linejoin="round"/>`
@@ -55,11 +85,25 @@
     },
   };
 
+  // (agregadas después)
+  Object.assign(JERSEYS, {
+    // Blanca con detalles rosa: costados, mangas y ruedo rosa
+    blancaRosa: {
+      kind: 'trim', a: '#ffffff', b: '#ff4f9a', sleeve: '#ff4f9a',
+      css: 'linear-gradient(transparent 82%, #ff4f9a 82%), linear-gradient(90deg, #ff4f9a 0 12%, #ffffff 12% 88%, #ff4f9a 88%)',
+    },
+    rosa: { kind: 'solid', a: '#ff6fae', b: '#ff6fae', sleeve: '#ff6fae', css: '#ff6fae' },
+    // Mitad rosa (izquierda mirando de frente) y mitad negra, sin estrella
+    rosaNegra: { kind: 'split', a: '#ff6fae', b: '#1a1a1a', star: 'none', sleeveL: '#ff6fae', sleeve: '#1a1a1a', css: 'linear-gradient(90deg, #ff6fae 0 50%, #1a1a1a 50%)' },
+  });
+
   // Botines del futbolista: reemplazan los zapatos (lugar "feet")
   const BOOTS = {
     botinesOro: { fill: '#ffd23f', stripe: '#ffffff' },
     botinesFluo: { fill: '#c6ff00', stripe: '#ff4081' },
     botinesAzules: { fill: '#1e88e5', stripe: '#ffffff' },
+    botinesCelestes: { fill: '#74acdf', stripe: '#ffffff', sole: '#ffffff' },
+    botinesRosa: { fill: '#1e63d6', stripe: '#ffffff', sole: '#ff4f9a' },
   };
   const boots = (id, name) => ({ id, name, slot: 'feet', boots: BOOTS[id], use: 'kick' });
   const jersey = (id, name) => ({ id, name, slot: 'body', jersey: JERSEYS[id], shirt: JERSEYS[id].css });
@@ -91,10 +135,21 @@
       jersey('rojaAmarilla', 'la camiseta roja y amarilla'),
       jersey('azulRoja', 'la camiseta azul y roja a rayas'),
       jersey('celesteNegra', 'la camiseta celeste y negra'),
+      jersey('blancaRosa', 'la camiseta blanca y rosa'),
+      jersey('rosa', 'la camiseta rosa'),
+      jersey('rosaNegra', 'la camiseta rosa y negra'),
+      { id: 'pelota', name: 'la pelota', slot: 'ball', art: 'pelota', use: 'kick', price: 0 },
       { id: 'pelota26', name: 'la pelota del mundial', slot: 'ball', art: 'pelota26', use: 'kick' },
+      { id: 'pelotaOro', name: 'la pelota dorada', slot: 'ball', art: 'pelotaOro', use: 'kick' },
+      { id: 'pelotaArcoiris', name: 'la pelota arcoíris', slot: 'ball', art: 'pelotaArcoiris', use: 'kick' },
+      { id: 'pelotaFuego', name: 'la pelota de fuego', slot: 'ball', art: 'pelotaFuego', use: 'kick' },
+      { id: 'pelotaGalaxia', name: 'la pelota galaxia', slot: 'ball', art: 'pelotaGalaxia', use: 'kick' },
+      { id: 'pelotaRetro', name: 'la pelota de cuero antigua', slot: 'ball', art: 'pelotaRetro', use: 'kick' },
       boots('botinesOro', 'los botines dorados'),
       boots('botinesFluo', 'los botines verde flúor'),
       boots('botinesAzules', 'los botines azules'),
+      boots('botinesCelestes', 'los botines celestes y blancos'),
+      boots('botinesRosa', 'los botines azules, blancos y rosa'),
       { id: 'copa', name: 'la copa', slot: 'hand', emoji: '🏆' },
     ],
     princesa: [
@@ -150,6 +205,8 @@
   BQ.wardrobe = {
     PRICE: 5,
     ART,
+    // Precio de una cosa (algunas son gratis: price: 0)
+    price: (item) => (item.price ?? 5),
 
     items: (charId) => CATALOG[charId] || [],
     owns: (charId, itemId) => entry(charId).owned.includes(itemId),
@@ -160,8 +217,9 @@
     },
 
     buy(charId, item) {
-      if (store.data.coins < this.PRICE || this.owns(charId, item.id)) return false;
-      store.data.coins -= this.PRICE;
+      const price = this.price(item);
+      if (store.data.coins < price || this.owns(charId, item.id)) return false;
+      store.data.coins -= price;
       writable(charId).owned.push(item.id);
       this.wear(charId, item);
       return true;
@@ -186,7 +244,7 @@
       if (item.emoji) return h('span', { class: 'card-art emoji' }, item.emoji);
       if (item.jersey) return h('span', { class: 'card-art' }, h('span', { class: 'shirt', style: { background: item.shirt } }));
       const svg = item.art ? ART[item.art]
-        : item.boots ? ART.botin(item.boots.fill, item.boots.stripe)
+        : item.boots ? ART.botin(item.boots.fill, item.boots.stripe, item.boots.sole)
           : item.bow ? ART.corbatita(...item.bow)
             : item.cape ? ART.capa(item.cape) : '';
       return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : ''), html: svg });

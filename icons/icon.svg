@@ -1,12 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícono: la carita del duende del juego (mismo dibujo que js/puppet.js) sobre cielo celeste.
+       Fondo sin bordes redondeados: Android e iPhone le ponen su propia forma. -->
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#9b7bff"/>
-      <stop offset="1" stop-color="#ff7eb3"/>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6fd0ff"/>
+      <stop offset="1" stop-color="#2f80ed"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <circle cx="256" cy="256" r="170" fill="#fff"/>
-  <text x="256" y="330" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-weight="900" font-size="230" fill="#7b5cff">?</text>
-  <polygon points="400,70 414,108 454,110 423,135 434,174 400,152 366,174 377,135 346,110 386,108" fill="#ffd23f"/>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <circle cx="256" cy="268" r="150" fill="#ffffff" opacity=".22"/>
+  <polygon points="420,78 431,108 463,109 438,128 447,159 420,141 393,159 402,128 377,109 409,108" fill="#ffd23f"/>
+  <polygon points="96,380 103,399 123,400 107,412 113,431 96,420 79,431 85,412 69,400 89,399" fill="#ffd23f"/>
+  <svg x="66" y="70" width="380" height="380" viewBox="0 -24 100 100">
+    <g stroke="#2b2140" stroke-width="2.6" stroke-linejoin="round">
+      <path d="M28 38 L9 30 L28 48 Z" fill="#ffd9b3"/>
+      <path d="M72 38 L91 30 L72 48 Z" fill="#ffd9b3"/>
+      <circle cx="50" cy="40" r="24" fill="#ffd9b3"/>
+      <path d="M28 34 Q34 26 44 30 Q50 24 56 30 Q66 26 72 34 L72 27 L28 27 Z" fill="#ffcc4d"/>
+      <path d="M24 28 Q50 19 76 28 L56 -12 Q52 -17 49 -10 Z" fill="#43a047"/>
+      <path d="M24 28 Q50 20 76 28 Q50 35 24 28 Z" fill="#2e7d32"/>
+    </g>
+    <ellipse cx="41" cy="42" rx="3.4" ry="4.4" fill="#2b2140"/>
+    <ellipse cx="59" cy="42" rx="3.4" ry="4.4" fill="#2b2140"/>
+    <circle cx="42.3" cy="40.3" r="1.3" fill="#fff"/>
+    <circle cx="60.3" cy="40.3" r="1.3" fill="#fff"/>
+    <ellipse cx="35" cy="49" rx="4" ry="2.6" fill="#ff8a9a" opacity=".55"/>
+    <ellipse cx="65" cy="49" rx="4" ry="2.6" fill="#ff8a9a" opacity=".55"/>
+    <path d="M44 52 Q50 57 56 52" fill="none" stroke="#2b2140" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>
 </svg>

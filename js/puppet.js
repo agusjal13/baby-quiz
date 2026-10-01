@@ -184,6 +184,8 @@
     // Mitad y mitad (a = izquierda mirando de frente), con estrella en el corazón (derecha mirando de frente)
     if (j.kind === 'split') design = `<rect x="50" y="60" width="22" height="50" fill="${j.b}"/><polygon points="${star(57.5, 75, 4.6, 1.9)}" fill="${j.star}"/>`;
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
+    // Blanca con detalles: costados y ruedo de otro color
+    if (j.kind === 'trim') design = `<rect x="28" y="60" width="6" height="50" fill="${j.b}"/><rect x="66" y="60" width="6" height="50" fill="${j.b}"/><rect x="28" y="101" width="44" height="9" fill="${j.b}"/>`;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
     return `<defs><clipPath id="pp-shirt-${id}"><path d="${TORSO}"/></clipPath></defs>`
       + `<g clip-path="url(#pp-shirt-${id})"><rect x="28" y="60" width="44" height="50" fill="${j.a}"/>${design}</g>`
@@ -236,6 +238,7 @@
     const shoe = (x) => (boots
       ? `<ellipse cx="${x}" cy="121" rx="8" ry="4.8" fill="${boots.fill}" ${S}/>`
         + `<path d="M${x - 4} 119.5 L${x + 3} 122.5" stroke="${boots.stripe}" stroke-width="1.8" stroke-linecap="round"/>`
+        + (boots.sole ? `<path d="M${x - 7} 123.4 Q${x} 126.6 ${x + 7} 123.4" fill="none" stroke="${boots.sole}" stroke-width="1.8" stroke-linecap="round"/>` : '')
         + [-4, 0, 4].map((d) => `<rect x="${x + d - 1}" y="125" width="2" height="2.4" rx=".6" fill="${OUT}"/>`).join('')
       : `<ellipse cx="${x}" cy="121" rx="7.5" ry="4.8" fill="${look.shoes}" ${S}/>`);
 
@@ -243,11 +246,10 @@
       ? `<path d="${ROBOT_TORSO}" fill="${look.torso}" ${S}/>`
       : `<path d="${look.dress ? DRESS : TORSO}" fill="${look.torso}" ${S}/>`;
     const belly = look.belly ? `<ellipse cx="50" cy="86" rx="10" ry="13" fill="${look.belly}"/>` : '';
-    // Pelota en el pie (futbolista); se puede cambiar por una de la tienda (lugar "ball")
-    const ball = !look.ball ? ''
-      : bySlot.ball
-        ? `<g class="pp-ball"><svg x="62" y="116" width="14" height="14" viewBox="0 0 100 100">${inner(BQ.wardrobe.ART[bySlot.ball.art])}</svg></g>`
-        : `<g class="pp-ball"><circle cx="69" cy="123" r="6.5" fill="#fff" ${S}/><polygon points="69,119.5 72.3,122 71,125.8 67,125.8 65.7,122" fill="${OUT}"/></g>`;
+    // Pelota en el pie (futbolista): solo si tiene puesta una de la tienda (lugar "ball"; la común es gratis)
+    const ball = look.ball && bySlot.ball
+      ? `<g class="pp-ball"><svg x="62" y="116" width="14" height="14" viewBox="0 0 100 100">${inner(BQ.wardrobe.ART[bySlot.ball.art])}</svg></g>`
+      : '';
 
     return `<svg class="pp" viewBox="0 0 100 140" overflow="visible" aria-hidden="true">`
       + `<ellipse class="pp-shadow" cx="50" cy="127" rx="22" ry="4" fill="rgba(0,0,0,.14)"/>`

@@ -321,7 +321,9 @@
         h('span', { class: 'shop-art' }, W.card(item)),
         owned
           ? h('span', { class: 'shop-tag' + (worn ? ' on' : '') }, worn ? '✔' : '')
-          : h('span', { class: 'shop-price' }, coinEl(), String(W.PRICE)));
+          : W.price(item) === 0
+            ? h('span', { class: 'shop-price free' }, 'GRATIS')
+            : h('span', { class: 'shop-price' }, coinEl(), String(W.price(item))));
         return b;
       }));
     }
@@ -348,12 +350,12 @@
         void b.offsetWidth;
         b.classList.add('nope');
         sfx.wrong();
-        voice.say(`Necesitás ${U.NUM_WORDS[W.PRICE]} monedas y tenés ${coinsWord()}. ¡Pasá niveles para ganar más!`);
+        voice.say(`Necesitás ${U.NUM_WORDS[W.price(item)]} monedas y tenés ${coinsWord()}. ¡Pasá niveles para ganar más!`);
         return;
       }
       sfx.coin();
       counter.set(store.data.coins);
-      voice.say(`¡Le compraste ${item.name}!`);
+      voice.say(W.price(item) === 0 ? `¡Te regalaron ${item.name}!` : `¡Le compraste ${item.name}!`);
       paint();
       burst(hero);
       showOff(item);

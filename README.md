@@ -56,7 +56,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   una fila de 5 lugares). Repetir un nivel no da otra mientras falten niveles en ese mundo; en un mundo
   **completo**, cada nivel jugado vuelve a dar una moneda. Ganar un partido de penales también da una.
 - En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a **5 monedas** cada cosa
-  (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`.
+  (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`;
+  una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`).
   Tocar algo comprado lo pone o lo saca. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
 - Desde ⚙️ se pueden regalar monedas.
 - Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
