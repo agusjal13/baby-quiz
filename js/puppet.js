@@ -212,6 +212,8 @@
           const [x, y, w, h] = art.at;
           return `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${art.vb}" class="pp-tip">${inner(art.body())}</svg>`;
         }
+        // Trofeo del mapa de trofeos, levantado en la mano
+        if (item.trophy) return `<svg x="60" y="57" width="27" height="35" viewBox="0 0 100 130">${inner(BQ.trophies.art(BQ.wardrobe.trophyOf(item)))}</svg>`;
         return emoji(item.emoji, 75, item.high ? 70 : 88, item.size || 20);
       }
       case 'back':
@@ -265,6 +267,9 @@
       + `<g class="pp-head">${look.headBack || ''}${look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
       + `<g class="pp-arm pp-arm-r">${limb(63, 70, 70, 89, sleeve, 8)}`
+      // Cinta de capitán en el brazo izquierdo de quien la lleva (a la derecha mirándolo de frente)
+      + (bySlot.arm ? `<g transform="translate(65.3 76.3) rotate(-20)"><rect x="-5.6" y="-2.6" width="11.2" height="5.2" rx="1.2" fill="${bySlot.arm.armband}" ${S}/>`
+        + `<path d="M1.4 -1.2 Q0 -1.9 -1 -1.1 Q-1.8 0 -1 1.1 Q0 1.9 1.4 1.2" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round"/></g>` : '')
       + (bySlot.hand ? `<g class="pp-hitem">${itemSvg(bySlot.hand, look)}</g>` : '')
       + `<circle cx="70" cy="90" r="5" fill="${look.hands}" ${S}/></g>`
       + `</g></svg>`;

@@ -346,6 +346,8 @@
         h('span', { class: 'shop-art' }, W.card(item)),
         owned
           ? h('span', { class: 'shop-tag' + (worn ? ' on' : '') }, worn ? '✔' : '')
+          : W.locked(item)
+            ? h('span', { class: 'shop-price locked' }, h('span', { class: 'emoji' }, '🔒'), '🏆')
           : W.price(item) === 0
             ? h('span', { class: 'shop-price free' }, 'GRATIS')
             : h('span', { class: 'shop-price' }, coinEl(), String(W.price(item))));
@@ -368,6 +370,15 @@
           return;
         }
         paint();
+        return;
+      }
+      if (W.locked(item)) {
+        const left = item.trophy - BQ.trophies.wins();
+        b.classList.remove('nope');
+        void b.offsetWidth;
+        b.classList.add('nope');
+        sfx.wrong();
+        voice.say(`¡Primero tenés que ganar ${item.name}! Te ${left === 1 ? 'falta un partido' : `faltan ${left} partidos`}.`);
         return;
       }
       if (!W.buy(c.id, item)) {

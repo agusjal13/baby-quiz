@@ -57,6 +57,10 @@
       + '<path d="M8 44 Q50 34 92 44 M8 58 Q50 68 92 58 M44 7 Q34 50 44 93 M58 7 Q68 50 58 93" fill="none" stroke="#5d3412" stroke-width="3"/>'
       + '<path d="M47 36 L55 36 M46 42 L56 42 M46 48 L56 48 M47 54 L55 54" stroke="#f5deb3" stroke-width="3" stroke-linecap="round"/>'
       + '<ellipse cx="34" cy="28" rx="9" ry="5" fill="rgba(255,255,255,.25)" transform="rotate(-30 34 28)"/></svg>',
+    // Cinta de capitán: banda de color con la "C" blanca
+    cinta: (c) => '<svg viewBox="0 0 100 60">'
+      + `<rect x="6" y="12" width="88" height="36" rx="8" fill="${c}" stroke="#2b2140" stroke-width="4"/>`
+      + '<path d="M60 22 Q50 16 42 22 Q36 30 42 38 Q50 44 60 38" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/></svg>',
     // Botín visto de costado, con raya y tapones (sole: color de la suela, si no es negra)
     botin: (fill, stripe, sole = '#2b2140') => '<svg viewBox="0 0 100 70">'
       + `<path d="M14 18 Q14 8 26 8 L46 8 Q50 8 52 14 L56 26 Q84 26 92 40 Q96 48 88 52 L14 52 Q8 52 8 44 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
@@ -111,7 +115,7 @@
 
   /*
    * Catálogo por personaje. Cada cosa va en un lugar del cuerpo (slot): head, neck, hand, body, back,
-   * ball (pelota del pie) o feet (botines).
+   * ball (pelota del pie), feet (botines) o arm (cinta de capitán).
    * Una sola cosa por lugar: ponerse otra en el mismo lugar reemplaza la anterior.
    *   emoji | art (bastón, varita, pelota) | bow (corbatita) | cape (capa) | jersey (camiseta) | boots (botines)
    *   use   lo que hace al usarla (si no, depende del lugar: ver puppet.js)
@@ -151,7 +155,16 @@
       boots('botinesAzules', 'los botines azules'),
       boots('botinesCelestes', 'los botines celestes y blancos'),
       boots('botinesRosa', 'los botines azules, blancos y rosa'),
+      { id: 'cintaRoja', name: 'la cinta de capitán roja', slot: 'arm', armband: '#e53935', use: 'raise' },
+      { id: 'cintaAzul', name: 'la cinta de capitán azul', slot: 'arm', armband: '#1e63d6', use: 'raise' },
+      { id: 'cintaVerde', name: 'la cinta de capitán verde', slot: 'arm', armband: '#2e9e44', use: 'raise' },
+      { id: 'cintaAmarilla', name: 'la cinta de capitán amarilla', slot: 'arm', armband: '#ffc400', use: 'raise' },
+      { id: 'cintaRosa', name: 'la cinta de capitán rosa', slot: 'arm', armband: '#ff4f9a', use: 'raise' },
+      { id: 'cintaCeleste', name: 'la cinta de capitán celeste', slot: 'arm', armband: '#4fb3ec', use: 'raise' },
       { id: 'copa', name: 'la copa', slot: 'hand', emoji: '🏆' },
+      // Trofeos de verdad (los del mapa de trofeos): se pueden comprar solo si ya se ganaron
+      { id: 'trofeoPlata', name: 'la copa de plata', slot: 'hand', trophy: 4, use: 'raise' },
+      { id: 'trofeoOro', name: 'la copa de oro', slot: 'hand', trophy: 8, use: 'raise' },
     ],
     princesa: [
       { id: 'varita', name: 'la varita mágica', slot: 'hand', art: 'varita', use: 'magic' },
@@ -208,6 +221,10 @@
     ART,
     // Precio de una cosa (algunas son gratis: price: 0)
     price: (item) => (item.price ?? 5),
+    // Trofeo que todavía no ganó: no se puede comprar
+    locked: (item) => !!item.trophy && BQ.trophies.wins() < item.trophy,
+    // (en tamaño grande: en la lista, los primeros trofeos se dibujan más chicos)
+    trophyOf: (item) => ({ ...BQ.trophies.list.find((t) => t.wins === item.trophy), scale: 1 }),
 
     items: (charId) => CATALOG[charId] || [],
     owns: (charId, itemId) => entry(charId).owned.includes(itemId),
@@ -219,7 +236,7 @@
 
     buy(charId, item) {
       const price = this.price(item);
-      if (store.data.coins < price || this.owns(charId, item.id)) return false;
+      if (store.data.coins < price || this.owns(charId, item.id) || this.locked(item)) return false;
       store.data.coins -= price;
       writable(charId).owned.push(item.id);
       this.wear(charId, item);
@@ -243,12 +260,14 @@
     // Dibujo de la prenda sola, para la tarjeta de la tienda
     card(item) {
       if (item.emoji) return h('span', { class: 'card-art emoji' }, item.emoji);
+      if (item.trophy) return h('span', { class: 'card-art' + (this.locked(item) ? ' locked' : '') }, BQ.trophies.el(this.trophyOf(item), 'card-trophy'));
       if (item.jersey) return h('span', { class: 'card-art' }, h('span', { class: 'shirt', style: { background: item.shirt } }));
       const svg = item.art ? ART[item.art]
         : item.boots ? ART.botin(item.boots.fill, item.boots.stripe, item.boots.sole)
           : item.bow ? ART.corbatita(...item.bow)
-            : item.cape ? ART.capa(item.cape) : '';
-      return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : ''), html: svg });
+            : item.cape ? ART.capa(item.cape)
+              : item.armband ? ART.cinta(item.armband) : '';
+      return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : item.slot === 'arm' ? ' band' : ''), html: svg });
     },
   };
 })(window.BQ);

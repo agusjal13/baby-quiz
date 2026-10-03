@@ -201,6 +201,9 @@ button {
 .card-svg svg { width: 1em; height: .7em; display: block; }
 .card-svg.tall svg { width: .5em; height: 1em; }
 .card-svg.round svg { width: .9em; height: .9em; }
+.card-trophy { width: 1em; aspect-ratio: 100 / 130; display: block; }
+.card-art.locked .card-trophy { filter: brightness(0) opacity(.3); }
+.card-svg.band svg { width: .95em; height: .57em; }
 .shirt {
   display: block;
   width: 1em;
@@ -415,6 +418,7 @@ button {
 }
 .shop-tag { padding: 2cqmin; width: 22cqmin; height: 22cqmin; justify-content: center; color: #fff; background: #d8d2e6; }
 .shop-tag.on { background: var(--ok); }
+.shop-price.locked { padding: 2cqmin 4cqmin; font-size: 13cqmin; background: #ece8f5; }
 .shop-price.free { padding: 2cqmin 4cqmin; font-size: 12cqmin; color: #fff; background: var(--ok); }
 .flip { display: inline-block; transform: scaleX(-1); }
 
