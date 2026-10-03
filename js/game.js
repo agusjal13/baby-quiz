@@ -304,13 +304,38 @@
     const W = BQ.wardrobe;
     const counter = coinCounter();
     const hero = h('div', { class: 'shop-hero' });
-    // Con muchas prendas, más columnas para que entren en pantalla (el futbolista tiene 14)
-    const count = W.items(c.id).length;
-    const grid = h('div', { class: 'shop-grid' + (count > 9 ? ' lots' : count > 4 ? ' many' : '') });
+    // Con muchas cosas (el futbolista tiene más de 20), la tienda se separa en pestañas por tipo:
+    // camisetas, pelotas, botines y lo demás. Cada pestaña es un dibujito (el chico no lee).
+    const all = W.items(c.id);
+    const TABS = [
+      { id: 'body', icon: '👕', say: 'Camisetas' },
+      { id: 'ball', icon: '⚽', say: 'Pelotas' },
+      { id: 'feet', icon: '👟', say: 'Botines' },
+      { id: 'otros', icon: '✨', say: 'Otras cosas' },
+    ];
+    const tabOf = (item) => (['body', 'ball', 'feet'].includes(item.slot) ? item.slot : 'otros');
+    const tabs = all.length > 9 ? TABS.filter((t) => all.some((it) => tabOf(it) === t.id)) : [];
+    let tab = tabs.length ? tabs[0].id : null;
+    const shown = () => (tab ? all.filter((it) => tabOf(it) === tab) : all);
+    const grid = h('div', { class: 'shop-grid' });
+    const tabBar = tabs.length > 1 && h('div', { class: 'shop-tabs' }, tabs.map((t) => h('button', {
+      class: 'shop-tab', 'data-tab': t.id, 'aria-label': t.say,
+      onpointerdown: tap(() => {
+        if (tab === t.id) return;
+        tab = t.id;
+        sfx.tap();
+        voice.say(t.say);
+        paint();
+      }),
+    }, h('span', { class: 'emoji' }, t.icon))));
 
     function paint() {
       hero.replaceChildren(avatarEl(c));
-      grid.replaceChildren(...W.items(c.id).map((item) => {
+      // Más columnas cuantas más cosas haya, para que entren en pantalla
+      const count = shown().length;
+      grid.className = 'shop-grid' + (count > 9 ? ' lots' : count > 4 ? ' many' : '');
+      if (tabBar) tabBar.querySelectorAll('.shop-tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+      grid.replaceChildren(...shown().map((item) => {
         const owned = W.owns(c.id, item.id);
         const worn = W.wears(c.id, item.id);
         const b = h('button', {
@@ -371,7 +396,7 @@
     show(h('div', { class: 'screen shop' },
       topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🛍️'), ' Tienda'),
         h('div', { class: 'top-right' }, counter, gearBtn())),
-      h('div', { class: 'shop-body' }, hero, grid)));
+      h('div', { class: 'shop-body' }, hero, h('div', { class: 'shop-side' }, tabBar, grid))));
     voice.say(store.data.coins >= W.PRICE
       ? `¡Bienvenido a la tienda! ¿Qué le comprás ${c.name.replace(/^el /, 'al ').replace(/^la /, 'a la ')}?`
       : `¡Bienvenido a la tienda! Cada cosa cuesta ${U.NUM_WORDS[W.PRICE]} monedas. ¡Pasá niveles para juntarlas!`);

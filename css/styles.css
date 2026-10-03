@@ -353,11 +353,37 @@ button {
   font-size: clamp(100px, 30vmin, 250px);
   flex: none;
 }
+/* Margen extra abajo: en tablets con bordes redondeados o barra de gestos, la última fila no queda tapada */
+.screen.shop { padding-bottom: max(5vmin, calc(env(safe-area-inset-bottom) + 2vmin)); }
+.shop-side {
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5vmin;
+}
+.shop-side .shop-grid { min-height: 0; overflow-y: auto; padding: 1.5vmin 1.5vmin 2.5vmin; }
+.shop-tabs { flex: none; display: flex; gap: 2vmin; }
+.shop-tab {
+  width: clamp(52px, 12vmin, 96px);
+  aspect-ratio: 1.25;
+  border-radius: 3vmin;
+  background: rgba(255, 255, 255, .55);
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .12);
+  font-size: clamp(26px, 6.5vmin, 54px);
+  display: grid;
+  place-items: center;
+  transition: background .2s, scale .2s;
+}
+.shop-tab.on { background: #fff; scale: 1.12; box-shadow: 0 0 0 .8vmin var(--gold), 0 .8vmin 0 rgba(0, 0, 0, .12); }
+.shop-tab:active { translate: 0 .5vmin; }
 .shop-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3vmin; }
 .shop-grid.many { grid-template-columns: repeat(3, auto); gap: 2.2vmin; }
 .shop-grid.many .shop-item { width: clamp(76px, 18vmin, 150px); }
 .shop-grid.lots { grid-template-columns: repeat(4, auto); gap: 1.8vmin; }
-.shop-grid.lots .shop-item { width: clamp(62px, 14.5vmin, 124px); }.shop-item {
+.shop-grid.lots .shop-item { width: clamp(62px, 14.5vmin, 124px); }
+.shop-item {
   position: relative;
   width: clamp(88px, 21vmin, 170px);
   aspect-ratio: 1;

@@ -58,7 +58,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a **5 monedas** cada cosa
   (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`;
   una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`).
-  Tocar algo comprado lo pone o lo saca. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
+  Tocar algo comprado lo pone o lo saca. Si un personaje tiene más de 9 cosas, la tienda se separa en pestañas
+  (👕 camisetas, ⚽ pelotas, 👟 botines, ✨ otras cosas). Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
 - Desde ⚙️ se pueden regalar monedas.
 - Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
   (con `emoji`, `art`, `bow`, `cape` o `jersey`, y opcionalmente `use`: la acción al tocarlo).
