@@ -335,8 +335,48 @@
       }),
     }, h('span', { class: 'emoji' }, t.icon))));
 
+    // Girar al jugador para verle la espalda (nombre y número), y escribirlos
+    let back = false;
+    const canTurn = BQ.puppet.canTurn(c.id);
+    async function turn(toBack) {
+      back = toBack === undefined ? !back : toBack;
+      sfx.whee();
+      const half = { duration: 160, easing: 'ease-in', fill: 'forwards' };
+      // Tope de tiempo: con la pantalla en segundo plano la animación no avanza
+      await Promise.race([hero.animate([{ scale: '1 1' }, { scale: '0 1' }], half).finished.catch(() => {}), new Promise((r) => setTimeout(r, 250))]);
+      paint();
+      hero.animate([{ scale: '0 1' }, { scale: '1 1' }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
+    }
+    function editBack() {
+      const j = store.data.jersey || {};
+      const name = h('input', { type: 'text', maxlength: '10', value: j.name || '', placeholder: 'Por ejemplo: LEO', autocomplete: 'off' });
+      const number = h('input', { type: 'text', inputmode: 'numeric', maxlength: '2', value: j.number || '', placeholder: '10', autocomplete: 'off' });
+      const close = () => modal.remove();
+      const modal = h('div', { class: 'modal' }, h('form', {
+        class: 'panel jersey-form',
+        onsubmit: (e) => {
+          e.preventDefault();
+          store.data.jersey = { name: name.value.trim().slice(0, 10), number: number.value.replace(/\D/g, '').slice(0, 2) };
+          store.save();
+          close();
+          turn(true); // para que se vea cómo quedó
+        },
+      },
+      h('h3', {}, 'Nombre y número de la camiseta'),
+      h('label', {}, 'Nombre (hasta 10 letras)'), name,
+      h('label', {}, 'Número (hasta 2 cifras)'), number,
+      h('div', { class: 'row' },
+        h('button', { type: 'button', onclick: close }, 'Cancelar'),
+        h('button', { type: 'submit', class: 'primary' }, 'Listo'))));
+      app.append(modal);
+      name.focus();
+    }
+    const tools = canTurn && h('div', { class: 'shop-tools' },
+      h('button', { class: 'btn-round shop-tool', 'aria-label': 'Girar al jugador', onpointerdown: tap(() => turn()) }, h('span', { class: 'emoji' }, '🔄')),
+      h('button', { class: 'btn-round shop-tool', 'aria-label': 'Escribir nombre y número', onpointerdown: tap(() => editBack()) }, h('span', { class: 'emoji' }, '✏️')));
+
     function paint() {
-      hero.replaceChildren(avatarEl(c));
+      hero.replaceChildren(BQ.puppet.el(c.id, undefined, { back }));
       // Más columnas cuantas más cosas haya, para que entren en pantalla
       const count = shown().length;
       grid.className = 'shop-grid' + (count > 9 ? ' lots' : count > 4 ? ' many' : '');
@@ -413,7 +453,7 @@
     show(h('div', { class: 'screen shop' },
       topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🛍️'), ' Tienda'),
         h('div', { class: 'top-right' }, counter, gearBtn())),
-      h('div', { class: 'shop-body' }, hero, h('div', { class: 'shop-side' }, tabBar, grid))));
+      h('div', { class: 'shop-body' }, h('div', { class: 'shop-hero-col' }, hero, tools), h('div', { class: 'shop-side' }, tabBar, grid))));
     voice.say(store.data.coins >= W.PRICE
       ? `¡Bienvenido a la tienda! ¿Qué le comprás ${c.name.replace(/^el /, 'al ').replace(/^la /, 'a la ')}?`
       : `¡Bienvenido a la tienda! Cada cosa cuesta ${U.NUM_WORDS[W.PRICE]} monedas. ¡Pasá niveles para juntarlas!`);

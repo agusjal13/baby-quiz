@@ -73,6 +73,9 @@
       chest: `<text x="50" y="88" font-size="15" font-weight="900" text-anchor="middle" fill="#43a047" font-family="Arial, sans-serif">10</text>`,
       head: headCircle(TAN)
         + `<path d="M26 38 Q24 12 50 13 Q76 12 74 38 Q70 26 60 25 Q54 31 44 26 Q34 26 26 38 Z" fill="#6d4c2f" ${S}/>` + face(),
+      // De espaldas (para ver el nombre y el número): la cabeza es puro pelo
+      headBackView: headCircle(TAN)
+        + `<path d="M26 44 Q22 12 50 13 Q78 12 74 44 Q64 55 50 55 Q36 55 26 44 Z" fill="#6d4c2f" ${S}/>`,
       anchors: { head: [50, 12, 22] },
       idle: 'kick',
     },
@@ -177,18 +180,35 @@
   };
   const inner = (svg) => svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
 
-  function shirtSvg(j, id) {
+  // Nombre (arriba, en arco chiquito) y número (grande) en la espalda. Blancos con borde oscuro,
+  // para que se lean sobre cualquier camiseta.
+  function backPrint() {
+    const j = BQ.store.data.jersey || {};
+    const name = String(j.name || '').toUpperCase().slice(0, 10);
+    const number = String(j.number || '').slice(0, 2);
+    const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const style = 'text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" fill="#fff" stroke="#2b2140" stroke-linejoin="round" paint-order="stroke"';
+    return (name ? `<text x="50" y="74" font-size="${Math.min(6.4, 30 / name.length)}" stroke-width="1.5" ${style}>${esc(name)}</text>` : '')
+      + (number ? `<text x="50" y="${name ? 93 : 90}" font-size="${name ? 17 : 21}" stroke-width="2" ${style}>${esc(number)}</text>` : '');
+  }
+
+  function shirtSvg(j, id, back) {
     let design = '';
     if (j.kind === 'stripes') design = [36, 44, 52, 60].map((x) => `<rect x="${x}" y="60" width="4" height="50" fill="${j.b}"/>`).join('');
     if (j.kind === 'hstripes') design = [70, 80, 90, 100].map((y) => `<rect x="28" y="${y}" width="44" height="5" fill="${j.b}"/>`).join('');
     // Mitad y mitad (a = izquierda mirando de frente), con estrella en el corazón (derecha mirando de frente)
-    if (j.kind === 'split') design = `<rect x="50" y="60" width="22" height="50" fill="${j.b}"/><polygon points="${star(57.5, 75, 4.6, 1.9)}" fill="${j.star}"/>`;
+    // (de espaldas, los colores quedan del otro lado y no hay estrella ni escudo)
+    if (j.kind === 'split') {
+      design = back
+        ? `<rect x="28" y="60" width="22" height="50" fill="${j.b}"/>`
+        : `<rect x="50" y="60" width="22" height="50" fill="${j.b}"/><polygon points="${star(57.5, 75, 4.6, 1.9)}" fill="${j.star}"/>`;
+    }
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
     // Blanca con detalles: costados y ruedo de otro color
     if (j.kind === 'trim') design = `<rect x="28" y="60" width="6" height="50" fill="${j.b}"/><rect x="66" y="60" width="6" height="50" fill="${j.b}"/><rect x="28" y="95" width="44" height="15" fill="${j.b}"/>`;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
     // Escudito en el corazón (derecha mirando de frente)
-    if (j.crest) design += `<path d="M51.5 70 Q55.5 68.6 59.5 70 L59.5 74.5 Q59.5 79 55.5 81 Q51.5 79 51.5 74.5 Z" fill="${j.crest}" stroke="#1b7f76" stroke-width="1"/>`;
+    if (j.crest && !back) design += `<path d="M51.5 70 Q55.5 68.6 59.5 70 L59.5 74.5 Q59.5 79 55.5 81 Q51.5 79 51.5 74.5 Z" fill="${j.crest}" stroke="#1b7f76" stroke-width="1"/>`;
     return `<defs><clipPath id="pp-shirt-${id}"><path d="${TORSO}"/></clipPath></defs>`
       + `<g clip-path="url(#pp-shirt-${id})"><rect x="28" y="60" width="44" height="50" fill="${j.a}"/>${design}</g>`
       + `<path d="${TORSO}" fill="none" ${S}/>`;
@@ -231,14 +251,17 @@
 
   // ---------- Armado del personaje ----------
 
-  function build(charId, items) {
+  // back: de espaldas (solo los personajes con "headBackView"; por ahora, el futbolista)
+  function build(charId, items, back) {
     const look = LOOKS[charId] || LOOKS.mago;
     const bySlot = {};
     items.forEach((it) => { bySlot[it.slot] = it; });
     const id = ++uid;
     const shirt = bySlot.body && bySlot.body.jersey;
-    const sleeve = shirt ? shirt.sleeve : look.sleeve;
-    const sleeveL = shirt && shirt.sleeveL ? shirt.sleeveL : sleeve; // camisetas con una manga de cada color
+    back = !!back && !!look.headBackView;
+    let sleeve = shirt ? shirt.sleeve : look.sleeve;
+    let sleeveL = shirt && shirt.sleeveL ? shirt.sleeveL : sleeve; // camisetas con una manga de cada color
+    if (back) [sleeve, sleeveL] = [sleeveL, sleeve]; // de espaldas, las mangas quedan cambiadas de lado
     // Zapatos, o botines con raya y tapones si tiene puestos
     const boots = bySlot.feet && bySlot.feet.boots;
     const shoe = (x) => (boots
@@ -291,9 +314,9 @@
       + shortsSvg
       + cone
       + ball
-      + `<g class="pp-body">${torso}${belly}${look.chest || ''}${shirt ? shirtSvg(shirt, id) : ''}</g>`
+      + `<g class="pp-body">${torso}${belly}${back ? '' : look.chest || ''}${shirt ? shirtSvg(shirt, id, back) : ''}${back ? backPrint() : ''}</g>`
       + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}${hand(30)}</g>`
-      + `<g class="pp-head">${look.headBack || ''}${look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
+      + `<g class="pp-head">${look.headBack || ''}${back ? look.headBackView : look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
       + `<g class="pp-arm pp-arm-r">${limb(63, 70, 70, 89, sleeve, 8)}`
       // Cinta de capitán en el brazo izquierdo de quien la lleva (a la derecha mirándolo de frente)
@@ -370,13 +393,15 @@
 
     // Personaje con su ropa. Tocarlo lo hace usar sus cosas (o su gesto propio).
     // wornIds: ropa de otro jugador (bingo online); si no se pasa, la guardada en este dispositivo.
-    el(charId, wornIds) {
+    // opts.back: de espaldas, con el nombre y el número de la camiseta
+    canTurn: (charId) => !!(LOOKS[charId] && LOOKS[charId].headBackView),
+    el(charId, wornIds, opts) {
       const items = wornIds
         ? BQ.wardrobe.items(charId).filter((it) => wornIds.includes(it.id))
         : BQ.wardrobe.wornItems(charId);
       const wrap = document.createElement('span');
       wrap.className = 'avatar';
-      wrap.innerHTML = build(charId, items);
+      wrap.innerHTML = build(charId, items, opts && opts.back);
       const look = LOOKS[charId] || {};
       const uses = items.map((it) => this.kindFor(it));
       uses.push(look.idle || 'wave');

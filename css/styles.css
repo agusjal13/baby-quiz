@@ -358,6 +358,10 @@ button {
 }
 /* Margen extra abajo: en tablets con bordes redondeados o barra de gestos, la última fila no queda tapada */
 .screen.shop { padding-bottom: max(5vmin, calc(env(safe-area-inset-bottom) + 2vmin)); }
+.shop-hero-col { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2vmin; }
+.shop-tools { display: flex; gap: 3vmin; }
+.shop-tool { --s: clamp(40px, 9vmin, 68px); }
+.jersey-form input { width: 100%; padding: 10px 12px; border: 2px solid #d8d2e6; border-radius: 10px; font-size: 20px; font-family: system-ui, sans-serif; text-transform: uppercase; }
 .shop-side {
   min-height: 0;
   max-height: 100%;

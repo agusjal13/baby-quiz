@@ -60,7 +60,9 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`).
   Tocar algo comprado lo pone o lo saca. Si un personaje tiene más de 9 cosas, la tienda se separa en pestañas
   (👕 camisetas, 🩳 shorts y canilleras, 👟 botines, ⚽ pelotas y cono, 🥅 arcos, 🧤 guantes y cintas, 🏆 trofeos).
-  Los trofeos de la tienda solo se pueden comprar si ya se ganaron en el mapa de trofeos. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
+  Los trofeos de la tienda solo se pueden comprar si ya se ganaron en el mapa de trofeos.
+- El futbolista tiene dos botones debajo, en la tienda: ✏️ para escribir el nombre y el número de la espalda
+  (los escribe un adulto; se guardan en `jersey`) y 🔄 para girarlo y verlo de espaldas. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
 - Desde ⚙️ se pueden regalar monedas.
 - Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
   (con `emoji`, `art`, `bow`, `cape` o `jersey`, y opcionalmente `use`: la acción al tocarlo).
