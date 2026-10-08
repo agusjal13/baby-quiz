@@ -134,10 +134,11 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 ## Hockey de mesa (air hockey)
 
 - Botón 🏒 Hockey en el mapa. A 5 goles, sin preguntas: el chico mueve su disco verde con el dedo en su mitad
-  de la mesa y un rival de dificultad media juega del otro lado. En el círculo central está la carita del
+  de la mesa y un rival juega del otro lado. En el círculo central está la carita del
   personaje elegido. Con la pantalla acostada la mesa se gira sola (el jugador queda a la izquierda).
   Ganar 5 a 0 es resultado perfecto. Código en `js/hockey.js`.
-- La dificultad del rival está en `AI` (velocidad, fuerza del golpe, reacción y puntería).
+- Antes de cada partido se elige la dificultad: 🐢 fácil, 🐇 medio o 🚀 difícil. Siempre arranca marcado fácil
+  (no se guarda la elección). Los tres niveles están en `LEVELS` (velocidad, fuerza del golpe, reacción y puntería del rival).
 
 ## Tiro al blanco
 

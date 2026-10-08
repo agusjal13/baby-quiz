@@ -27,11 +27,15 @@
   const GOAL_W = 120; // ancho de cada arco
   const MAX_SPEED = 12; // tope de velocidad del disco
   const FRICTION = 0.9975; // el disco casi no se frena, como en la mesa de verdad
-  // Dificultad media del rival: velocidad para acomodarse y defender (speed), velocidad del golpe
-  // (strike), cada cuántos cuadros vuelve a apuntar (react) y cuánto le erra al apuntar (error)
-  // (Probado con partidos simulados: un nene que reacciona lento le gana 1 de cada 4; uno que ya le
-  // agarró la mano, casi siempre. Para hacerlo más difícil: subir speed y strike y bajar error.)
-  const AI = { speed: 2.2, strike: 4.2, react: 26, error: 140 };
+  // Dificultad del rival: velocidad para acomodarse y defender (speed), velocidad del golpe (strike),
+  // cada cuántos cuadros vuelve a apuntar (react) y cuánto le erra al apuntar (error).
+  // Probado con partidos simulados contra un nene que reacciona lento y le erra bastante:
+  // en fácil le gana 2 de cada 3 partidos; en medio, 1 de cada 3; en difícil, casi nunca.
+  const LEVELS = [
+    { id: 'facil', icon: '🐢', say: 'Fácil', speed: 1.5, strike: 3.2, react: 34, error: 180 },
+    { id: 'medio', icon: '🐇', say: 'Medio', speed: 2.2, strike: 4.2, react: 26, error: 140 },
+    { id: 'dificil', icon: '🚀', say: 'Difícil', speed: 3, strike: 5.6, react: 16, error: 90 },
+  ];
   const THEME = { sky1: '#0d47a1', sky2: '#42a5f5', ground: '#0b3c8a', decor: ['🏒', '⭐', '❄️', '✨', '🏆'] };
 
   let S = null;
@@ -74,7 +78,7 @@
       puck: { x: TW / 2, y: TH / 2 + 70, vx: 0, vy: 0 },
       me: { x: TW / 2, y: TH - 70, vx: 0, vy: 0, tx: TW / 2, ty: TH - 70 },
       ai: { x: TW / 2, y: 72, vx: 0, vy: 0, aimX: TW / 2, think: 0 },
-      goals: { me: 0, rival: 0 }, playing: false, pointer: null, spot: null, lastHit: 0,
+      level: LEVELS[0], goals: { me: 0, rival: 0 }, playing: false, pointer: null, spot: null, lastHit: 0,
     };
     S = s;
     resize(s);
@@ -83,12 +87,30 @@
     listen(s);
     loop(s);
 
-    sfx.whistle();
-    voice.say('¡Mové tu disco con el dedo y hacé cinco goles!').then(() => {
-      if (!alive(s)) return;
-      s.playing = true;
-      showHint(s);
-    });
+    chooseLevel(s);
+  }
+
+  // Antes de cada partido: tres botones para elegir la dificultad. Siempre arranca marcado "fácil"
+  // (no se guarda la elección: cada partido vuelve a fácil).
+  function chooseLevel(s) {
+    const begin = (level) => {
+      if (!alive(s) || s.playing || !chooser.isConnected) return;
+      s.level = level;
+      chooser.remove();
+      sfx.whistle();
+      voice.say('¡Mové tu disco con el dedo y hacé cinco goles!').then(() => {
+        if (!alive(s)) return;
+        s.playing = true;
+        showHint(s);
+      });
+    };
+    const chooser = h('div', { class: 'ah-levels' }, LEVELS.map((level, i) => h('button', {
+      class: 'ah-level' + (i === 0 ? ' default' : ''),
+      'aria-label': level.say,
+      onpointerdown: ui().tap((e) => { e.stopPropagation(); begin(level); }),
+    }, h('span', { class: 'emoji' }, level.icon), h('span', { class: 'ah-level-name' }, level.say))));
+    s.stage.append(chooser);
+    voice.say('¡Elegí! Fácil, medio o difícil.');
   }
 
   // ---------- Pantalla ----------
@@ -301,11 +323,11 @@
   function rivalThink(s) {
     const { ai, puck } = s;
     if (--ai.think <= 0) {
-      ai.think = AI.react;
-      ai.aimX = TW / 2 + (Math.random() - 0.5) * AI.error * 2; // a qué punto del fondo apunta
+      ai.think = s.level.react;
+      ai.aimX = TW / 2 + (Math.random() - 0.5) * s.level.error * 2; // a qué punto del fondo apunta
     }
     if (puck.y >= TH / 2 + 10) {
-      return moveMallet(ai, TW / 2 + (puck.x - TW / 2) * 0.6, 72, AI.speed, true);
+      return moveMallet(ai, TW / 2 + (puck.x - TW / 2) * 0.6, 72, s.level.speed, true);
     }
     // Dirección del tiro: del disco hacia el arco del chico
     let ax = ai.aimX - puck.x;
@@ -320,12 +342,12 @@
     const side = Math.abs(dx * ay - dy * ax);
     if (along > 0 && side < PUCK_R + 6) {
       // Golpe: pasa de largo por el disco
-      moveMallet(ai, puck.x + ax * 40, puck.y + ay * 40, AI.strike, true);
+      moveMallet(ai, puck.x + ax * 40, puck.y + ay * 40, s.level.strike, true);
     } else {
       // Se acomoda detrás del disco (si el disco quedó contra su fondo, lo saca de costado)
       const back = PUCK_R + MALLET_R + 8;
       const ty = puck.y - ay * back;
-      moveMallet(ai, puck.x - ax * back + (ty < MALLET_R ? (puck.x < TW / 2 ? 1 : -1) * back : 0), ty, AI.speed * 1.5, true);
+      moveMallet(ai, puck.x - ax * back + (ty < MALLET_R ? (puck.x < TW / 2 ? 1 : -1) * back : 0), ty, s.level.speed * 1.5, true);
     }
   }
 
@@ -458,5 +480,5 @@
   }
 
   // state y advance: para revisar un partido desde la consola (advance adelanta n cuadros de golpe)
-  BQ.hockey = { open, ai: AI, state: () => S, advance: (n) => { for (let i = 0; i < n && S && S.playing; i++) step(S); } };
+  BQ.hockey = { open, levels: LEVELS, state: () => S, advance: (n) => { for (let i = 0; i < n && S && S.playing; i++) step(S); } };
 })(window.BQ);
