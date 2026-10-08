@@ -2128,3 +2128,34 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .decor, .logo-l, .parade-item, .anim-float, .anim-bounce, .anim-sway, .party-rays { animation: none; }
 }
+
+/* ---------- Actualizar ---------- */
+
+.update-btn { position: relative; }
+.update-badge {
+  display: none;
+  position: absolute;
+  top: -12%;
+  right: -12%;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #e53935;
+  border: .5vmin solid #fff;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  font-weight: 900;
+  font-size: calc(var(--s) * .3);
+  line-height: 1;
+  place-items: center;
+  box-shadow: 0 .4vmin .8vmin rgba(0, 0, 0, .3);
+}
+.update-btn.has-news .update-badge { display: grid; animation: pulse .8s ease-in-out infinite; }
+.update-btn.has-news { animation: sway 1.6s ease-in-out infinite; }
+.update-panel { text-align: center; }
+.update-icon { font-size: 44px; line-height: 1; margin-bottom: 6px; }
+.update-text { margin: 6px 0 0; }
+.update-bar { height: 12px; margin-top: 14px; border-radius: 99px; background: #e8e3f5; overflow: hidden; }
+.update-bar span { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--accent); transition: width .2s; }
+.update-panel .row { justify-content: center; }
+.update-panel button[disabled] { opacity: .5; }

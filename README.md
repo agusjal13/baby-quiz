@@ -180,12 +180,23 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Más variedad: sumar elementos a las listas del mundo (`THINGS`, `ANIMALS`, `WORDS`...)
   o un nuevo tipo en `questionTypes`.
 
-Después de cambiar archivos, subir la versión `CACHE` en `sw.js` para que las tablets se actualicen.
+Después de cambiar archivos, subir el número de `js/version.js` para que las tablets se actualicen
+(es el único lugar: `sw.js` y el aviso de actualización lo leen de ahí).
 
 ## Publicación
 
 El juego está publicado con GitHub Pages en **https://agusjal13.github.io/baby-quiz/**.
-Cada `git push` a `main` lo actualiza en uno o dos minutos (acordarse de subir `CACHE` en `sw.js`).
+Cada `git push` a `main` lo actualiza en uno o dos minutos (acordarse de subir el número de `js/version.js`).
+
+## Actualizar el juego instalado
+
+- En la pantalla de inicio hay un botón 🔄 (arriba a la izquierda). Con internet, el juego mira solo si hay una
+  versión más nueva publicada (al abrir, al volver al juego y cuando vuelve la conexión); si la hay, el botón
+  muestra un globito rojo con "!".
+- Al tocarlo avisa si hay cosas nuevas y ofrece actualizar: baja de nuevo todos los archivos y recarga.
+  No toca el progreso, las monedas ni los trofeos. Sin novedades, igual se puede "actualizar igual" (forzar).
+- También está en ⚙️ → "Buscar actualización", que muestra el número de versión instalada.
+- Código en `js/update.js`.
 
 ## Instalar en tablet o celular (sin internet)
 

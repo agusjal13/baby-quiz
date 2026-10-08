@@ -179,7 +179,7 @@
     const play = h('button', { class: 'play-btn', 'aria-label': 'Jugar', onpointerdown: tap(start) }, h('span', { class: 'play-tri' }));
 
     show(h('div', { class: 'screen title' },
-      topbar(null, h('span', { class: 'spacer' })),
+      topbar(BQ.update.button(), h('span', { class: 'spacer' })),
       h('h1', { class: 'logo' }, letters),
       parade,
       play));
@@ -807,6 +807,10 @@
           store.save();
           e.currentTarget.textContent = `Regalar una moneda (tiene ${store.data.coins}; cada cosa cuesta ${BQ.wardrobe.PRICE})`;
           refreshCounters();
+        }),
+        button(`Buscar actualización (versión ${BQ.update.state.local})`, '', () => {
+          close();
+          BQ.update.dialog();
         }),
         button('Desbloquear todos los niveles', '', () => {
           BQ.worlds.forEach((w) => store.complete(w.id, w.levels));

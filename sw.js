@@ -1,12 +1,15 @@
 ﻿// Guarda todos los archivos del juego para que funcione sin internet.
-// Al cambiar cualquier archivo, subir la versión para que los dispositivos se actualicen.
-const CACHE = 'baby-quiz-v62';
+// Al cambiar cualquier archivo, subir el número de js/version.js para que los dispositivos se actualicen.
+importScripts('js/version.js');
+const CACHE = 'baby-quiz-v' + self.BQ_VERSION;
 
 const ASSETS = [
   './',
   'index.html',
   'manifest.webmanifest',
   'css/styles.css',
+  'js/version.js',
+  'js/update.js',
   'js/util.js',
   'js/storage.js',
   'js/audio.js',
