@@ -180,14 +180,38 @@
   };
   const inner = (svg) => svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
 
-  // Nombre (arriba, en arco chiquito) y número (grande) en la espalda. Blancos con borde oscuro,
-  // para que se lean sobre cualquier camiseta.
-  function backPrint() {
+  // Nombre (arriba, chiquito) y número (grande) en la espalda, del color que contraste con la camiseta.
+  // Contraste entre dos colores "#rrggbb" (1 = iguales, 21 = blanco contra negro)
+  function contrast(c1, c2) {
+    const lum = (hex) => {
+      const [r, g, b] = [1, 3, 5].map((i) => {
+        const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+        return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const [hi, lo] = [lum(c1), lum(c2)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  // Color de las letras según la camiseta: blanco u oscuro, el que mejor se lea sobre TODOS los colores
+  // que quedan detrás (en las rayadas o de dos colores, los dos). El borde va del color opuesto.
+  function printColors(shirt, torso) {
+    const behind = !shirt ? [torso]
+      : ['solid', 'trim'].includes(shirt.kind) ? [shirt.a] : [shirt.a, shirt.b];
+    const WHITE = '#ffffff';
+    const DARK = '#1a1a2e';
+    const worst = (c) => Math.min(...behind.map((bg) => contrast(c, bg)));
+    return worst(WHITE) >= worst(DARK) ? { fill: WHITE, edge: DARK } : { fill: DARK, edge: WHITE };
+  }
+
+  function backPrint(shirt, torso) {
+    const { fill, edge } = printColors(shirt, torso);
     const j = BQ.store.data.jersey || {};
     const name = String(j.name || '').toUpperCase().slice(0, 10);
     const number = String(j.number || '').slice(0, 2);
     const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    const style = 'text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" fill="#fff" stroke="#2b2140" stroke-linejoin="round" paint-order="stroke"';
+    const style = `text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" fill="${fill}" stroke="${edge}" stroke-linejoin="round" paint-order="stroke"`;
     return (name ? `<text x="50" y="74" font-size="${Math.min(6.4, 30 / name.length)}" stroke-width="1.5" ${style}>${esc(name)}</text>` : '')
       + (number ? `<text x="50" y="${name ? 93 : 90}" font-size="${name ? 17 : 21}" stroke-width="2" ${style}>${esc(number)}</text>` : '');
   }
@@ -314,7 +338,7 @@
       + shortsSvg
       + cone
       + ball
-      + `<g class="pp-body">${torso}${belly}${back ? '' : look.chest || ''}${shirt ? shirtSvg(shirt, id, back) : ''}${back ? backPrint() : ''}</g>`
+      + `<g class="pp-body">${torso}${belly}${back ? '' : look.chest || ''}${shirt ? shirtSvg(shirt, id, back) : ''}${back ? backPrint(shirt, look.torso) : ''}</g>`
       + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}${hand(30)}</g>`
       + `<g class="pp-head">${look.headBack || ''}${back ? look.headBackView : look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
