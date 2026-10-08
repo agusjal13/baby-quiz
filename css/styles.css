@@ -1757,6 +1757,33 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Air hockey ---------- */
+
+.game-pill.hockey { background: linear-gradient(160deg, #29b6f6, #0d47a1); }
+.hockey { gap: 1.5vmin; }
+.ah-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  isolation: isolate; /* los carteles de adentro no tapan la pantalla final */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ah-layer { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+/* Carita del personaje en el círculo central: se recorta la cabeza del muñequito */
+.ah-face {
+  position: absolute;
+  translate: -50% -50%;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .85;
+}
+.ah-face .avatar { position: absolute; left: calc(50% - .4em); top: calc(50% - .28em); }
+.ah-hand { z-index: 5; }
+.hockey .sport-flash { z-index: 6; align-items: center; padding: 0; font-size: clamp(34px, 15vmin, 110px); }
+
 /* ---------- Laberintos ---------- */
 
 .game-pill.maze { background: linear-gradient(160deg, #7e57c2, #311b92); }

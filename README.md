@@ -131,6 +131,14 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
   puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
+## Hockey de mesa (air hockey)
+
+- Botón 🏒 Hockey en el mapa. A 5 goles, sin preguntas: el chico mueve su disco verde con el dedo en su mitad
+  de la mesa y un rival de dificultad media juega del otro lado. En el círculo central está la carita del
+  personaje elegido. Con la pantalla acostada la mesa se gira sola (el jugador queda a la izquierda).
+  Ganar 5 a 0 es resultado perfecto. Código en `js/hockey.js`.
+- La dificultad del rival está en `AI` (velocidad, fuerza del golpe, reacción y puntería).
+
 ## Tiro al blanco
 
 - Botón 🎯 Tiro al blanco en el mapa. Durante 20 segundos aparecen blancos en lugares al azar que se van
@@ -144,7 +152,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
-- **Resultado perfecto** (penales 3-0, tiros libres 5 de 5, partidito 3-0, pool con las 6 bolas, bowling 30 pinos,
+- **Resultado perfecto** (penales 3-0, tiros libres 5 de 5, hockey 5-0, partidito 3-0, pool con las 6 bolas, bowling 30 pinos,
   piedra papel o tijera 2-0 y tiro al blanco con más de 15 puntos): vale doble, **2 monedas** y cuenta como 2 partidos.
 - Al ganar, se abre el mapa de trofeos: el personaje avanza un casillero por partido ganado
   (dos si fue perfecto) y, si llega al trofeo, lo gana. El escenario depende del personaje
