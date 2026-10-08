@@ -1753,6 +1753,140 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Laberintos ---------- */
+
+.game-pill.maze { background: linear-gradient(160deg, #7e57c2, #311b92); }
+.sport-coins-n {
+  align-self: center;
+  font-size: clamp(40px, 14vmin, 120px);
+  font-weight: 900;
+  color: #f2a900;
+  -webkit-text-stroke: .08em #fff;
+  paint-order: stroke fill;
+  animation: popin .5s .6s both;
+}
+.sport-coins:has(> :nth-child(3)) .big-coin { --s: clamp(70px, 19vmin, 170px); }
+.sport-coins .big-coin:nth-child(3) { animation-delay: .5s, 1.4s; }
+
+/* Elegir nivel */
+.mz-levels {
+  flex: 1;
+  min-height: 0;
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  gap: 2.4vmin;
+  align-content: center;
+  padding-bottom: 3vmin;
+}
+@media (orientation: portrait) { .mz-levels { grid-template-columns: repeat(4, auto); } }
+.mz-level {
+  position: relative;
+  width: clamp(54px, 15vmin, 130px);
+  aspect-ratio: 1;
+  border-radius: 3.5vmin;
+  background: #fff;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .2);
+  display: grid;
+  place-items: center;
+  font-size: clamp(22px, 7vmin, 60px);
+  font-weight: 900;
+  color: #4527a0;
+}
+.mz-level.done { background: #fff8d6; box-shadow: 0 0 0 .7vmin var(--gold), 0 1vmin 0 rgba(0, 0, 0, .2); }
+.mz-level.next { animation: pulse 1s ease-in-out infinite; box-shadow: 0 0 0 .8vmin #ff5a8a, 0 1vmin 0 rgba(0, 0, 0, .2); }
+.mz-level.locked { background: rgba(255, 255, 255, .35); box-shadow: none; }
+.mz-level.locked .mz-level-n { font-size: .7em; opacity: .7; }
+.mz-level-tag { position: absolute; right: -8%; bottom: -8%; font-size: .5em; line-height: 1; }
+.mz-level.locked .mz-level-tag { opacity: .6; }
+.mz-level:active { translate: 0 .6vmin; }
+
+/* Jugando */
+.maze { gap: 1.5vmin; }
+.mz-top { display: flex; align-items: center; gap: 2vmin; }
+.mz-n, .mz-bag {
+  display: inline-flex;
+  align-items: center;
+  gap: 1vmin;
+  min-height: 1.7em;
+  padding: .15em .7em;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .92);
+  font-size: clamp(18px, 4.8vmin, 38px);
+  font-weight: 900;
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .12);
+}
+.mz-bag { min-width: 2.6em; justify-content: center; }
+.mz-bag:empty { opacity: .45; }
+.mz-bag-item { animation: pop .4s; }
+.mz-body { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 3vmin; }
+@media (orientation: portrait) { .mz-body { flex-direction: column; } }
+.mz-stage { flex: 1; align-self: stretch; min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; }
+.mz-board {
+  position: relative;
+  width: min(100cqw, 100cqh * var(--cols) / var(--rows));
+  aspect-ratio: var(--cols) / var(--rows);
+  container-type: size;
+  border-radius: 2vmin;
+  background:
+    repeating-conic-gradient(#fff3d6 0 25%, #ffe9b8 0 50%) 0 0 / calc(200% / var(--cols)) calc(200% / var(--rows));
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.mz-walls { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
+.mz-walls path { fill: none; stroke: #4a2c82; stroke-width: .13; stroke-linecap: round; stroke-linejoin: round; }
+.mz-thing, .mz-hero { position: absolute; translate: -50% -50%; line-height: 1; pointer-events: none; }
+.mz-thing { font-size: calc(100cqw / var(--cols) * .6); z-index: 1; }
+.mz-thing.goal { animation: pulse 1s ease-in-out infinite; }
+.mz-thing.goal.opened { animation: dance .5s ease-in-out infinite; scale: 1.3; }
+.mz-thing.key, .mz-thing.sword { animation: bob 1.4s ease-in-out infinite; }
+.mz-thing.dragon { font-size: calc(100cqw / var(--cols) * .72); }
+.mz-thing.nope { animation: shake .4s; }
+.mz-thing.roar { animation: mz-roar .5s; }
+.mz-thing.taken { animation: mz-taken .5s ease-out forwards; }
+.mz-thing.open { animation: mz-open .5s ease-in forwards; }
+.mz-thing.beaten { animation: mz-beaten .6s ease-in forwards; }
+.mz-hero {
+  font-size: calc(100cqw / var(--cols) * .78);
+  z-index: 2;
+  transition: left .16s ease-out, top .16s ease-out;
+}
+.mz-hero.flip .avatar { transform: scaleX(-1); }
+.mz-board.won .mz-hero { z-index: 4; }
+.mz-pad {
+  flex: none;
+  display: grid;
+  grid-template: "a up b" 1fr "left c right" 1fr "d down e" 1fr / 1fr 1fr 1fr;
+  gap: 1vmin;
+  width: clamp(150px, 40vmin, 300px);
+  aspect-ratio: 1;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+@media (orientation: portrait) { .mz-pad { width: clamp(150px, min(58vw, 30vh), 300px); } }
+.mz-arrow {
+  border-radius: 26%;
+  background: #fff;
+  box-shadow: 0 1.1vmin 0 rgba(0, 0, 0, .25);
+  display: grid;
+  place-items: center;
+  font-size: clamp(30px, 9vmin, 70px);
+  touch-action: none;
+}
+.mz-arrow.up { grid-area: up; }
+.mz-arrow.down { grid-area: down; }
+.mz-arrow.left { grid-area: left; }
+.mz-arrow.right { grid-area: right; }
+.mz-arrow:active { translate: 0 .8vmin; box-shadow: 0 .3vmin 0 rgba(0, 0, 0, .25); background: #ffe9a8; }
+.mz-arrow .emoji { pointer-events: none; }
+@keyframes mz-roar { 30% { scale: 1.5; rotate: -8deg; } 60% { scale: 1.4; rotate: 8deg; } }
+@keyframes mz-taken { to { translate: -50% -180%; scale: 1.6; opacity: 0; } }
+@keyframes mz-open { to { scale: .2; rotate: 90deg; opacity: 0; } }
+@keyframes mz-beaten { 40% { scale: 1.5; rotate: 20deg; } to { scale: 0; rotate: 360deg; opacity: 0; } }
+
 /* ---------- Tiros libres ---------- */
 
 .game-pill.libres { background: linear-gradient(160deg, #26a69a, #00695c); }

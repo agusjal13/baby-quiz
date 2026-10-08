@@ -91,26 +91,29 @@
    *   screen   pantalla donde se muestra
    *   won      si ganó
    *   perfect  resultado perfecto (3-0, todas las bolas, 30 pinos...): vale doble, 2 monedas y 2 partidos
+   *   coins / wins   premio especial (por ejemplo, terminar todos los laberintos): cuántas monedas y
+   *                  cuántos partidos para los trofeos da, en vez de 1 (o 2 si es perfecto)
+   *   title    título de la fiesta en vez de "¡Ganaste!"
    *   detail   elemento con el resultado (marcador)
    *   onAgain  volver a jugar
    *   winSay / loseSay   lo que dice la voz
    *   isAlive  () => la pantalla sigue abierta
    */
-  async function result({ screen, won, perfect, detail, onAgain, winSay, loseSay, isAlive }) {
+  async function result({ screen, won, perfect, coins, wins, title: bigTitle, detail, onAgain, winSay, loseSay, isAlive }) {
     // Ganar da una moneda y suma un partido para los trofeos; el resultado perfecto vale doble
     const prize = won ? (perfect ? 2 : 1) : 0;
+    const coinsWon = won ? (coins ?? prize) : 0;
+    const winsWon = won ? (wins ?? prize) : 0;
     const winsBefore = BQ.trophies.wins();
-    for (let i = 0; i < prize; i++) {
-      store.addCoin();
-      BQ.trophies.win();
-    }
+    for (let i = 0; i < coinsWon; i++) store.addCoin();
+    for (let i = 0; i < winsWon; i++) BQ.trophies.win();
     const canBuy = store.data.coins >= BQ.wardrobe.PRICE;
 
     const hero = ui().playable(h('div', { class: 'party-hero sport-hero' }, BQ.puppet.el(store.data.character)));
-    const title = !won ? '¡Casi!' : prize === 2 ? '¡Perfecto!' : '¡Ganaste!';
+    const title = !won ? '¡Casi!' : bigTitle || (prize === 2 ? '¡Perfecto!' : '¡Ganaste!');
     const counter = ui().coinCounter();
     counter.classList.add('party-coins');
-    if (won) counter.querySelector('.coin-n').textContent = String(store.data.coins - prize);
+    if (won) counter.querySelector('.coin-n').textContent = String(store.data.coins - coinsWon);
 
     const actions = h('div', { class: 'party-actions' },
       h('button', { class: 'btn-round', 'aria-label': 'Mundos', onpointerdown: ui().tap(() => ui().showWorlds()) }, h('span', { class: 'emoji' }, '🗺️')),
@@ -140,9 +143,9 @@
         : winSay;
       await Promise.all([voice.say(say), wait(1800)]);
       if (!isAlive()) return;
-      await flyCoins(party, counter, prize, isAlive);
+      await flyCoins(party, counter, coinsWon, isAlive);
       if (!isAlive()) return;
-      await trophyPath(party, winsBefore, prize, isAlive);
+      await trophyPath(party, winsBefore, winsWon, isAlive);
     } else {
       sfx.aww();
       await voice.say(loseSay);
@@ -152,14 +155,18 @@
 
   // Monedas gigantes que vuelan al contador (una o dos)
   async function flyCoins(party, counter, n, isAlive) {
-    const row = h('div', { class: 'sport-coins' }, Array.from({ length: n }, () => ui().coinEl('big-coin')));
+    if (!n) return;
+    // Un premio grande no entra en monedas sueltas: tres monedas y el número
+    const shown = Math.min(n, 3);
+    const row = h('div', { class: 'sport-coins' }, Array.from({ length: shown }, () => ui().coinEl('big-coin')),
+      n > shown && h('span', { class: 'sport-coins-n' }, '+' + n));
     party.append(row);
     sfx.coin();
     if (n > 1) setTimeout(() => sfx.coin(), 250);
     await wait(1300);
     if (!isAlive()) return;
     const to = counter.querySelector('.coin').getBoundingClientRect();
-    const flights = [...row.children].map((coin, i) => {
+    const flights = [...row.querySelectorAll('.coin')].map((coin, i) => {
       const from = coin.getBoundingClientRect();
       return coin.animate([
         { transform: 'translate(0, 0)' },
@@ -167,7 +174,7 @@
       ], { duration: 700, delay: i * 250, easing: 'cubic-bezier(.5,0,.7,1)', fill: 'forwards' }).finished.catch(() => {});
     });
     // Tope de tiempo: con la pantalla en segundo plano la animación no avanza
-    await Promise.race([Promise.all(flights), wait(900 + n * 250)]);
+    await Promise.race([Promise.all(flights), wait(900 + shown * 250)]);
     if (!isAlive()) return;
     row.remove();
     sfx.coin();
