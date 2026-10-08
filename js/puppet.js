@@ -217,6 +217,8 @@
         return emoji(item.emoji, 75, item.high ? 70 : 88, item.size || 20);
       }
       case 'back':
+        // Arco de fútbol detrás del personaje
+        if (item.goal) return `<svg x="-2" y="42" width="104" height="84" viewBox="0 0 100 80" overflow="visible">${inner(BQ.wardrobe.ART.arco(item.goal.post, item.goal.net))}</svg>`;
         if (item.cape) {
           return `<path d="M35 67 Q50 74 65 67 L79 121 Q50 129 21 121 Z" fill="${item.cape}" ${S}/>`
             + `<polygon points="${star(50, 108, 6, 2.5)}" fill="rgba(255,255,255,.7)"/>`;

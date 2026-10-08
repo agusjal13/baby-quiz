@@ -71,6 +71,13 @@
       + `<path d="M30 92 L30 60 Q14 52 16 40 Q20 34 28 42 L28 22 Q28 14 35 14 Q41 14 41 22 L42 12 Q43 5 50 5 Q57 5 57 13 L58 18 Q59 11 65 12 Q71 13 71 21 L72 28 Q74 22 79 24 Q84 26 83 34 L80 62 Q78 72 70 76 L70 92 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
       + `<rect x="27" y="80" width="46" height="14" rx="4" fill="${stripe}" stroke="#2b2140" stroke-width="4"/>`
       + `<circle cx="52" cy="50" r="10" fill="${stripe}"/></svg>`,
+    // Arco de fútbol: palos de color (post) y red (net). El mismo dibujo va detrás del futbolista.
+    arco: (post, net) => '<svg viewBox="0 0 100 80">'
+      + `<path d="M10 74 L10 10 L90 10 L90 74 Z" fill="${net}" opacity=".18"/>`
+      + [22, 34, 46, 58, 70, 82].map((x) => `<path d="M${x - 4} 10 L${x - 4} 74" stroke="${net}" stroke-width="2"/>`).join('')
+      + [22, 34, 46, 58, 70].map((y) => `<path d="M10 ${y} L90 ${y}" stroke="${net}" stroke-width="2"/>`).join('')
+      + '<path d="M10 76 L10 10 L90 10 L90 76" fill="none" stroke="#2b2140" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>'
+      + `<path d="M10 76 L10 10 L90 10 L90 76" fill="none" stroke="${post}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
     // Cono de entrenamiento
     cono: '<svg viewBox="0 0 100 100"><path d="M50 8 L78 80 L22 80 Z" fill="#ff7a00" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>'
       + '<path d="M37 44 L63 44 L69 60 L31 60 Z" fill="#fff"/>'
@@ -132,6 +139,8 @@
   // Shorts (lugar "shorts"), canilleras ("shin") y guantes de arquero ("gloves"): color y vivo
   const shorts = (id, name, fill, stripe) => ({ id, name, slot: 'shorts', shorts: { fill, stripe }, use: 'hop' });
   const shin = (id, name, fill, stripe) => ({ id, name, slot: 'shin', shin: { fill, stripe }, use: 'kick' });
+  // Arcos (lugar "back": van detrás del futbolista)
+  const goal = (id, name, post, net) => ({ id, name, slot: 'back', goal: { post, net }, use: 'kick' });
   const gloves = (id, name, fill, stripe) => ({ id, name, slot: 'gloves', gloves: { fill, stripe }, use: 'block' });
   const jersey = (id, name) => ({ id, name, slot: 'body', jersey: JERSEYS[id], shirt: JERSEYS[id].css });
 
@@ -192,6 +201,11 @@
       gloves('guantesAzules', 'los guantes azules', '#1e63d6', '#ffffff'),
       gloves('guantesRosas', 'los guantes rosas', '#ff4f9a', '#ffffff'),
       { id: 'cono', name: 'el cono de entrenamiento', slot: 'ground', cone: true, use: 'kick' },
+      goal('arcoBlanco', 'el arco blanco', '#ffffff', '#9aa5b1'),
+      goal('arcoDorado', 'el arco dorado', '#ffd23f', '#f2a900'),
+      goal('arcoCeleste', 'el arco celeste', '#74acdf', '#ffffff'),
+      goal('arcoRosa', 'el arco rosa', '#ff6fae', '#ffffff'),
+      goal('arcoRojo', 'el arco rojo', '#e53935', '#ffd200'),
       { id: 'cintaRoja', name: 'la cinta de capitán roja', slot: 'arm', armband: '#e53935', use: 'raise' },
       { id: 'cintaAzul', name: 'la cinta de capitán azul', slot: 'arm', armband: '#1e63d6', use: 'raise' },
       { id: 'cintaVerde', name: 'la cinta de capitán verde', slot: 'arm', armband: '#2e9e44', use: 'raise' },
@@ -310,8 +324,9 @@
                 : item.shorts ? ART.short(item.shorts.fill, item.shorts.stripe)
                   : item.shin ? ART.canillera(item.shin.fill, item.shin.stripe)
                     : item.gloves ? ART.guante(item.gloves.fill, item.gloves.stripe)
-                      : item.cone ? ART.cono : '';
-      return h('span', { class: 'card-art card-svg' + (['hand', 'shin'].includes(item.slot) ? ' tall' : ['ball', 'gloves', 'ground'].includes(item.slot) ? ' round' : item.slot === 'arm' ? ' band' : ''), html: svg });
+                      : item.cone ? ART.cono
+                        : item.goal ? ART.arco(item.goal.post, item.goal.net) : '';
+      return h('span', { class: 'card-art card-svg' + (['hand', 'shin'].includes(item.slot) ? ' tall' : ['ball', 'gloves', 'ground', 'back'].includes(item.slot) ? ' round' : item.slot === 'arm' ? ' band' : ''), html: svg });
     },
   };
 })(window.BQ);
