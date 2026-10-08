@@ -116,8 +116,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Terminar el nivel 20 **por primera vez** da **100 monedas** y cuenta como **5 partidos** para los trofeos
   (después, repetirlo da 1 moneda y 1 partido, como cualquier juego).
 - Los laberintos se arman solos con un sorteo con semilla (siempre el mismo en cada nivel) y se elige el
-  que tiene el largo de recorrido que le toca al nivel. La lista  de  tiene tamaño,
-  puertas, dragón y pasos de cada uno; el juego comprueba que todos tengan solución.
+  que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
+  puertas, dragón y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
 ## Tiro al blanco
 
