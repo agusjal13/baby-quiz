@@ -1757,6 +1757,35 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Básquet ---------- */
+
+.game-pill.basket { background: linear-gradient(160deg, #ff8f2b, #bf360c); }
+.basket { gap: 1.5vmin; }
+.bk-court {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 125vh;
+  align-self: center;
+  container-type: size;
+  isolation: isolate; /* los carteles de adentro no tapan la pantalla final */
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.bk-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.bk-trail { z-index: 2; }
+.bk-hero { position: absolute; left: 3%; bottom: 3%; font-size: clamp(60px, 26cqmin, 190px); line-height: 1; pointer-events: none; z-index: 1; }
+.bk-hand { z-index: 3; }
+.basket .sport-flash { z-index: 4; align-items: center; padding: 0; font-size: clamp(34px, 15cqmin, 110px); }
+/* Marcador: pelota de básquet si entró, cruz si no */
+.bk-score .pen-slot.goal::before { content: '🏀'; }
+.bk-score .pen-slot.saved::before { content: '✖️'; }
+
 /* ---------- Air hockey ---------- */
 
 .game-pill.hockey { background: linear-gradient(160deg, #29b6f6, #0d47a1); }
