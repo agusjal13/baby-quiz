@@ -2,13 +2,14 @@
   'use strict';
 
   /*
-   * Laberintos: 20 niveles de menor a mayor. El personaje se mueve de a un casillero con un pad
+   * Laberintos: 40 niveles de menor a mayor. El personaje se mueve de a un casillero con un pad
    * de 4 flechas (también con las flechas del teclado o deslizando el dedo sobre el laberinto)
    * hasta llegar al cofre.
    *   - Llave 🔑: abre una puerta 🚪 (cada puerta gasta una llave).
    *   - Espada 🗡️: sirve para vencer al dragón 🐲 que tapa el camino.
-   * Los niveles se abren en orden. Terminar el último por primera vez da 100 monedas y cuenta
-   * como 5 partidos ganados para los trofeos.
+   *   - Botón de color (desde el nivel 21): al pisarlo baja el muro del mismo color.
+   * Los niveles se abren en orden. Terminar por primera vez los niveles 10, 20, 30 y 40 da un premio
+   * de monedas y de partidos ganados para los trofeos (ver PRIZES).
    *
    * Los laberintos no están dibujados a mano: se arman con un sorteo "con semilla" (siempre sale
    * el mismo laberinto en cada nivel). Las puertas y el dragón van sobre el único camino al cofre,
@@ -31,10 +32,27 @@
     { size: 6, steps: 26, dragon: true }, { size: 7, steps: 30, dragon: true }, { size: 7, steps: 34, dragon: true }, { size: 7, steps: 38, dragon: true },
     { size: 7, steps: 42, doors: 1, dragon: true }, { size: 8, steps: 46, doors: 1, dragon: true }, { size: 8, steps: 50, doors: 1, dragon: true }, { size: 8, steps: 54, doors: 1, dragon: true },
     { size: 8, steps: 58, doors: 2, dragon: true }, { size: 9, steps: 64, doors: 2, dragon: true }, { size: 9, steps: 70, doors: 2, dragon: true }, { size: 10, steps: 78, doors: 2, dragon: true },
+    // Del 21 en adelante: muros de colores (gates) que se bajan pisando el botón del mismo color
+    { size: 6, steps: 22, gates: 1 }, { size: 7, steps: 30, gates: 1 }, { size: 7, steps: 38, gates: 1, doors: 1 }, { size: 8, steps: 44, gates: 1, doors: 1 },
+    { size: 8, steps: 48, gates: 2 }, { size: 8, steps: 52, gates: 2 }, { size: 8, steps: 56, gates: 1, dragon: true }, { size: 9, steps: 60, gates: 2, dragon: true },
+    { size: 9, steps: 64, gates: 2, doors: 1 }, { size: 9, steps: 70, gates: 2, doors: 1, dragon: true }, { size: 9, steps: 74, gates: 2, doors: 1, dragon: true }, { size: 10, steps: 78, gates: 2, doors: 1, dragon: true },
+    { size: 10, steps: 82, gates: 2, doors: 2 }, { size: 10, steps: 86, gates: 3 }, { size: 10, steps: 90, gates: 3, doors: 1 }, { size: 11, steps: 94, gates: 3, doors: 1, dragon: true },
+    { size: 11, steps: 98, gates: 3, doors: 1, dragon: true }, { size: 11, steps: 102, gates: 3, doors: 2, dragon: true }, { size: 11, steps: 108, gates: 3, doors: 2, dragon: true }, { size: 12, steps: 114, gates: 3, doors: 2, dragon: true },
+  ];
+  // Premios (solo la primera vez que se termina ese nivel): monedas y partidos para los trofeos
+  const PRIZES = {
+    10: { coins: 20, wins: 2 },
+    20: { coins: 30, wins: 5 },
+    30: { coins: 35, wins: 7 },
+    40: { coins: 40, wins: 10 },
+  };
+  // Colores de los botones y sus muros (rojo, azul, verde)
+  const COLORS = [
+    { name: 'rojo', fill: '#e53935', dark: '#8e1b18' },
+    { name: 'azul', fill: '#1e88e5', dark: '#0d4a8a' },
+    { name: 'verde', fill: '#43a047', dark: '#1f5c23' },
   ];
   const TRIES = 40; // laberintos que se prueban por nivel para elegir el que más se acerca a "steps"
-  const BIG_COINS = 100;
-  const BIG_WINS = 5;
   const THEME = { sky1: '#5e35b1', sky2: '#9575cd', ground: '#4527a0', decor: ['🔑', '⭐', '🗡️', '✨', '🧭'] };
   const ICON = { key: '🔑', sword: '🗡️', door: '🚪', dragon: '🐲', goal: '🎁' };
 
@@ -44,7 +62,12 @@
 
   let S = null;
   const alive = (s) => S === s && s.screen.isConnected;
-  const progress = () => store.data.maze || (store.data.maze = { done: 0, prize: false });
+  // Guardado: último nivel pasado y premios ya cobrados. (Antes había un solo premio, el del nivel 20.)
+  const progress = () => {
+    const p = store.data.maze || (store.data.maze = { done: 0 });
+    if (!p.prizes) p.prizes = p.prize ? { 20: true } : {};
+    return p;
+  };
 
   // ---------- Armado del laberinto ----------
 
@@ -111,6 +134,8 @@
   // Pasos mínimos para resolverlo jugando bien (agarrando llaves y espada cuando hacen falta)
   function solve(m) {
     const cells = [...m.items.keys()];
+    const buttonBit = {}; // bit del botón de cada color
+    cells.forEach((c, i) => { if (m.items.get(c).type === 'button') buttonBit[m.items.get(c).color] = 1 << i; });
     const seen = new Set();
     let frontier = [[m.start, 0, 0, 0]]; // casillero, llaves, espada, cosas ya sacadas (bits)
     for (let steps = 0; frontier.length; steps++) {
@@ -125,7 +150,9 @@
           let mk = mask;
           const item = m.items.get(n);
           const bit = 1 << cells.indexOf(n);
-          if (item && !(mask & bit)) {
+          if (item && item.type === 'gate') {
+            if (!(mask & buttonBit[item.color])) continue; // muro levantado
+          } else if (item && !(mask & bit)) {
             if (item.type === 'door') {
               if (!k) continue;
               k--;
@@ -133,8 +160,8 @@
               if (!sw) continue;
               sw = 0;
             } else if (item.type === 'key') k++;
-            else sw = 1;
-            mk |= bit;
+            else if (item.type === 'sword') sw = 1;
+            mk |= bit; // (botón: queda pisado)
           }
           const id = n + ',' + k + ',' + sw + ',' + mk;
           if (seen.has(id)) continue;
@@ -179,13 +206,23 @@
       const path = [];
       for (let c = m.goal; c !== -1; c = prev[c]) path.unshift(c);
 
-      // Puertas y dragón repartidos sobre el camino (el dragón, lo último)
+      // Puertas y dragón repartidos sobre el camino (el dragón, lo último). Con muros de colores,
+      // se mezclan en cualquier orden.
       const blockers = [...Array(spec.doors || 0).fill('door'), ...(spec.dragon ? ['dragon'] : [])];
+      if (spec.gates) {
+        for (let c = 0; c < spec.gates; c++) blockers.push('gate' + c);
+        for (let i = blockers.length - 1; i > 0; i--) {
+          const j = Math.floor(rand() * (i + 1));
+          [blockers[i], blockers[j]] = [blockers[j], blockers[i]];
+        }
+      }
+      const thing = (b) => (b.startsWith('gate') ? { type: 'gate', color: +b.slice(4) } : { type: b });
+      const opener = (b) => (b.startsWith('gate') ? { type: 'button', color: +b.slice(4) } : { type: b === 'door' ? 'key' : 'sword' });
       if (path.length < blockers.length * 3 + 3) return null;
       const items = new Map();
       const spots = blockers.map((_, k) => path[Math.round(((k + 1) / (blockers.length + 1)) * (path.length - 1))]);
       if (new Set(spots).size !== spots.length || spots.includes(m.start) || spots.includes(m.goal)) return null;
-      spots.forEach((cell, k) => items.set(cell, { type: blockers[k] }));
+      spots.forEach((cell, k) => items.set(cell, thing(blockers[k])));
 
       // La llave o la espada de cada uno: en un rincón al que se llega sin pasar por él
       let ok = true;
@@ -201,7 +238,7 @@
           ok = false;
           return;
         }
-        items.set(pick.i, { type: blockers[k] === 'door' ? 'key' : 'sword' });
+        items.set(pick.i, opener(blockers[k]));
       });
       if (!ok) return null;
       m.items = items;
@@ -231,7 +268,7 @@
         }),
       },
       h('span', { class: 'mz-level-n' }, locked ? h('span', { class: 'emoji' }, '🔒') : String(n)),
-      h('span', { class: 'mz-level-tag emoji' }, n <= done ? '⭐' : n === LEVELS.length ? '🏆' : spec.dragon ? '🐲' : spec.doors ? '🔑' : ''));
+      h('span', { class: 'mz-level-tag emoji' }, PRIZES[n] ? '🏆' : n <= done ? '⭐' : spec.gates ? '🔴' : spec.dragon ? '🐲' : spec.doors ? '🔑' : ''));
     }));
     ui().show(h('div', { class: 'screen maze-menu' },
       ui().topbar(ui().backBtn(() => ui().showWorlds()),
@@ -261,13 +298,16 @@
     board.innerHTML = `<svg class="mz-walls" viewBox="0 0 ${cols} ${rows}" aria-hidden="true"><path d="${d}"/></svg>`;
 
     const things = new Map();
-    const put = (i, type) => {
-      const el = h('span', { class: 'mz-thing emoji ' + type, style: pct(i) }, ICON[type]);
+    const put = (i, type, color) => {
+      // Botón y muro: dibujados con su color (no hay emoji); lo demás, emoji
+      const el = color === undefined
+        ? h('span', { class: 'mz-thing emoji ' + type, style: pct(i) }, ICON[type])
+        : h('span', { class: 'mz-thing mz-' + type, style: Object.assign(pct(i), { '--c': COLORS[color].fill, '--d': COLORS[color].dark }) });
       board.append(el);
       return el;
     };
     put(m.goal, 'goal');
-    m.items.forEach((item, i) => things.set(i, { type: item.type, el: put(i, item.type) }));
+    m.items.forEach((item, i) => things.set(i, { type: item.type, color: item.color, el: put(i, item.type, item.color) }));
     const hero = h('span', { class: 'mz-hero', style: pct(m.start) }, BQ.puppet.el(store.data.character));
     board.append(hero);
 
@@ -289,7 +329,9 @@
 
     const spec = LEVELS[level - 1];
     const first = (test) => LEVELS.findIndex(test) === level - 1;
-    voice.say(first((l) => l.doors && l.dragon) ? '¡Buscá la llave y la espada!'
+    voice.say(first((l) => l.gates) ? '¡Pisá el botón rojo para bajar el muro rojo!'
+      : first((l) => l.gates > 1) ? '¡Cada botón baja el muro de su color!'
+      : first((l) => l.doors && l.dragon) ? '¡Buscá la llave y la espada!'
       : first((l) => l.dragon) ? '¡Buscá la espada para vencer al dragón!'
         : first((l) => l.doors) ? '¡Buscá la llave para abrir la puerta!'
           : level === 1 ? '¡Llevalo hasta el regalo con las flechas!'
@@ -396,6 +438,23 @@
       vanish(s, next, 'beaten');
       ui().burst(s.board);
       tell(s, 'win-dragon', '¡Venciste al dragón!');
+    } else if (thing && thing.type === 'gate') {
+      // Muro de color levantado: hay que pisar el botón del mismo color
+      bump(s, dir);
+      sfx.wrong();
+      thing.el.classList.remove('nope');
+      void thing.el.offsetWidth;
+      thing.el.classList.add('nope');
+      return tell(s, 'gate', `¡Pisá el botón ${COLORS[thing.color].name}!`);
+    } else if (thing && thing.type === 'button') {
+      // Pisa el botón: se hunde y baja el muro de su color
+      s.things.delete(next);
+      thing.el.classList.add('pressed');
+      sfx.notes([[330, 0, 0.08, 'square', 0.1], [220, 0.08, 0.25, 'triangle', 0.14]]);
+      for (const [cell, t] of s.things) {
+        if (t.type === 'gate' && t.color === thing.color) vanish(s, cell, 'lowered');
+      }
+      tell(s, 'button', '¡Se bajó el muro!');
     } else if (thing) { // llave o espada
       if (thing.type === 'key') s.keys++;
       else s.sword = true;
@@ -427,9 +486,10 @@
     s.busy = true;
     const p = progress();
     const last = s.level === LEVELS.length;
-    const bigPrize = last && !p.prize;
+    // Premio del nivel (10, 20, 30 y 40), solo la primera vez
+    const prize = PRIZES[s.level] && !p.prizes[s.level] ? PRIZES[s.level] : null;
     p.done = Math.max(p.done, s.level);
-    if (bigPrize) p.prize = true;
+    if (prize) p.prizes[s.level] = true;
     store.save();
 
     sfx.win();
@@ -439,29 +499,30 @@
     BQ.puppet.use(s.hero.querySelector('.avatar'));
     s.board.classList.add('won');
 
-    if (!last) {
+    if (!prize && !last) {
       await Promise.all([voice.say(U.pick(['¡Muy bien!', '¡Lo lograste!', '¡Genial!', '¡Saliste del laberinto!'])), wait(1700)]);
       if (alive(s)) startLevel(s.level + 1);
       return;
     }
     await wait(1200);
     if (!alive(s)) return;
-    // El último: la primera vez, el premio grande; después, como ganar un partido
+    // Nivel con premio (la primera vez): monedas y partidos para los trofeos. El último, ya cobrado,
+    // vale como ganar un partido. El botón grande sigue con el laberinto siguiente.
     BQ.sport.result({
       screen: s.screen,
       won: true,
-      coins: bigPrize ? BIG_COINS : 1,
-      wins: bigPrize ? BIG_WINS : 1,
-      title: bigPrize ? '¡Campeón!' : '¡Ganaste!',
-      detail: h('div', { class: 'mt-final' }, h('span', { class: 'emoji' }, '🧭'), ` ${LEVELS.length} de ${LEVELS.length}`),
-      onAgain: open,
-      winSay: bigPrize
-        ? '¡Increíble! ¡Pasaste todos los laberintos! ¡Te ganaste cien monedas!'
-        : '¡Pasaste el último laberinto otra vez! ¡Te ganaste una moneda!',
+      coins: prize ? prize.coins : 1,
+      wins: prize ? prize.wins : 1,
+      title: prize ? '¡Campeón!' : '¡Ganaste!',
+      detail: h('div', { class: 'mt-final' }, h('span', { class: 'emoji' }, '🧭'), ` ${s.level} de ${LEVELS.length}`),
+      onAgain: last ? open : () => startLevel(s.level + 1),
+      winSay: !prize ? '¡Pasaste el último laberinto otra vez! ¡Te ganaste una moneda!'
+        : last ? `¡Increíble! ¡Pasaste todos los laberintos! ¡Te ganaste ${prize.coins} monedas!`
+          : `¡Pasaste ${s.level} laberintos! ¡Te ganaste ${prize.coins} monedas!`,
       loseSay: '',
       isAlive: () => alive(s),
     });
   }
 
-  BQ.maze = { open, build, levels: LEVELS };
+  BQ.maze = { open, build, levels: LEVELS, prizes: PRIZES };
 })(window.BQ);

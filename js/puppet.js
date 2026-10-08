@@ -246,6 +246,31 @@
         + [-4, 0, 4].map((d) => `<rect x="${x + d - 1}" y="125" width="2" height="2.4" rx=".6" fill="${OUT}"/>`).join('')
       : `<ellipse cx="${x}" cy="121" rx="7.5" ry="4.8" fill="${look.shoes}" ${S}/>`);
 
+    // Short: las piernas quedan al aire (color de piel) y el short va encima, en la cadera
+    const sh = bySlot.shorts && bySlot.shorts.shorts;
+    const legColor = sh ? look.hands : look.pants;
+    const shortsSvg = sh
+      ? `<path d="M35.5 95 L64.5 95 L66.5 111.5 L52.5 111.5 L50 105 L47.5 111.5 L33.5 111.5 Z" fill="${sh.fill}" ${S}/>`
+        + `<path d="M37.4 101 L36.4 109.2 M62.6 101 L63.6 109.2" stroke="${sh.stripe}" stroke-width="1.6" stroke-linecap="round"/>`
+      : '';
+    // Canilleras: una en cada pierna, con dos rayitas
+    const sg = bySlot.shin && bySlot.shin.shin;
+    const shinPad = (x) => (sg
+      ? `<rect x="${x - 3.9}" y="109.5" width="7.8" height="8.6" rx="2.8" fill="${sg.fill}" ${S}/>`
+        + `<path d="M${x - 2} 112.4 L${x + 2} 112.4 M${x - 2} 115.2 L${x + 2} 115.2" stroke="${sg.stripe}" stroke-width="1.3" stroke-linecap="round"/>`
+      : '');
+    // Guantes de arquero: manos más grandes, del color del guante
+    const gl = bySlot.gloves && bySlot.gloves.gloves;
+    const hand = (x) => (gl
+      ? `<circle cx="${x}" cy="90.5" r="6.6" fill="${gl.fill}" ${S}/><circle cx="${x}" cy="90.5" r="2.4" fill="${gl.stripe}"/>`
+        + `<path d="M${x - 4.4} 85.6 L${x + 4.4} 85.6" stroke="${gl.stripe}" stroke-width="1.8" stroke-linecap="round"/>`
+      : `<circle cx="${x}" cy="90" r="5" fill="${look.hands}" ${S}/>`);
+    // Cono de entrenamiento, en el piso al lado del otro pie
+    const cone = bySlot.ground && bySlot.ground.cone
+      ? `<g class="pp-cone"><path d="M27 109 L32.6 124.5 L21.4 124.5 Z" fill="#ff7a00" ${S}/><path d="M24.6 116.5 L29.4 116.5 L30.8 120.3 L23.2 120.3 Z" fill="#fff"/>`
+        + `<rect x="19" y="124" width="16" height="3.6" rx="1.4" fill="#ff7a00" ${S}/></g>`
+      : '';
+
     const torso = look.robot
       ? `<path d="${ROBOT_TORSO}" fill="${look.torso}" ${S}/>`
       : `<path d="${look.dress ? DRESS : TORSO}" fill="${look.torso}" ${S}/>`;
@@ -259,11 +284,13 @@
       + `<ellipse class="pp-shadow" cx="50" cy="127" rx="22" ry="4" fill="rgba(0,0,0,.14)"/>`
       + `<g class="pp-all">`
       + `<g class="pp-back">${look.back || ''}${bySlot.back ? `<g class="pp-bitem">${itemSvg(bySlot.back, look)}</g>` : ''}</g>`
-      + `<g class="pp-leg pp-leg-l">${limb(45, 98, 44, 117, look.pants, 9)}${shoe(42.5)}</g>`
-      + `<g class="pp-leg pp-leg-r">${limb(55, 98, 56, 117, look.pants, 9)}${shoe(57.5)}</g>`
+      + `<g class="pp-leg pp-leg-l">${limb(45, 98, 44, 117, legColor, 9)}${shinPad(44.3)}${shoe(42.5)}</g>`
+      + `<g class="pp-leg pp-leg-r">${limb(55, 98, 56, 117, legColor, 9)}${shinPad(55.7)}${shoe(57.5)}</g>`
+      + shortsSvg
+      + cone
       + ball
       + `<g class="pp-body">${torso}${belly}${look.chest || ''}${shirt ? shirtSvg(shirt, id) : ''}</g>`
-      + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}<circle cx="30" cy="90" r="5" fill="${look.hands}" ${S}/></g>`
+      + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}${hand(30)}</g>`
       + `<g class="pp-head">${look.headBack || ''}${look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
       + `<g class="pp-arm pp-arm-r">${limb(63, 70, 70, 89, sleeve, 8)}`
@@ -271,7 +298,7 @@
       + (bySlot.arm ? `<g transform="translate(65.3 76.3) rotate(-20)"><rect x="-5.6" y="-2.6" width="11.2" height="5.2" rx="1.2" fill="${bySlot.arm.armband}" ${S}/>`
         + `<path d="M1.4 -1.2 Q0 -1.9 -1 -1.1 Q-1.8 0 -1 1.1 Q0 1.9 1.4 1.2" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round"/></g>` : '')
       + (bySlot.hand ? `<g class="pp-hitem">${itemSvg(bySlot.hand, look)}</g>` : '')
-      + `<circle cx="70" cy="90" r="5" fill="${look.hands}" ${S}/></g>`
+      + `${hand(70)}</g>`
       + `</g></svg>`;
   }
 

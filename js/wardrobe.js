@@ -57,6 +57,24 @@
       + '<path d="M8 44 Q50 34 92 44 M8 58 Q50 68 92 58 M44 7 Q34 50 44 93 M58 7 Q68 50 58 93" fill="none" stroke="#5d3412" stroke-width="3"/>'
       + '<path d="M47 36 L55 36 M46 42 L56 42 M46 48 L56 48 M47 54 L55 54" stroke="#f5deb3" stroke-width="3" stroke-linecap="round"/>'
       + '<ellipse cx="34" cy="28" rx="9" ry="5" fill="rgba(255,255,255,.25)" transform="rotate(-30 34 28)"/></svg>',
+    // Short visto de frente, con vivo al costado
+    short: (fill, stripe) => '<svg viewBox="0 0 100 70">'
+      + `<path d="M12 8 L88 8 L96 62 L56 62 L50 34 L44 62 L4 62 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
+      + `<path d="M17 12 L11 58 M83 12 L89 58" stroke="${stripe}" stroke-width="6" stroke-linecap="round"/>`
+      + `<path d="M14 16 L86 16" stroke="${stripe}" stroke-width="4" stroke-linecap="round" opacity=".7"/></svg>`,
+    // Canillera, con dos rayas
+    canillera: (fill, stripe) => '<svg viewBox="0 0 50 100">'
+      + `<path d="M10 14 Q25 4 40 14 L37 82 Q25 96 13 82 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
+      + `<path d="M15 34 Q25 28 35 34 M16 54 Q25 48 34 54" fill="none" stroke="${stripe}" stroke-width="6" stroke-linecap="round"/></svg>`,
+    // Guante de arquero
+    guante: (fill, stripe) => '<svg viewBox="0 0 100 100">'
+      + `<path d="M30 92 L30 60 Q14 52 16 40 Q20 34 28 42 L28 22 Q28 14 35 14 Q41 14 41 22 L42 12 Q43 5 50 5 Q57 5 57 13 L58 18 Q59 11 65 12 Q71 13 71 21 L72 28 Q74 22 79 24 Q84 26 83 34 L80 62 Q78 72 70 76 L70 92 Z" fill="${fill}" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>`
+      + `<rect x="27" y="80" width="46" height="14" rx="4" fill="${stripe}" stroke="#2b2140" stroke-width="4"/>`
+      + `<circle cx="52" cy="50" r="10" fill="${stripe}"/></svg>`,
+    // Cono de entrenamiento
+    cono: '<svg viewBox="0 0 100 100"><path d="M50 8 L78 80 L22 80 Z" fill="#ff7a00" stroke="#2b2140" stroke-width="4" stroke-linejoin="round"/>'
+      + '<path d="M37 44 L63 44 L69 60 L31 60 Z" fill="#fff"/>'
+      + '<rect x="10" y="78" width="80" height="14" rx="5" fill="#ff7a00" stroke="#2b2140" stroke-width="4"/></svg>',
     // Cinta de capitán: banda de color con la "C" blanca
     cinta: (c) => '<svg viewBox="0 0 100 60">'
       + `<rect x="6" y="12" width="88" height="36" rx="8" fill="${c}" stroke="#2b2140" stroke-width="4"/>`
@@ -111,11 +129,16 @@
     botinesRosa: { fill: '#1e63d6', stripe: '#ffffff', sole: '#ff4f9a' },
   };
   const boots = (id, name) => ({ id, name, slot: 'feet', boots: BOOTS[id], use: 'kick' });
+  // Shorts (lugar "shorts"), canilleras ("shin") y guantes de arquero ("gloves"): color y vivo
+  const shorts = (id, name, fill, stripe) => ({ id, name, slot: 'shorts', shorts: { fill, stripe }, use: 'hop' });
+  const shin = (id, name, fill, stripe) => ({ id, name, slot: 'shin', shin: { fill, stripe }, use: 'kick' });
+  const gloves = (id, name, fill, stripe) => ({ id, name, slot: 'gloves', gloves: { fill, stripe }, use: 'block' });
   const jersey = (id, name) => ({ id, name, slot: 'body', jersey: JERSEYS[id], shirt: JERSEYS[id].css });
 
   /*
    * Catálogo por personaje. Cada cosa va en un lugar del cuerpo (slot): head, neck, hand, body, back,
-   * ball (pelota del pie), feet (botines) o arm (cinta de capitán).
+   * ball (pelota del pie), feet (botines), arm (cinta de capitán), shorts, shin (canilleras),
+   * gloves (guantes) o ground (cono, al lado del otro pie).
    * Una sola cosa por lugar: ponerse otra en el mismo lugar reemplaza la anterior.
    *   emoji | art (bastón, varita, pelota) | bow (corbatita) | cape (capa) | jersey (camiseta) | boots (botines)
    *   use   lo que hace al usarla (si no, depende del lugar: ver puppet.js)
@@ -155,6 +178,20 @@
       boots('botinesAzules', 'los botines azules'),
       boots('botinesCelestes', 'los botines celestes y blancos'),
       boots('botinesRosa', 'los botines azules, blancos y rosa'),
+      shorts('shortBlanco', 'el short blanco', '#ffffff', '#1a1a1a'),
+      shorts('shortNegro', 'el short negro', '#1a1a1a', '#ffffff'),
+      shorts('shortAzul', 'el short azul', '#1a3d8f', '#ffd200'),
+      shorts('shortCeleste', 'el short celeste', '#74acdf', '#ffffff'),
+      shorts('shortRosa', 'el short rosa', '#ff6fae', '#ffffff'),
+      shin('canillerasBlancas', 'las canilleras blancas', '#ffffff', '#1e63d6'),
+      shin('canillerasNegras', 'las canilleras negras', '#1a1a1a', '#ffd200'),
+      shin('canillerasCelestes', 'las canilleras celestes', '#74acdf', '#ffffff'),
+      shin('canillerasRosas', 'las canilleras rosas', '#ff6fae', '#ffffff'),
+      gloves('guantesVerdes', 'los guantes verdes', '#7ed321', '#1a1a1a'),
+      gloves('guantesNaranjas', 'los guantes naranjas', '#ff8a00', '#ffffff'),
+      gloves('guantesAzules', 'los guantes azules', '#1e63d6', '#ffffff'),
+      gloves('guantesRosas', 'los guantes rosas', '#ff4f9a', '#ffffff'),
+      { id: 'cono', name: 'el cono de entrenamiento', slot: 'ground', cone: true, use: 'kick' },
       { id: 'cintaRoja', name: 'la cinta de capitán roja', slot: 'arm', armband: '#e53935', use: 'raise' },
       { id: 'cintaAzul', name: 'la cinta de capitán azul', slot: 'arm', armband: '#1e63d6', use: 'raise' },
       { id: 'cintaVerde', name: 'la cinta de capitán verde', slot: 'arm', armband: '#2e9e44', use: 'raise' },
@@ -165,6 +202,9 @@
       // Trofeos de verdad (los del mapa de trofeos): se pueden comprar solo si ya se ganaron
       { id: 'trofeoPlata', name: 'la copa de plata', slot: 'hand', trophy: 4, use: 'raise' },
       { id: 'trofeoOro', name: 'la copa de oro', slot: 'hand', trophy: 8, use: 'raise' },
+      { id: 'trofeoPelota', name: 'la pelota de oro', slot: 'hand', trophy: 10, use: 'raise' },
+      { id: 'trofeoBotin', name: 'el botín de oro', slot: 'hand', trophy: 12, use: 'raise' },
+      { id: 'trofeoEscudo', name: 'el escudo de campeón', slot: 'hand', trophy: 14, use: 'raise' },
     ],
     princesa: [
       { id: 'varita', name: 'la varita mágica', slot: 'hand', art: 'varita', use: 'magic' },
@@ -266,8 +306,12 @@
         : item.boots ? ART.botin(item.boots.fill, item.boots.stripe, item.boots.sole)
           : item.bow ? ART.corbatita(...item.bow)
             : item.cape ? ART.capa(item.cape)
-              : item.armband ? ART.cinta(item.armband) : '';
-      return h('span', { class: 'card-art card-svg' + (item.slot === 'hand' ? ' tall' : item.slot === 'ball' ? ' round' : item.slot === 'arm' ? ' band' : ''), html: svg });
+              : item.armband ? ART.cinta(item.armband)
+                : item.shorts ? ART.short(item.shorts.fill, item.shorts.stripe)
+                  : item.shin ? ART.canillera(item.shin.fill, item.shin.stripe)
+                    : item.gloves ? ART.guante(item.gloves.fill, item.gloves.stripe)
+                      : item.cone ? ART.cono : '';
+      return h('span', { class: 'card-art card-svg' + (['hand', 'shin'].includes(item.slot) ? ' tall' : ['ball', 'gloves', 'ground'].includes(item.slot) ? ' round' : item.slot === 'arm' ? ' band' : ''), html: svg });
     },
   };
 })(window.BQ);

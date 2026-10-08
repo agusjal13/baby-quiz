@@ -59,7 +59,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`;
   una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`).
   Tocar algo comprado lo pone o lo saca. Si un personaje tiene más de 9 cosas, la tienda se separa en pestañas
-  (👕 camisetas, ⚽ pelotas, 👟 botines, ✨ otras cosas). Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
+  (👕 camisetas, 🩳 shorts y canilleras, 👟 botines, ⚽ pelotas y cono, 🧤 guantes y cintas, 🏆 trofeos).
+  Los trofeos de la tienda solo se pueden comprar si ya se ganaron en el mapa de trofeos. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.
 - Desde ⚙️ se pueden regalar monedas.
 - Para agregar ropa: sumar una línea al personaje en `CATALOG` de `js/wardrobe.js`
   (con `emoji`, `art`, `bow`, `cape` o `jersey`, y opcionalmente `use`: la acción al tocarlo).
@@ -109,15 +110,24 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Laberintos
 
-- Botón 🧭 Laberintos en el mapa. 20 niveles de menor a mayor (de 4x4 a 10x10) que se abren en orden.
+- Botón 🧭 Laberintos en el mapa. 40 niveles de menor a mayor (de 4x4 a 12x12) que se abren en orden.
   El personaje se mueve con un pad de 4 flechas (también con las flechas del teclado o deslizando el dedo
-  sobre el laberinto) hasta el regalo 🎁. Desde el nivel 5 hay puertas 🚪 que se abren con llaves 🔑, y
-  desde el 9, un dragón 🐲 que se vence con la espada 🗡️.
-- Terminar el nivel 20 **por primera vez** da **100 monedas** y cuenta como **5 partidos** para los trofeos
-  (después, repetirlo da 1 moneda y 1 partido, como cualquier juego).
+  sobre el laberinto) hasta el regalo 🎁.
+  - Desde el nivel 5: puertas 🚪 que se abren con llaves 🔑.
+  - Desde el 9: un dragón 🐲 que se vence con la espada 🗡️.
+  - Desde el 21: muros de ladrillos de colores que se bajan pisando el botón del mismo color (rojo, azul, verde).
+- Premios, solo la primera vez que se termina ese nivel (`PRIZES` en `js/maze.js`):
+
+  | Nivel | Monedas | Partidos para trofeos |
+  |---|---|---|
+  | 10 | 20 | 2 |
+  | 20 | 30 | 5 |
+  | 30 | 35 | 7 |
+  | 40 | 40 | 10 |
+
 - Los laberintos se arman solos con un sorteo con semilla (siempre el mismo en cada nivel) y se elige el
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
-  puertas, dragón y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
+  puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
 ## Tiro al blanco
 

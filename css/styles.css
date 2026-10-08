@@ -367,9 +367,9 @@ button {
   gap: 2.5vmin;
 }
 .shop-side .shop-grid { min-height: 0; overflow-y: auto; padding: 1.5vmin 1.5vmin 2.5vmin; }
-.shop-tabs { flex: none; display: flex; gap: 2vmin; }
+.shop-tabs { flex: none; display: flex; gap: 1.6vmin; }
 .shop-tab {
-  width: clamp(52px, 12vmin, 96px);
+  width: clamp(44px, 11vmin, 92px);
   aspect-ratio: 1.25;
   border-radius: 3vmin;
   background: rgba(255, 255, 255, .55);
@@ -1774,30 +1774,34 @@ button {
   min-height: 0;
   align-self: center;
   display: grid;
-  grid-template-columns: repeat(5, auto);
-  gap: 2.4vmin;
+  grid-template-columns: repeat(10, auto);
+  gap: 2vmin;
   align-content: center;
-  padding-bottom: 3vmin;
+  overflow-y: auto;
+  padding: 2vmin 2vmin max(4vmin, env(safe-area-inset-bottom));
+  --b: clamp(40px, min(8.2vw, 17vh), 110px); /* tamaño de cada botón */
 }
-@media (orientation: portrait) { .mz-levels { grid-template-columns: repeat(4, auto); } }
+/* Celular parado: 5 por fila (8 filas) */
+@media (orientation: portrait) { .mz-levels { grid-template-columns: repeat(5, auto); --b: clamp(40px, min(16vw, 9vh), 110px); } }
 .mz-level {
   position: relative;
-  width: clamp(54px, 15vmin, 130px);
+  width: var(--b);
+  font-size: var(--b);
   aspect-ratio: 1;
   border-radius: 3.5vmin;
   background: #fff;
   box-shadow: 0 1vmin 0 rgba(0, 0, 0, .2);
   display: grid;
   place-items: center;
-  font-size: clamp(22px, 7vmin, 60px);
   font-weight: 900;
   color: #4527a0;
 }
+.mz-level-n { font-size: .46em; }
 .mz-level.done { background: #fff8d6; box-shadow: 0 0 0 .7vmin var(--gold), 0 1vmin 0 rgba(0, 0, 0, .2); }
 .mz-level.next { animation: pulse 1s ease-in-out infinite; box-shadow: 0 0 0 .8vmin #ff5a8a, 0 1vmin 0 rgba(0, 0, 0, .2); }
 .mz-level.locked { background: rgba(255, 255, 255, .35); box-shadow: none; }
-.mz-level.locked .mz-level-n { font-size: .7em; opacity: .7; }
-.mz-level-tag { position: absolute; right: -8%; bottom: -8%; font-size: .5em; line-height: 1; }
+.mz-level.locked .mz-level-n { font-size: .34em; opacity: .7; }
+.mz-level-tag { position: absolute; right: -8%; bottom: -8%; font-size: .26em; line-height: 1; }
 .mz-level.locked .mz-level-tag { opacity: .6; }
 .mz-level:active { translate: 0 .6vmin; }
 
@@ -1848,6 +1852,40 @@ button {
 .mz-thing.taken { animation: mz-taken .5s ease-out forwards; }
 .mz-thing.open { animation: mz-open .5s ease-in forwards; }
 .mz-thing.beaten { animation: mz-beaten .6s ease-in forwards; }
+/* Botón de color (se pisa) y su muro del mismo color (baja al pisar el botón) */
+.mz-thing.mz-gate {
+  width: calc(100% / var(--cols) * .92);
+  height: calc(100% / var(--rows) * .92);
+  border-radius: 12%;
+  background:
+    linear-gradient(var(--d) 0 0) 0 33% / 100% 6% no-repeat,
+    linear-gradient(var(--d) 0 0) 0 66% / 100% 6% no-repeat,
+    linear-gradient(var(--d) 0 0) 50% 0 / 6% 33% no-repeat,
+    linear-gradient(var(--d) 0 0) 25% 50% / 6% 33% no-repeat,
+    linear-gradient(var(--d) 0 0) 75% 50% / 6% 33% no-repeat,
+    linear-gradient(var(--d) 0 0) 50% 100% / 6% 33% no-repeat,
+    var(--c);
+  box-shadow: inset 0 0 0 calc(100cqw / var(--cols) * .06) var(--d), 0 calc(100cqw / var(--cols) * .06) 0 rgba(0, 0, 0, .25);
+}
+.mz-thing.mz-gate.lowered { animation: mz-lower .6s ease-in forwards; transform-origin: 50% 100%; }
+.mz-thing.mz-button {
+  width: calc(100% / var(--cols) * .62);
+  height: calc(100% / var(--rows) * .62);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, .7) 0 12%, transparent 13%), var(--c);
+  box-shadow: 0 calc(100cqw / var(--cols) * .1) 0 var(--d), 0 0 0 calc(100cqw / var(--cols) * .05) #fff;
+  animation: pulse 1s ease-in-out infinite;
+  z-index: 0;
+  transition: box-shadow .15s, translate .15s, opacity .3s;
+}
+.mz-thing.mz-button.pressed {
+  animation: none;
+  translate: -50% calc(-50% + 100cqw / var(--cols) * .08);
+  box-shadow: 0 0 0 var(--d), 0 0 0 calc(100cqw / var(--cols) * .05) #fff;
+  opacity: .55;
+}
+@keyframes mz-lower { to { scale: 1 0; opacity: .2; } }
+
 .mz-hero {
   font-size: calc(100cqw / var(--cols) * .78);
   z-index: 2;
