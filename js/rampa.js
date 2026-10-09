@@ -4,18 +4,19 @@
   /*
    * Rampa de puntos (el "skee-ball" de los arcades): se tira la pelota arrastrando el dedo hacia
    * arriba, rueda por la pista, salta en la rampa y cae en un tablero inclinado lleno de canastas.
-   * 5 pelotas; con 10.000 puntos o más se gana (moneda y trofeos, como los otros juegos).
-   * Premios mayores: 30.000 o más da 5 monedas y 2 partidos; 50.000 (las 5 en las esquinas), 10 y 3.
+   * 5 pelotas; con 5.000 puntos o más se gana (moneda y trofeos, como los otros juegos).
+   * Premios mayores: 15.000 o más (el premio grande) da 5 monedas y 2 partidos; 50.000 (las 5 en
+   * las esquinas), 10 y 3.
    *
-   * El dedo decide dos cosas:
-   *   - la fuerza (qué tan rápido se arrastra): qué tan arriba cae la pelota en el tablero.
-   *     Muy flojito no sube la rampa (0 puntos); demasiado fuerte pega en el fondo y va a la canaleta.
+   * El dedo decide dos cosas, sin apuro (no importa la velocidad):
+   *   - el largo del arrastre: qué tan arriba cae la pelota en el tablero. Corto, cae abajo (aro
+   *     grande); largo, cae arriba (copitas). Siempre llega al tablero y nunca se pasa.
    *   - la dirección: hacia qué costado va.
    * El tablero es como el de las máquinas clásicas: abajo, tres aros uno adentro del otro (el
    * grande vale 1.000, el del medio 2.000 y la copita de adentro 3.000); arriba de ellos, las copitas
    * de 4.000 y 5.000; y en las dos esquinas de arriba, las de 10.000. La pelota vale lo del aro más
    * chico en el que cae. Si cae arriba de todo y fuera de las copitas, rueda tablero abajo: entra en
-   * la copita que tenga debajo o, si no, rodea el aro grande hasta la canaleta (1.000).
+   * la copita que tenga debajo o, si no, rodea el aro grande hasta la canaleta (500).
    *
    * Todo se dibuja en 3D con perspectiva, visto desde atrás de la pelota (como el bowling); la
    * cámara acompaña a la pelota y termina cerca del tablero.
@@ -33,11 +34,11 @@
   const wait = BQ.sport.wait;
 
   const BALLS = 5;
-  const TO_WIN = 10000;
+  const TO_WIN = 5000;
   // Premios según el total (de mayor a menor): monedas y partidos para los trofeos
   const PRIZES = [
     { from: 50000, coins: 10, wins: 3, title: '¡Increíble!' },
-    { from: 30000, coins: 5, wins: 2, title: '¡Campeón!' },
+    { from: 15000, coins: 5, wins: 2, title: '¡Premio grande!' },
     { from: TO_WIN, coins: 1, wins: 1 },
   ];
 
@@ -71,9 +72,9 @@
     { a: 0, b: 0.7, r: 0.41, points: 2000, color: '#66bb6a', dark: '#2a7a30', drain: { a: 0, b: 0.42, r: 0.07 } },
   ];
   const WALL = 0.05; // grosor de la pared de los aros
-  const GUTTER = 1000; // la canaleta de abajo: lo que vale no embocar ninguna canasta
-  const WEAK = 0.1; // con menos fuerza que esto, la pelota no sube la rampa
-  const TOO_STRONG = 1.04; // con más que esto, pega en el fondo
+  const GUTTER = 500; // la canaleta de abajo: lo que vale no caer en ningún aro ni copita
+  // Largo del arrastre (en altos de pantalla): con MIN cae abajo de todo; con MAX, arriba de todo
+  const DRAG = { min: 0.1, max: 0.55 };
   const THEME = { sky1: '#1a0f3c', sky2: '#4a2a8a', ground: '#12082b', decor: ['⭐', '🎟️', '✨', '🎉', '🏆'] };
 
   let S = null;
@@ -627,11 +628,8 @@
         return;
       }
       setTimeout(() => s.tctx.clearRect(0, 0, s.W, s.H), 500);
-      // Fuerza: velocidad del dedo en el último tramo, en "pantallas por segundo"
-      const last = pts.find((p) => end.t - p.t <= 220) || first;
-      const dt = Math.max(16, end.t - last.t);
-      const speed = ((last.y - end.y) / dt) * 1000 / s.H;
-      const power = clamp((speed - 0.35) / 3, 0, 1.2);
+      // Fuerza: el LARGO del arrastre (no la velocidad): de 0 (cortito) a 1 (largo)
+      const power = clamp((-dy / s.H - DRAG.min) / (DRAG.max - DRAG.min), 0, 1);
       // Dirección: cuánto se va de costado (1 = hasta el borde del tablero).
       // Con una ayudita: hay que desviarse bastante para irse del medio.
       const side = clamp((dx / -dy) * 1.45, -1.1, 1.1);
@@ -642,17 +640,15 @@
   }
 
   /*
-   * Qué pasa con el tiro: side = costado (-1 a 1), power = fuerza (0 a 1,2).
+   * Qué pasa con el tiro: side = costado (-1 a 1), power = fuerza (0 a 1, según el largo del arrastre).
    * Devuelve dónde cae en el tablero (a, b), los puntos, y por dónde rueda hasta desaparecer:
    *   cup = copita donde entra · ring = aro grande en el que queda (va a su agujero) ·
    *   via = puntos del tablero por los que pasa rodando antes · direct = cayó justo adentro
    */
   function plan(side, power) {
     const a = clamp(side, -0.93, 0.93) * (BOARD_W - 0.07);
-    if (power < WEAK) return { weak: true, a, b: 0, points: 0 };
-    if (power > TOO_STRONG) return { over: true, a, b: BOARD_H, points: GUTTER };
-    // Más fuerza, más arriba
-    const b = clamp(0.12 + (power - WEAK) * 2.02, 0.08, BOARD_H - 0.08);
+    // Más fuerza, más arriba: de adentro del aro grande (abajo) hasta el borde de arriba del tablero
+    const b = lerp(0.3, BOARD_H - 0.07, clamp(power, 0, 1));
     const dist = (o) => Math.hypot(a - o.a, b - o.b);
     const sideOf = a >= 0 ? 1 : -1;
     // Cae dentro de una copita: entra directo
@@ -713,48 +709,30 @@
     sfx.notes([[150, 0, 0.6, 'sawtooth', 0.04]]); // la pelota rodando
     const laneX = (shot.a / BOARD_W) * 0.3; // en la pista se va apenas de costado
 
-    if (shot.weak) {
-      // No llega a subir la rampa: frena y vuelve rodando
-      s.camTarget = 0.25;
-      await fly(s, { x: laneX, z: LANE - RAMP * 0.7, alt: BALL_R + 0.04 }, 1100);
-      s.camTarget = 0;
-      await fly(s, { x: laneX * 1.3, z: -1.8, alt: BALL_R, alpha: 0 }, 1300);
-    } else {
-      // Rueda por la pista (la cámara la sigue), sube el lomo y salta al tablero
-      s.camTarget = 1;
-      await fly(s, { x: laneX * 0.8, z: LANE - RAMP }, 620);
-      await fly(s, { x: laneX, z: LANE, alt: RAMP_H + BALL_R, ground: RAMP_H }, 170);
-      sfx.whee();
-      if (shot.over) {
-        // Demasiado fuerte: pega en el fondo de la máquina y cae a la canaleta
-        const back = board(shot.a, BOARD_H, CAGE * 0.6);
-        await fly(s, { x: back.x, alt: back.alt, z: back.z, ground: BOARD_ALT + BOARD_H * SIN }, 520, 0.5);
-        sfx.notes([[140, 0, 0.12, 'square', 0.12]]);
-        const low = onBoard(shot.a * 0.6, -0.12);
-        await fly(s, { ...low, k: 0.9 }, 700, 0.25);
-        await fly(s, { alt: low.alt - 0.3, alpha: 0 }, 200);
-      } else {
-        const land = onBoard(shot.a, shot.b);
-        await fly(s, land, 430 + shot.b * 130, 0.55 + shot.b * 0.18);
-        sfx.notes([[200, 0, 0.07, 'square', 0.1]]);
-        // Rueda por donde le toca (ver plan) hasta la copita, el agujero del aro o la canaleta
-        s.inside = RINGS.filter((ring) => Math.hypot(shot.a - ring.a, shot.b - ring.b) <= ring.r - WALL);
-        const target = shot.cup || (shot.ring && shot.ring.drain) || { a: (shot.a >= 0 ? 1 : -1) * (BOARD_W - 0.12), b: -0.12 };
-        if (!shot.direct) sfx.notes([[150, 0, 0.35, 'sawtooth', 0.03]]);
-        let at = { a: shot.a, b: shot.b };
-        for (const stop of [...shot.via, target]) {
-          const d = Math.hypot(stop.a - at.a, stop.b - at.b);
-          await fly(s, onBoard(stop.a, stop.b), shot.direct ? 150 : 140 + d * 620);
-          at = stop;
-        }
-        // Cae adentro: baja y queda tapada por el borde de adelante
-        s.sink = shot.cup || null;
-        s.lit = shot.cup || shot.ring || null;
-        const drop = board(target.a, target.b, -0.16);
-        await fly(s, { x: drop.x, alt: drop.alt, z: drop.z, k: 0.75, alpha: shot.cup ? 0.25 : 0 }, 240);
-        s.ball.alpha = 0;
-      }
+    // Rueda por la pista (la cámara la sigue), sube el lomo y salta al tablero
+    s.camTarget = 1;
+    await fly(s, { x: laneX * 0.8, z: LANE - RAMP }, 620);
+    await fly(s, { x: laneX, z: LANE, alt: RAMP_H + BALL_R, ground: RAMP_H }, 170);
+    sfx.whee();
+    const land = onBoard(shot.a, shot.b);
+    await fly(s, land, 430 + shot.b * 130, 0.55 + shot.b * 0.18);
+    sfx.notes([[200, 0, 0.07, 'square', 0.1]]);
+    // Rueda por donde le toca (ver plan) hasta la copita, el agujero del aro o la canaleta
+    s.inside = RINGS.filter((ring) => Math.hypot(shot.a - ring.a, shot.b - ring.b) <= ring.r - WALL);
+    const target = shot.cup || (shot.ring && shot.ring.drain) || { a: (shot.a >= 0 ? 1 : -1) * (BOARD_W - 0.12), b: -0.12 };
+    if (!shot.direct) sfx.notes([[150, 0, 0.35, 'sawtooth', 0.03]]);
+    let at = { a: shot.a, b: shot.b };
+    for (const stop of [...shot.via, target]) {
+      const d = Math.hypot(stop.a - at.a, stop.b - at.b);
+      await fly(s, onBoard(stop.a, stop.b), shot.direct ? 150 : 140 + d * 620);
+      at = stop;
     }
+    // Cae adentro: baja y queda tapada por el borde de adelante
+    s.sink = shot.cup || null;
+    s.lit = shot.cup || shot.ring || null;
+    const drop = board(target.a, target.b, -0.16);
+    await fly(s, { x: drop.x, alt: drop.alt, z: drop.z, k: 0.75, alpha: shot.cup ? 0.25 : 0 }, 240);
+    s.ball.alpha = 0;
     if (!alive(s)) return;
     await afterShot(s, shot);
   }
@@ -766,17 +744,13 @@
     void s.total.offsetWidth;
     if (shot.points) s.total.parentElement.classList.add('bump');
     const big = shot.points >= 5000;
-    BQ.sport.flash(s.flash, shot.points ? '+' + fmt(shot.points) : '¡UY!', shot.points >= 3000 ? 'goal' : 'saved');
+    BQ.sport.flash(s.flash, '+' + fmt(shot.points), shot.points >= 2000 ? 'goal' : 'saved');
     if (big) {
       sfx.cheer();
       sfx.win();
       ui().burst(s.court);
-    } else if (shot.points) sfx.coin();
-    else sfx.aww();
-    const say = shot.weak ? '¡Más fuerte!'
-      : shot.over ? '¡Muy fuerte!'
-        : shot.points >= 10000 ? '¡Diez mil! ¡Increíble!'
-          : `¡${shot.points}!`;
+    } else sfx.coin();
+    const say = shot.points >= 10000 ? '¡Diez mil! ¡Increíble!' : `¡${shot.points}!`;
     await Promise.all([voice.say(say), wait(1500)]);
     if (!alive(s)) return;
 
