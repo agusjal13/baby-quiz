@@ -89,13 +89,13 @@
     }
     s.m = Math.min(s.W, s.H * 0.72); // medida base: todo se dibuja en proporción
     s.ballR = s.m * 0.09;
-    s.rim = s.m * 0.155; // medio ancho del aro
-    s.hoopY = s.H * 0.3;
+    s.rim = s.m * 0.112; // medio ancho del aro (el aro está lejos: se ve chico)
+    s.hoopY = s.H * 0.25;
     s.startY = s.H * 0.84;
     if (s.ball && !s.flying) Object.assign(s.ball, home(s));
   }
 
-  const hoopX = (s) => s.W / 2 + s.hoopPos * Math.min(s.W * 0.27, s.m * 0.5);
+  const hoopX = (s) => s.W / 2 + s.hoopPos * Math.min(s.W * 0.3, s.m * 0.55);
   const home = (s) => ({ x: s.W / 2, y: s.startY, k: 1, spin: 0, alpha: 1 });
 
   function draw(s) {
@@ -122,8 +122,8 @@
     g.stroke();
 
     // Poste y tablero
-    const bw = m * 0.56;
-    const bh = m * 0.36;
+    const bw = m * 0.41;
+    const bh = m * 0.265;
     const top = hy - bh * 0.78;
     g.fillStyle = '#78909c';
     g.fillRect(hx - m * 0.02, top + bh, m * 0.04, floorY - top - bh);
@@ -135,21 +135,21 @@
     g.stroke();
     g.strokeStyle = '#e53935';
     g.lineWidth = m * 0.012;
-    g.strokeRect(hx - m * 0.1, hy - m * 0.17, m * 0.2, m * 0.14);
+    g.strokeRect(hx - m * 0.073, hy - m * 0.125, m * 0.146, m * 0.1);
 
     // Aro: mitad de atrás, pelota (si está detrás), mitad de adelante y red
     const shake = Math.sin(performance.now() / 28) * s.rimShake * m * 0.012;
     const ry = s.rim * 0.3;
     const cy = hy + shake;
     g.strokeStyle = '#d84315';
-    g.lineWidth = m * 0.022;
+    g.lineWidth = m * 0.017;
     g.beginPath();
     g.ellipse(hx, cy, s.rim, ry, 0, Math.PI, Math.PI * 2);
     g.stroke();
     if (!s.front) drawBall(s);
     // Red: se mueve cuando entra la pelota
     const sway = Math.sin(performance.now() / 70) * s.netSwing * m * 0.03;
-    const netH = m * 0.17;
+    const netH = m * 0.125;
     g.strokeStyle = 'rgba(255,255,255,.95)';
     g.lineWidth = m * 0.008;
     g.beginPath();
@@ -166,7 +166,7 @@
     }
     g.stroke();
     g.strokeStyle = '#ff5722';
-    g.lineWidth = m * 0.026;
+    g.lineWidth = m * 0.02;
     g.beginPath();
     g.ellipse(hx, cy, s.rim, ry, 0, 0, Math.PI);
     g.stroke();
@@ -324,7 +324,7 @@
       const power = clamp((speed - 0.4) / 3, 0, 1.3);
       // Puntería: adónde apunta el arrastre a la altura del aro (con una ayudita hacia el aro)
       const sx = s.W / 2 + dx * ((s.hoopY - s.startY) / dy);
-      const off = (sx - hoopX(s)) * 0.8;
+      const off = (sx - hoopX(s)) * 0.7;
       shoot(s, plan(s, off, power));
     };
     box.addEventListener('pointerup', release);
@@ -380,7 +380,7 @@
     const hy = s.hoopY;
     const rise = s.startY - hy;
     const floor = s.H * 0.9;
-    const K = 0.76; // tamaño de la pelota a la altura del aro
+    const K = 0.56; // tamaño de la pelota a la altura del aro
     const bounce = () => sfx.notes([[180, 0, 0.08, 'square', 0.1]]);
 
     if (result === 'short') {
@@ -391,7 +391,7 @@
     } else if (result === 'long') {
       // Se pasa: pega arriba en el tablero y vuelve
       s.front = false;
-      await fly(s, { x: hx + off, y: hy - s.m * 0.2, k: K }, 800, rise * 0.62);
+      await fly(s, { x: hx + off, y: hy - s.m * 0.14, k: K }, 800, rise * 0.62);
       bounce();
       s.rimShake = 1;
       s.front = true;
@@ -420,7 +420,7 @@
         // Adentro: baja por la red
         s.netSwing = 1;
         sfx.noise(0.25, 'highpass', 2500, 0.25, 0.01);
-        await fly(s, { x: hx, y: hy + s.m * 0.2 }, 260);
+        await fly(s, { x: hx, y: hy + s.m * 0.15 }, 260);
         await fly(s, { y: floor, k: 0.62, alpha: 0 }, 520);
       }
     }

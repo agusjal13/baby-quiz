@@ -131,6 +131,14 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
   puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
+## Buscá a tu personaje
+
+- Botón 🔎 Buscar en el mapa. Como "¿Dónde está Wally?": la pantalla se llena de personajes y hay que tocar
+  al propio (está uno solo, con la ropa que tenga puesta). Cada escena es al azar: el lugar (plaza, playa,
+  nieve, fiesta, granja), cuánta gente hay (de 14 a 46: `CROWDS`) y dónde está. No se pierde: tocar a otro
+  solo lo sacude, y si tarda mucho el personaje se mueve un poquito para ayudar.
+- Cada 3 encontrados es un partido ganado: 1 moneda y 1 partido para los trofeos. Código en `js/buscar.js`.
+
 ## Básquet
 
 - Botón 🏀 Básquet en el mapa. 5 tiros al aro arrastrando el dedo: la dirección del arrastre es adonde va la
@@ -156,7 +164,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Trofeos
 
-- Cada partido ganado (penales, tiros libres, partidito, pool, bowling, piedra papel o tijera o tiro al blanco) da **1 moneda** y suma para los **40 trofeos**
+- Cada partido ganado (penales, tiros libres, básquet, hockey, partidito, pool, bowling, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
   (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
