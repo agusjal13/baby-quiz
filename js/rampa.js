@@ -5,6 +5,7 @@
    * Rampa de puntos (el "skee-ball" de los arcades): se tira la pelota arrastrando el dedo hacia
    * arriba, sube por la pista, salta en la rampa y cae en un tablero lleno de huecos con puntos.
    * 5 pelotas; con 10.000 puntos o más se gana (moneda y trofeos, como los otros juegos).
+   * Premios mayores: 30.000 o más da 5 monedas y 2 partidos; 50.000 (las 5 en las esquinas), 10 y 3.
    *
    * El dedo decide dos cosas:
    *   - la fuerza (qué tan rápido se arrastra): qué tan arriba cae la pelota en el tablero.
@@ -27,6 +28,12 @@
 
   const BALLS = 5;
   const TO_WIN = 10000;
+  // Premios según el total (de mayor a menor): monedas y partidos para los trofeos
+  const PRIZES = [
+    { from: 50000, coins: 10, wins: 3, title: '¡Increíble!' },
+    { from: 30000, coins: 5, wins: 2, title: '¡Campeón!' },
+    { from: TO_WIN, coins: 1, wins: 1 },
+  ];
   // Huecos: dónde están, qué tan grandes son (r, en medios anchos del tablero) y cuánto valen
   const HOLES = [
     { u: 0, v: 0.2, r: 0.2, points: 1000, color: '#42a5f5' },
@@ -444,20 +451,25 @@
   }
 
   function finish(s) {
-    const won = s.score >= TO_WIN;
+    const prize = PRIZES.find((p) => s.score >= p.from) || null;
+    const won = !!prize;
     s.flash.hidden = true;
     s.ready = false;
     BQ.sport.result({
       screen: s.screen,
       won,
+      coins: prize ? prize.coins : 0,
+      wins: prize ? prize.wins : 0,
+      title: prize ? prize.title : undefined,
       detail: h('div', { class: 'mt-final' }, h('span', { class: 'emoji' }, '⭐'), ' ' + fmt(s.score)),
       onAgain: startGame,
-      winSay: `¡Ganaste! ¡Hiciste ${s.score} puntos! ¡Te ganaste una moneda!`,
+      winSay: !prize || prize.coins === 1 ? `¡Ganaste! ¡Hiciste ${s.score} puntos! ¡Te ganaste una moneda!`
+        : `¡Hiciste ${s.score} puntos! ¡Premio grande: te ganaste ${prize.coins} monedas!`,
       loseSay: `¡Casi! Hiciste ${s.score} puntos y necesitás ${TO_WIN}. ¡Jugá otra vez!`,
       isAlive: () => alive(s),
     });
   }
 
   // state y plan: para revisar los tiros desde la consola
-  BQ.rampa = { open, state: () => S, plan, holes: HOLES };
+  BQ.rampa = { open, state: () => S, plan, holes: HOLES, prizes: PRIZES, finish: () => finish(S) };
 })(window.BQ);

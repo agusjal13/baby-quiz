@@ -140,7 +140,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   dirección, hacia qué costado. Huecos por el medio, de abajo hacia arriba: 1.000, 2.000, 3.000, 4.000 y 5.000;
   en las dos esquinas de arriba, 10.000. Si no emboca ninguno rueda a la canaleta de abajo (1.000); si el tiro
   es muy flojito no sube la rampa (0).
-- 5 pelotas; con 10.000 puntos o más gana (1 moneda y 1 partido para los trofeos). Los huecos y sus puntos
+- 5 pelotas; con 10.000 puntos o más gana (1 moneda y 1 partido para los trofeos). Premios mayores (`PRIZES`):
+  30.000 o más da 5 monedas y 2 partidos; 50.000 (las 5 en las esquinas), 10 monedas y 3 partidos. Los huecos y sus puntos
   están en `HOLES` de `js/rampa.js`.
 
 ## Tatetí (con fichas que se mueven)
