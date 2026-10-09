@@ -108,7 +108,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Botón ⚽💨 Tiros libres en el mapa. 5 tiros con barrera y arquero (personaje rival); se patea arrastrando
   el dedo hacia el arco: la dirección del arrastre es adonde va, la velocidad es la potencia (flojito pega en
   la barrera, rapidísimo se va por arriba) y si el arrastre es curvo la pelota dobla (comba).
-  Gana con 3 goles; los 5 es resultado perfecto. Código en `js/libres.js`.
+  Gana con 3 goles; los 5 es resultado perfecto. Se patea con la pelota que esté puesta en la tienda
+  (la del futbolista, si el personaje elegido no usa pelota). Código en `js/libres.js`.
 
 ## Laberintos
 

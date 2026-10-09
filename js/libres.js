@@ -78,6 +78,7 @@
       ball: { x: 0, y: BALL_R, z: 0, spin: 0 },
       wallX: 0, keeperX: 0, keeperHome: 0, keeperDive: null, wallJump: 0,
       kick: 0, goals: 0, ready: false, drag: null, flying: false, shownHint: false, t0: performance.now(),
+      ballImg: shopBall(mine),
     };
     S = s;
     resize(s);
@@ -89,6 +90,19 @@
 
     sfx.whistle();
     voice.say('¡Pateá al arco con el dedo!').then(() => { if (alive(s)) ready(s); });
+  }
+
+  // La pelota elegida en la tienda (la que tiene puesta el personaje; si no tiene lugar para pelota,
+  // la que tenga puesta el futbolista). Devuelve su dibujo como imagen, o null para la clásica.
+  function shopBall(charId) {
+    const worn = (id) => BQ.wardrobe.wornItems(id).find((it) => it.slot === 'ball' && it.art);
+    const item = worn(charId) || worn('futbolista');
+    const art = item && BQ.wardrobe.ART[item.art];
+    if (typeof art !== 'string') return null;
+    const img = new Image();
+    // Para usarlo como imagen suelta, el SVG necesita su espacio de nombres y un tamaño
+    img.src = 'data:image/svg+xml,' + encodeURIComponent(art.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" '));
+    return img;
   }
 
   // ---------- Vista ----------
@@ -223,10 +237,16 @@
     g.beginPath();
     g.ellipse(sh.x, sh.y, r * 1.1, r * 0.35, 0, 0, Math.PI * 2);
     g.fill();
-    // Pelota con gajos que giran
+    // Pelota que gira: la de la tienda si hay una puesta; si no, la clásica con gajos
     g.save();
     g.translate(c.x, c.y);
     g.rotate(b.spin);
+    const img = s.ballImg;
+    if (img && img.complete && img.naturalWidth) {
+      g.drawImage(img, -r, -r, r * 2, r * 2);
+      g.restore();
+      return;
+    }
     g.fillStyle = '#fff';
     g.beginPath();
     g.arc(0, 0, r, 0, Math.PI * 2);
