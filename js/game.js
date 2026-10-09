@@ -249,6 +249,7 @@
       h('button', { class: 'game-pill partido', onpointerdown: tap(() => BQ.partido.open()) }, h('span', { class: 'emoji' }, '⚽'), ' Partidito'),
       h('button', { class: 'game-pill pool', onpointerdown: tap(() => BQ.pool.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Pool'),
       h('button', { class: 'game-pill bowling', onpointerdown: tap(() => BQ.bowling.open()) }, h('span', { class: 'emoji' }, '🎳'), ' Bowling'),
+      h('button', { class: 'game-pill rampa', onpointerdown: tap(() => BQ.rampa.open()) }, h('span', { class: 'emoji' }, '🎟️'), ' Rampa'),
       h('button', { class: 'game-pill ppt', 'aria-label': 'Piedra, papel o tijera', onpointerdown: tap(() => BQ.ppt.open()) }, h('span', { class: 'emoji' }, '✊✋✌️')),
       h('button', { class: 'game-pill tateti', onpointerdown: tap(() => BQ.tateti.open()) }, h('span', { class: 'emoji' }, '⭕'), ' Tatetí'),
       h('button', { class: 'game-pill tiro', onpointerdown: tap(() => BQ.tiro.open()) }, h('span', { class: 'emoji' }, '🎯'), ' Tiro al blanco'),

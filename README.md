@@ -133,6 +133,16 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
   puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
+## Rampa de puntos (skee-ball)
+
+- Botón 🎟️ Rampa en el mapa. Como en los arcades: se tira la pelota arrastrando el dedo hacia arriba, sube
+  por la pista, salta en la rampa y cae en un tablero de huecos. La fuerza decide qué tan arriba cae y la
+  dirección, hacia qué costado. Huecos por el medio, de abajo hacia arriba: 1.000, 2.000, 3.000, 4.000 y 5.000;
+  en las dos esquinas de arriba, 10.000. Si no emboca ninguno rueda a la canaleta de abajo (1.000); si el tiro
+  es muy flojito no sube la rampa (0).
+- 5 pelotas; con 10.000 puntos o más gana (1 moneda y 1 partido para los trofeos). Los huecos y sus puntos
+  están en `HOLES` de `js/rampa.js`.
+
 ## Tatetí (con fichas que se mueven)
 
 - Botón ⭕ Tatetí en el mapa. Cada jugador tiene 3 fichas (con la cara de su personaje): primero se ponen de a
@@ -175,7 +185,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Trofeos
 
-- Cada partido ganado (penales, tiros libres, básquet, hockey, tatetí, partidito, pool, bowling, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
+- Cada partido ganado (penales, tiros libres, básquet, hockey, tatetí, partidito, pool, bowling, rampa, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
   (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
