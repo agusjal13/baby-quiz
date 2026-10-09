@@ -3,19 +3,23 @@
 
   /*
    * Rampa de puntos (el "skee-ball" de los arcades): se tira la pelota arrastrando el dedo hacia
-   * arriba, sube por la pista, salta en la rampa y cae en un tablero lleno de huecos con puntos.
+   * arriba, rueda por la pista, salta en la rampa y cae en un tablero inclinado lleno de canastas.
    * 5 pelotas; con 10.000 puntos o más se gana (moneda y trofeos, como los otros juegos).
    * Premios mayores: 30.000 o más da 5 monedas y 2 partidos; 50.000 (las 5 en las esquinas), 10 y 3.
    *
    * El dedo decide dos cosas:
    *   - la fuerza (qué tan rápido se arrastra): qué tan arriba cae la pelota en el tablero.
-   *     Muy flojito no llega a subir la rampa (0 puntos).
+   *     Muy flojito no sube la rampa (0 puntos); demasiado fuerte pega en el fondo y va a la canaleta.
    *   - la dirección: hacia qué costado va.
-   * Huecos: en fila por el medio, de abajo hacia arriba, 1.000, 2.000, 3.000, 4.000 y 5.000; y en las
-   * dos esquinas de arriba, 10.000. Si la pelota no cae en un hueco, rueda hasta la canaleta de abajo
-   * de todo, que vale 1.000.
+   * Canastas: en fila por el medio, de abajo hacia arriba, 1.000, 2.000, 3.000, 4.000 y 5.000; y en
+   * las dos esquinas de arriba, 10.000. Si la pelota no cae dentro de una canasta rueda tablero
+   * abajo: se mete en la primera canasta que tenga debajo o, si no hay, en la canaleta (1.000).
    *
-   * Posiciones en el tablero: u de -1 (borde izquierdo) a 1 (derecho); v de 0 (abajo) a 1 (arriba).
+   * Todo se dibuja en 3D con perspectiva, visto desde atrás de la pelota (como el bowling); la
+   * cámara acompaña a la pelota y termina cerca del tablero.
+   * Medidas en "anchos de pista": x de costado (0 = medio), alt = altura, z = profundidad (la
+   * pelota sale de z = 0 y la pista termina en LANE). En el tablero se usan (a, b): a = de costado,
+   * b = distancia subiendo por el tablero desde su borde de abajo.
    */
 
   const U = BQ.util;
@@ -34,19 +38,37 @@
     { from: 30000, coins: 5, wins: 2, title: '¡Campeón!' },
     { from: TO_WIN, coins: 1, wins: 1 },
   ];
-  // Huecos: dónde están, qué tan grandes son (r, en medios anchos del tablero) y cuánto valen
+
+  // --- La máquina ---
+  const LANE = 6; // largo de la pista
+  const RAMP = 0.75; // largo del lomo final
+  const RAMP_H = 0.24; // alto del lomo
+  const RAIL = 0.13; // alto de las barandas
+  const BALL_R = 0.11;
+  const BOARD_W = 0.68; // medio ancho del tablero
+  const BOARD_H = 2.05; // largo del tablero (subiendo)
+  const TILT = (52 * Math.PI) / 180; // inclinación del tablero
+  const SIN = Math.sin(TILT);
+  const COS = Math.cos(TILT);
+  const BOARD_Z = LANE + 0.42; // dónde arranca el tablero
+  const BOARD_ALT = 0.1;
+  const LIP = 0.085; // alto del borde de las canastas
+  const CAGE = 0.6; // alto de la jaula de los costados
+
+  // Canastas: posición en el tablero (a, b), radio y puntos
   const HOLES = [
-    { u: 0, v: 0.2, r: 0.2, points: 1000, color: '#42a5f5' },
-    { u: 0, v: 0.37, r: 0.17, points: 2000, color: '#66bb6a' },
-    { u: 0, v: 0.53, r: 0.16, points: 3000, color: '#ffca28' },
-    { u: 0, v: 0.68, r: 0.15, points: 4000, color: '#ff8a65' },
-    { u: 0, v: 0.83, r: 0.15, points: 5000, color: '#ef5350' },
-    { u: -0.72, v: 0.9, r: 0.17, points: 10000, color: '#ab47bc' },
-    { u: 0.72, v: 0.9, r: 0.17, points: 10000, color: '#ab47bc' },
+    { a: 0, b: 0.38, r: 0.2, points: 1000, color: '#29b6f6', dark: '#0b6fa3' },
+    { a: 0, b: 0.8, r: 0.17, points: 2000, color: '#66bb6a', dark: '#2a7a30' },
+    { a: 0, b: 1.15, r: 0.15, points: 3000, color: '#ffca28', dark: '#b88600' },
+    { a: 0, b: 1.45, r: 0.135, points: 4000, color: '#ff8a50', dark: '#b84e1c' },
+    { a: 0, b: 1.73, r: 0.125, points: 5000, color: '#ef5350', dark: '#a02725' },
+    { a: -0.51, b: 1.72, r: 0.12, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
+    { a: 0.51, b: 1.72, r: 0.12, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
   ];
-  const GUTTER = 1000; // la canaleta de abajo: lo que vale no embocar ningún hueco
+  const GUTTER = 1000; // la canaleta de abajo: lo que vale no embocar ninguna canasta
   const WEAK = 0.1; // con menos fuerza que esto, la pelota no sube la rampa
-  const THEME = { sky1: '#1a237e', sky2: '#5c6bc0', ground: '#0d1452', decor: ['⭐', '🎟️', '✨', '🎉', '🏆'] };
+  const TOO_STRONG = 1.04; // con más que esto, pega en el fondo
+  const THEME = { sky1: '#1a0f3c', sky2: '#4a2a8a', ground: '#12082b', decor: ['⭐', '🎟️', '✨', '🎉', '🏆'] };
 
   let S = null;
   const alive = (s) => S === s && s.screen.isConnected;
@@ -81,21 +103,23 @@
 
     const s = {
       screen, court, canvas, ctx: canvas.getContext('2d'), trail, tctx: trail.getContext('2d'), hero, hand, flash, total, left,
-      thrown: 0, score: 0, ready: false, flying: false, drag: null, shownHint: false, ball: null, lit: null, onBoard: false,
+      thrown: 0, score: 0, ready: false, flying: false, drag: null, shownHint: false,
+      ball: homeBall(), cam: 0, camTarget: 0, lit: null, sink: null,
     };
     S = s;
     resize(s);
     const ro = new ResizeObserver(() => { if (alive(s)) resize(s); else ro.disconnect(); });
     ro.observe(court);
     listen(s);
-    s.ball = home(s);
     loop(s);
 
     sfx.whistle();
     voice.say(`¡Tirá la pelota! Sumá ${fmt(TO_WIN)} puntos.`).then(() => { if (alive(s)) ready(s); });
   }
 
-  // ---------- Pantalla ----------
+  const homeBall = () => ({ x: 0, alt: BALL_R, z: 0, k: 1, spin: 0, alpha: 1, ground: 0 });
+
+  // ---------- Cámara y perspectiva ----------
 
   function resize(s) {
     const r = s.court.getBoundingClientRect();
@@ -107,140 +131,347 @@
       c.height = Math.round(s.H * dpr);
       c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    // Tablero arriba (más angosto arriba: está inclinado hacia atrás) y pista abajo
-    s.bw = Math.min(s.W * 0.86, s.H * 0.62); // ancho del tablero abajo
-    s.bTop = s.H * 0.05;
-    s.bBottom = s.H * 0.5;
-    s.startY = s.H * 0.87;
-    s.ballR = s.bw * 0.075;
-    if (s.ball && !s.flying) Object.assign(s.ball, home(s));
+    // Lente: la pelota queda abajo al empezar, y el tablero entra a lo ancho cuando la cámara se acerca
+    s.F = Math.min(s.H * 0.9, s.W * 1.55);
+    s.horizon = s.H * 0.3;
   }
 
-  const home = (s) => ({ x: s.W / 2, y: s.startY, k: 1, spin: 0, alpha: 1 });
-
-  // Punto del tablero (u, v) en la pantalla; "w" es el medio ancho del tablero a esa altura
-  function boardPoint(s, u, v) {
-    const w = (s.bw / 2) * lerp(1, 0.84, v);
-    return { x: s.W / 2 + u * w, y: lerp(s.bBottom, s.bTop, v), w };
+  // La cámara va de lejos (0: detrás de la pelota) a cerca (1: frente al tablero)
+  function camera(s) {
+    const e = s.cam * s.cam * (3 - 2 * s.cam); // suave al arrancar y al frenar
+    return { z: lerp(-2.25, LANE - 2.35, e), h: lerp(1.3, 1.8, e) };
   }
+
+  function proj(s, x, alt, z) {
+    const c = s.camNow;
+    const dz = Math.max(0.32, z - c.z); // lo que queda detrás de la cámara se aplasta en el borde
+    const k = s.F / dz;
+    return { x: s.W / 2 + x * k, y: s.horizon + (c.h - alt) * k, k };
+  }
+
+  // Punto del tablero (a, b), levantado "lift" hacia afuera, en el mundo
+  const board = (a, b, lift = 0) => ({ x: a, alt: BOARD_ALT + b * SIN + lift * COS, z: BOARD_Z + b * COS - lift * SIN });
+  const projBoard = (s, a, b, lift) => { const p = board(a, b, lift); return proj(s, p.x, p.alt, p.z); };
+
+  function poly(s, pts, fill, stroke, width) {
+    const g = s.ctx;
+    g.beginPath();
+    pts.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)));
+    g.closePath();
+    if (fill) {
+      g.fillStyle = fill;
+      g.fill();
+    }
+    if (stroke) {
+      g.strokeStyle = stroke;
+      g.lineWidth = width || 1;
+      g.lineJoin = 'round';
+      g.stroke();
+    }
+  }
+
+  // ---------- Dibujo ----------
 
   function draw(s) {
     const g = s.ctx;
     const { W, H } = s;
-    const cx = W / 2;
+    s.camNow = camera(s);
+    const near = s.camNow.z + 0.34;
     g.clearRect(0, 0, W, H);
-    g.fillStyle = '#283593';
-    g.fillRect(0, 0, W, H);
 
-    // Pista: tabla de madera que se angosta hacia la rampa
-    const lw0 = s.bw * 0.5; // medio ancho abajo
-    const lw1 = s.bw * 0.36; // medio ancho en la rampa
-    const rampY = s.bBottom + H * 0.045;
-    const wood = g.createLinearGradient(0, rampY, 0, H);
-    wood.addColorStop(0, '#b9783f');
-    wood.addColorStop(1, '#e0a565');
-    g.fillStyle = wood;
-    g.beginPath();
-    g.moveTo(cx - lw1, rampY);
-    g.lineTo(cx + lw1, rampY);
-    g.lineTo(cx + lw0, H);
-    g.lineTo(cx - lw0, H);
-    g.closePath();
-    g.fill();
-    g.strokeStyle = 'rgba(0,0,0,.12)';
-    g.lineWidth = 2;
-    for (const t of [-0.5, 0, 0.5]) {
+    // Salón de juegos: pared oscura con luces desenfocadas
+    const wall = g.createLinearGradient(0, 0, 0, H);
+    wall.addColorStop(0, '#1b0f3d');
+    wall.addColorStop(0.55, '#3b1f7a');
+    wall.addColorStop(1, '#150a30');
+    g.fillStyle = wall;
+    g.fillRect(0, 0, W, H);
+    const lights = ['#ff5a8a', '#ffd23f', '#4dd0e1', '#b388ff', '#69f0ae'];
+    for (let i = 0; i < 16; i++) {
+      g.fillStyle = lights[i % lights.length];
+      g.globalAlpha = 0.16 + 0.1 * Math.sin(performance.now() / 500 + i * 1.7);
       g.beginPath();
-      g.moveTo(cx + t * lw1, rampY);
-      g.lineTo(cx + t * lw0, H);
+      g.arc((((i * 137) % 100) / 100) * W, (((i * 53) % 34) / 100) * H, Math.max(6, H * (0.012 + (i % 4) * 0.008)), 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+
+    drawLane(s, near);
+    drawBoard(s);
+    // Canastas de atrás para adelante
+    HOLES.slice().sort((p, q) => q.b - p.b).forEach((hole) => drawCup(s, hole, 'all'));
+    drawCage(s);
+    drawBall(s);
+    // La pelota que cae adentro queda tapada por el borde de adelante de su canasta
+    if (s.sink) drawCup(s, s.sink, 'front');
+  }
+
+  // Altura del lomo de la rampa en z (0 antes de que empiece)
+  const rampAt = (z) => {
+    const t = clamp((z - (LANE - RAMP)) / RAMP, 0, 1);
+    return RAMP_H * t * t * (3 - 2 * t);
+  };
+
+  function drawLane(s, near) {
+    const g = s.ctx;
+    const z0 = Math.max(-1.6, near);
+    const zR = LANE - RAMP;
+    // Costados de la máquina (por fuera de las barandas)
+    for (const sd of [-1, 1]) {
+      poly(s, [proj(s, sd * 0.62, RAIL, z0), proj(s, sd * 0.62, RAIL + RAMP_H, LANE), proj(s, sd * 0.62, -0.9, LANE), proj(s, sd * 0.62, -0.9, z0)], '#2a1660');
+    }
+    // Tabla de madera
+    const a = proj(s, -0.5, 0, z0);
+    const b = proj(s, 0.5, 0, z0);
+    const c = proj(s, 0.5, 0, zR);
+    const d = proj(s, -0.5, 0, zR);
+    const wood = g.createLinearGradient(0, d.y, 0, a.y);
+    wood.addColorStop(0, '#a8672f');
+    wood.addColorStop(1, '#e6b06e');
+    poly(s, [a, b, c, d], wood);
+    g.strokeStyle = 'rgba(80,40,10,.22)';
+    for (const x of [-0.25, 0, 0.25]) {
+      const p = proj(s, x, 0, z0);
+      const q = proj(s, x, 0, zR);
+      g.lineWidth = Math.max(1, q.k * 0.012);
+      g.beginPath();
+      g.moveTo(p.x, p.y);
+      g.lineTo(q.x, q.y);
       g.stroke();
     }
-    // Rampa: el lomo donde salta la pelota
-    g.fillStyle = '#8d5524';
-    g.beginPath();
-    g.ellipse(cx, rampY, lw1 * 1.02, H * 0.02, 0, 0, Math.PI * 2);
-    g.fill();
-    g.fillStyle = '#ffd54f';
-    g.beginPath();
-    g.ellipse(cx, rampY - H * 0.006, lw1 * 0.96, H * 0.012, 0, Math.PI, 0);
-    g.fill();
+    // Brillo de la pista encerada
+    poly(s, [proj(s, -0.1, 0, z0), proj(s, 0.12, 0, z0), proj(s, 0.06, 0, zR), proj(s, -0.05, 0, zR)], 'rgba(255,255,255,.1)');
 
-    // Tablero de huecos
-    const b0 = boardPoint(s, 0, 0);
-    const b1 = boardPoint(s, 0, 1);
-    g.fillStyle = '#0d1452';
-    g.strokeStyle = '#ffd54f';
-    g.lineWidth = Math.max(3, s.bw * 0.018);
-    g.beginPath();
-    g.moveTo(cx - b0.w * 1.04, b0.y);
-    g.lineTo(cx + b0.w * 1.04, b0.y);
-    g.lineTo(cx + b1.w * 1.04, b1.y);
-    g.lineTo(cx - b1.w * 1.04, b1.y);
-    g.closePath();
-    g.fill();
-    g.stroke();
-    // Canaleta de abajo (vale lo mínimo)
-    g.fillStyle = '#060a33';
-    g.fillRect(cx - b0.w * 0.98, b0.y - H * 0.03, b0.w * 1.96, H * 0.024);
-    g.fillStyle = 'rgba(255,255,255,.75)';
-    g.font = `900 ${Math.max(9, s.bw * 0.04)}px Arial, sans-serif`;
+    // Lomo de la rampa: sube en curva; cada tramo un poco más claro (le da la luz)
+    const N = 7;
+    for (let i = 0; i < N; i++) {
+      const zA = zR + (i / N) * RAMP;
+      const zB = zR + ((i + 1) / N) * RAMP;
+      const v = 150 + i * 13;
+      poly(s, [proj(s, -0.5, rampAt(zA), zA), proj(s, 0.5, rampAt(zA), zA), proj(s, 0.5, rampAt(zB), zB), proj(s, -0.5, rampAt(zB), zB)],
+        `rgb(${Math.min(255, v + 62)}, ${Math.round(v * 0.8 + 28)}, ${Math.round(v * 0.42)})`);
+    }
+    // Filo de la rampa: franja amarilla
+    poly(s, [proj(s, -0.5, rampAt(LANE - 0.07), LANE - 0.07), proj(s, 0.5, rampAt(LANE - 0.07), LANE - 0.07), proj(s, 0.5, RAMP_H, LANE), proj(s, -0.5, RAMP_H, LANE)], '#ffd54f');
+
+    // Barandas con relieve: cara de adentro (oscura) y cara de arriba (clara)
+    const zs = [z0, zR, zR + RAMP * 0.35, zR + RAMP * 0.7, LANE];
+    for (const sd of [-1, 1]) {
+      for (let i = 0; i < zs.length - 1; i++) {
+        const zA = zs[i];
+        const zB = zs[i + 1];
+        poly(s, [proj(s, sd * 0.5, rampAt(zA), zA), proj(s, sd * 0.5, rampAt(zB), zB), proj(s, sd * 0.5, rampAt(zB) + RAIL, zB), proj(s, sd * 0.5, rampAt(zA) + RAIL, zA)], '#5b3a9e');
+        poly(s, [proj(s, sd * 0.5, rampAt(zA) + RAIL, zA), proj(s, sd * 0.5, rampAt(zB) + RAIL, zB), proj(s, sd * 0.62, rampAt(zB) + RAIL, zB), proj(s, sd * 0.62, rampAt(zA) + RAIL, zA)], '#9f84dd');
+      }
+    }
+  }
+
+  function drawBoard(s) {
+    const g = s.ctx;
+    // Hueco entre la rampa y el tablero, y canaleta donde caen las que no embocan
+    poly(s, [proj(s, -0.62, RAMP_H, LANE), proj(s, 0.62, RAMP_H, LANE), projBoard(s, BOARD_W, -0.3), projBoard(s, -BOARD_W, -0.3)], '#0a0520');
+    poly(s, [projBoard(s, -BOARD_W, -0.3), projBoard(s, BOARD_W, -0.3), projBoard(s, BOARD_W, 0.02), projBoard(s, -BOARD_W, 0.02)], '#12082b');
+
+    // Tablero inclinado: paño azul con marco dorado
+    const p0 = projBoard(s, -BOARD_W, 0);
+    const p1 = projBoard(s, BOARD_W, 0);
+    const p2 = projBoard(s, BOARD_W, BOARD_H);
+    const p3 = projBoard(s, -BOARD_W, BOARD_H);
+    const felt = g.createLinearGradient(0, p3.y, 0, p0.y);
+    felt.addColorStop(0, '#16307e');
+    felt.addColorStop(1, '#2a4fc4');
+    poly(s, [p0, p1, p2, p3], felt, '#ffd54f', Math.max(2, p0.k * 0.035));
+    // Arcos de guía pintados en el paño
+    g.strokeStyle = 'rgba(255,255,255,.16)';
+    g.lineWidth = Math.max(1, p0.k * 0.012);
+    for (const bb of [0.62, 1.0, 1.32, 1.6]) {
+      g.beginPath();
+      for (let i = 0; i <= 16; i++) {
+        const t = i / 16;
+        const q = projBoard(s, lerp(-BOARD_W * 0.92, BOARD_W * 0.92, t), bb - Math.sin(t * Math.PI) * 0.12);
+        if (i) g.lineTo(q.x, q.y); else g.moveTo(q.x, q.y);
+      }
+      g.stroke();
+    }
+    // Lo que vale la canaleta
+    const lab = projBoard(s, 0, -0.14);
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    g.font = `900 ${Math.max(8, lab.k * 0.13)}px Arial, sans-serif`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(fmt(GUTTER), cx - b0.w * 0.72, b0.y - H * 0.018);
-    g.fillText(fmt(GUTTER), cx + b0.w * 0.72, b0.y - H * 0.018);
+    g.fillText(fmt(GUTTER), projBoard(s, -BOARD_W * 0.6, -0.14).x, lab.y);
+    g.fillText(fmt(GUTTER), projBoard(s, BOARD_W * 0.6, -0.14).x, lab.y);
 
-    for (const hole of HOLES) {
-      const p = boardPoint(s, hole.u, hole.v);
-      const r = hole.r * p.w;
-      const lit = s.lit === hole;
-      // Aro de color que rodea el hueco, y el hueco
-      g.fillStyle = lit ? '#fff59d' : hole.color;
+    // Fondo de la máquina (detrás del tablero) y cartel con luces
+    const t0 = projBoard(s, -BOARD_W, BOARD_H);
+    const t1 = projBoard(s, BOARD_W, BOARD_H);
+    const t2 = projBoard(s, BOARD_W, BOARD_H, CAGE);
+    const t3 = projBoard(s, -BOARD_W, BOARD_H, CAGE);
+    poly(s, [t0, t1, t2, t3], '#24124f', '#ffd54f', Math.max(2, t0.k * 0.03));
+    const signH = t0.k * 0.42;
+    const sx = t3.x;
+    const sw = t2.x - t3.x;
+    const sy = Math.min(t2.y, t3.y) - signH;
+    g.fillStyle = '#d81b60';
+    g.fillRect(sx, sy, sw, signH);
+    g.strokeStyle = '#ffd54f';
+    g.lineWidth = Math.max(2, t0.k * 0.025);
+    g.strokeRect(sx, sy, sw, signH);
+    g.fillStyle = '#fff';
+    g.font = `900 ${signH * 0.5}px Arial, sans-serif`;
+    g.fillText('★ RAMPA ★', sx + sw / 2, sy + signH * 0.54);
+    const now = performance.now();
+    for (let i = 0; i <= 10; i++) {
+      g.fillStyle = (Math.floor(now / 260) + i) % 2 ? '#fff59d' : '#ff8a65';
       g.beginPath();
-      g.ellipse(p.x, p.y, r, r * 0.86, 0, 0, Math.PI * 2);
+      g.arc(sx + (sw * i) / 10, sy, Math.max(2, signH * 0.09), 0, Math.PI * 2);
       g.fill();
-      g.fillStyle = '#05072a';
-      g.beginPath();
-      g.ellipse(p.x, p.y, r * 0.7, r * 0.6, 0, 0, Math.PI * 2);
-      g.fill();
-      g.fillStyle = lit ? '#fff59d' : '#fff';
-      g.font = `900 ${Math.max(9, r * (hole.points >= 10000 ? 0.42 : 0.5))}px Arial, sans-serif`;
-      g.fillText(fmt(hole.points), p.x, p.y);
     }
-    drawBall(s);
+  }
+
+  // Jaula de red a los costados del tablero
+  function drawCage(s) {
+    const g = s.ctx;
+    for (const sd of [-1, 1]) {
+      const a = projBoard(s, sd * BOARD_W, 0);
+      const b = projBoard(s, sd * BOARD_W, BOARD_H);
+      const c = projBoard(s, sd * BOARD_W, BOARD_H, CAGE);
+      const d = projBoard(s, sd * BOARD_W, 0, CAGE);
+      poly(s, [a, b, c, d], 'rgba(255,255,255,.07)', 'rgba(255,213,79,.9)', Math.max(1.5, a.k * 0.02));
+      g.strokeStyle = 'rgba(255,255,255,.22)';
+      g.lineWidth = 1;
+      g.beginPath();
+      for (let i = 1; i < 8; i++) {
+        const p = projBoard(s, sd * BOARD_W, (BOARD_H * i) / 8);
+        const q = projBoard(s, sd * BOARD_W, (BOARD_H * i) / 8, CAGE);
+        g.moveTo(p.x, p.y);
+        g.lineTo(q.x, q.y);
+      }
+      for (let i = 1; i < 3; i++) {
+        const p = projBoard(s, sd * BOARD_W, 0, (CAGE * i) / 3);
+        const q = projBoard(s, sd * BOARD_W, BOARD_H, (CAGE * i) / 3);
+        g.moveTo(p.x, p.y);
+        g.lineTo(q.x, q.y);
+      }
+      g.stroke();
+    }
+  }
+
+  /*
+   * Una canasta: un aro levantado del tablero. Se dibuja la pared de afuera, el hueco con su pared
+   * de adentro (se ve la del fondo: da la profundidad) y el borde de arriba con brillo.
+   * part = 'front' dibuja solo la mitad de adelante (para tapar la pelota que cae adentro).
+   */
+  function drawCup(s, hole, part) {
+    const g = s.ctx;
+    const N = 30;
+    const ring = (r, lift) => Array.from({ length: N }, (_, i) => {
+      const t = (i / N) * Math.PI * 2;
+      return projBoard(s, hole.a + Math.cos(t) * r, hole.b + Math.sin(t) * r, lift);
+    });
+    const rIn = hole.r * 0.74;
+    const outerBase = ring(hole.r, 0);
+    const outerTop = ring(hole.r, LIP);
+    const innerTop = ring(rIn, LIP);
+    const lit = s.lit === hole;
+    const top = lit ? '#fff59d' : hole.color;
+    // La mitad de adelante (la más cercana) es la de b más chico: del punto N/2 al N
+    const from = part === 'front' ? N / 2 : 0;
+
+    if (part === 'all') {
+      // Sombra de la canasta sobre el paño
+      poly(s, ring(hole.r * 1.08, 0).map((p) => ({ x: p.x + p.k * 0.02, y: p.y + p.k * 0.035 })), 'rgba(0,0,0,.3)');
+    }
+    // Pared de afuera, entre el aro de abajo y el de arriba
+    for (let i = from; i < N; i++) {
+      const j = (i + 1) % N;
+      poly(s, [outerBase[i], outerBase[j], outerTop[j], outerTop[i]], hole.dark, hole.dark, 0.6);
+    }
+    if (part === 'all') {
+      // Hueco: la pared de adentro (se ve la del fondo) y, más abajo, el fondo negro
+      g.save();
+      g.beginPath();
+      innerTop.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)));
+      g.closePath();
+      g.clip();
+      const c = projBoard(s, hole.a, hole.b, LIP);
+      const R = hole.r * c.k;
+      const inside = g.createLinearGradient(0, c.y - R, 0, c.y + R);
+      inside.addColorStop(0, hole.dark);
+      inside.addColorStop(0.7, '#000');
+      g.fillStyle = inside;
+      g.fillRect(c.x - R * 1.5, c.y - R * 1.5, R * 3, R * 3);
+      poly(s, ring(rIn, -0.07), '#04030f');
+      g.restore();
+    }
+    // Borde de arriba: corona entre el aro de afuera y el de adentro
+    for (let i = from; i < N; i++) {
+      const j = (i + 1) % N;
+      poly(s, [outerTop[i], outerTop[j], innerTop[j], innerTop[i]], top, top, 0.6);
+    }
+    if (part !== 'all') return;
+    // Brillo en el borde, del lado del fondo
+    g.strokeStyle = 'rgba(255,255,255,.8)';
+    g.lineWidth = Math.max(1, outerTop[0].k * 0.013);
+    g.lineCap = 'round';
+    g.beginPath();
+    for (let i = 3; i <= N / 2 - 3; i++) {
+      const t = (i / N) * Math.PI * 2;
+      const p = projBoard(s, hole.a + Math.cos(t) * hole.r * 0.88, hole.b + Math.sin(t) * hole.r * 0.88, LIP);
+      if (i === 3) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y);
+    }
+    g.stroke();
+    // Los puntos, pintados en el paño al lado (o arriba, en las esquinas)
+    const corner = hole.a !== 0;
+    const lp = corner ? projBoard(s, hole.a, hole.b + hole.r + 0.11) : projBoard(s, hole.r + 0.17, hole.b - 0.02);
+    g.fillStyle = lit ? '#fff59d' : '#fff';
+    g.font = `900 ${Math.max(8, lp.k * (corner ? 0.1 : 0.105))}px Arial, sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(fmt(hole.points), lp.x, lp.y);
   }
 
   function drawBall(s) {
     const b = s.ball;
     if (!b || b.alpha <= 0) return;
     const g = s.ctx;
-    const r = s.ballR * b.k;
+    const p = proj(s, b.x, b.alt, b.z);
+    const r = BALL_R * p.k * b.k;
     g.save();
     g.globalAlpha = b.alpha;
-    g.fillStyle = 'rgba(0,0,0,.25)';
+    // Sombra en el piso (o en el tablero) debajo de la pelota
+    const sh = proj(s, b.x, b.ground, b.z);
+    g.fillStyle = 'rgba(0,0,0,.3)';
     g.beginPath();
-    g.ellipse(b.x + r * 0.15, b.y + r * (0.9 + (b.lift || 0)), r * 0.9, r * 0.3, 0, 0, Math.PI * 2);
+    g.ellipse(sh.x, sh.y + r * 0.1, r * 0.95, r * 0.32, 0, 0, Math.PI * 2);
     g.fill();
-    g.translate(b.x, b.y);
-    g.rotate(b.spin);
-    const grad = g.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
-    grad.addColorStop(0, '#fff3e0');
-    grad.addColorStop(1, '#d7a86e');
+    g.translate(p.x, p.y);
+    const grad = g.createRadialGradient(-r * 0.35, -r * 0.4, r * 0.08, 0, 0, r);
+    grad.addColorStop(0, '#fff8e8');
+    grad.addColorStop(0.55, '#e2b780');
+    grad.addColorStop(1, '#9a6a36');
     g.fillStyle = grad;
-    g.strokeStyle = '#6d4c2f';
-    g.lineWidth = Math.max(1.5, r * 0.09);
     g.beginPath();
     g.arc(0, 0, r, 0, Math.PI * 2);
     g.fill();
+    g.strokeStyle = '#5d3c1b';
+    g.lineWidth = Math.max(1, r * 0.07);
     g.stroke();
-    g.strokeStyle = 'rgba(109,76,47,.55)';
+    // Vetas que giran: se nota que rueda
+    g.rotate(b.spin);
+    g.strokeStyle = 'rgba(93,60,27,.5)';
     g.beginPath();
-    g.arc(0, 0, r * 0.55, 0.3, 2.2);
+    g.arc(0, 0, r * 0.6, 0.2, 2.1);
+    g.stroke();
+    g.beginPath();
+    g.arc(0, 0, r * 0.6, 3.4, 5.2);
     g.stroke();
     g.restore();
   }
 
   function loop(s) {
     if (!alive(s)) return;
+    s.cam += (s.camTarget - s.cam) * 0.07;
     draw(s);
     setTimeout(() => loop(s), 16);
   }
@@ -248,23 +479,26 @@
   // ---------- Cada pelota ----------
 
   function ready(s) {
-    s.ball = home(s);
+    s.ball = homeBall();
     s.lit = null;
+    s.sink = null;
+    s.camTarget = 0;
     s.flash.hidden = true;
     s.ready = true;
     [...s.left.children].forEach((b, i) => b.classList.toggle('used', i < s.thrown));
     if (!s.shownHint) {
       s.shownHint = true;
-      showHint(s);
+      setTimeout(() => { if (alive(s) && s.ready) showHint(s); }, 500);
     }
   }
 
   function showHint(s) {
     stopHint(s);
+    const p = proj(s, 0, BALL_R, 0);
     s.hand.hidden = false;
-    s.hand.style.left = s.W / 2 + 'px';
-    s.hand.style.top = s.startY + 'px';
-    const up = -(s.startY - s.bBottom) * 0.8;
+    s.hand.style.left = p.x + 'px';
+    s.hand.style.top = p.y + 'px';
+    const up = -s.H * 0.36;
     s.handAnim = s.hand.animate([
       { transform: 'translate(0, 0)', opacity: 0 },
       { transform: 'translate(0, 0)', opacity: 1, offset: 0.2 },
@@ -337,32 +571,35 @@
       const dt = Math.max(16, end.t - last.t);
       const speed = ((last.y - end.y) / dt) * 1000 / s.H;
       const power = clamp((speed - 0.35) / 3, 0, 1.2);
-      // Dirección: cuánto se va de costado (1 = hasta el borde del tablero)
-      // (con una ayudita: hay que desviarse bastante para irse del medio)
-      const side = clamp((dx / -dy) * 1.7, -1.1, 1.1);
+      // Dirección: cuánto se va de costado (1 = hasta el borde del tablero).
+      // Con una ayudita: hay que desviarse bastante para irse del medio.
+      const side = clamp((dx / -dy) * 1.45, -1.1, 1.1);
       shoot(s, plan(side, power));
     };
     box.addEventListener('pointerup', release);
     box.addEventListener('pointercancel', release);
   }
 
-  // Dónde cae y qué hueco emboca: side = costado (-1 a 1), power = fuerza (0 a 1,2)
+  /*
+   * Qué pasa con el tiro: side = costado (-1 a 1), power = fuerza (0 a 1,2).
+   * Devuelve dónde cae en el tablero (a, b), en qué canasta termina (o null = canaleta), si entra
+   * directo o rodando, y los puntos.
+   */
   function plan(side, power) {
-    if (power < WEAK) return { weak: true, u: side * 0.5, v: 0, hole: null, points: 0 };
-    // Más fuerza, más arriba: con fuerza "normal" cae por el medio del tablero
-    const v = clamp(0.12 + (power - WEAK) * 0.95, 0.08, 0.99);
-    const u = clamp(side, -0.95, 0.95);
-    // Emboca el hueco más cercano si cae dentro de su aro
-    let best = null;
-    for (const hole of HOLES) {
-      // (distancias en medios anchos; el tablero es más alto que ancho: v pesa un poco más)
-      const d = Math.hypot(u - hole.u, (v - hole.v) * 1.15);
-      if (d <= hole.r && (!best || d < best.d)) best = { hole, d };
-    }
-    return { weak: false, u, v, hole: best ? best.hole : null, points: best ? best.hole.points : GUTTER };
+    const a = clamp(side, -0.93, 0.93) * (BOARD_W - 0.07);
+    if (power < WEAK) return { weak: true, a, b: 0, hole: null, points: 0 };
+    if (power > TOO_STRONG) return { over: true, a, b: BOARD_H, hole: null, points: GUTTER };
+    // Más fuerza, más arriba
+    const b = clamp(0.12 + (power - WEAK) * 2.02, 0.08, BOARD_H - 0.08);
+    // Cae dentro de una canasta: entra directo
+    const direct = HOLES.find((hole) => Math.hypot(a - hole.a, b - hole.b) <= hole.r * 0.95);
+    if (direct) return { a, b, hole: direct, direct: true, points: direct.points };
+    // Si no, rueda tablero abajo y se mete en la primera canasta que tenga debajo
+    const below = HOLES.filter((hole) => hole.b < b && Math.abs(a - hole.a) <= hole.r * 1.15).sort((p, q) => q.b - p.b)[0] || null;
+    return { a, b, hole: below, direct: false, points: below ? below.points : GUTTER };
   }
 
-  // Mueve la pelota hasta "to" en "ms" con un salto de alto "arc" (px)
+  // Mueve la pelota hasta "to" en "ms"; "arc" la levanta en el medio del recorrido (salto)
   function fly(s, to, ms, arc) {
     const from = { ...s.ball };
     const start = performance.now();
@@ -371,13 +608,9 @@
         if (!alive(s)) return done();
         const t = Math.min(1, (performance.now() - start) / ms);
         const b = s.ball;
-        const up = (arc || 0) * 4 * t * (1 - t);
-        b.x = lerp(from.x, to.x ?? from.x, t);
-        b.y = lerp(from.y, to.y ?? from.y, t) - up;
-        b.lift = up / (s.ballR * b.k || 1); // la sombra se separa cuando salta
-        b.k = lerp(from.k, to.k ?? from.k, t);
-        b.alpha = lerp(from.alpha, to.alpha ?? from.alpha, t);
-        b.spin += 0.25;
+        for (const key of ['x', 'z', 'k', 'alpha', 'ground']) b[key] = lerp(from[key], to[key] ?? from[key], t);
+        b.alt = lerp(from.alt, to.alt ?? from.alt, t) + (arc || 0) * 4 * t * (1 - t);
+        b.spin += 0.3;
         if (t >= 1) return done();
         setTimeout(step, 16);
       };
@@ -386,6 +619,12 @@
     });
   }
 
+  // Punto donde apoya la pelota sobre el tablero en (a, b)
+  const onBoard = (a, b) => {
+    const p = board(a, b, BALL_R);
+    return { x: p.x, alt: p.alt, z: p.z, ground: board(a, b).alt };
+  };
+
   async function shoot(s, shot) {
     s.ready = false;
     s.flying = true;
@@ -393,32 +632,44 @@
     s.thrown++;
     [...s.left.children].forEach((b, i) => b.classList.toggle('used', i < s.thrown));
     BQ.puppet.use(s.hero.querySelector('.avatar'));
-    sfx.notes([[160, 0, 0.5, 'sawtooth', 0.04]]); // la pelota rodando
+    sfx.notes([[150, 0, 0.6, 'sawtooth', 0.04]]); // la pelota rodando
+    const laneX = (shot.a / BOARD_W) * 0.3; // en la pista se va apenas de costado
 
-    const rampY = s.bBottom + s.H * 0.045;
-    const rampX = s.W / 2 + shot.u * s.bw * 0.2;
     if (shot.weak) {
-      // No llega a subir la rampa: vuelve rodando
-      await fly(s, { x: rampX, y: rampY + s.H * 0.08, k: 0.75 }, 900);
-      await fly(s, { x: s.W / 2 + shot.u * s.bw * 0.3, y: s.H * 1.05, k: 1, alpha: 0 }, 900);
+      // No llega a subir la rampa: frena y vuelve rodando
+      s.camTarget = 0.25;
+      await fly(s, { x: laneX, z: LANE - RAMP * 0.7, alt: BALL_R + 0.04 }, 1100);
+      s.camTarget = 0;
+      await fly(s, { x: laneX * 1.3, z: -1.8, alt: BALL_R, alpha: 0 }, 1300);
     } else {
-      // Sube por la pista, salta en la rampa y cae en el tablero
-      await fly(s, { x: rampX, y: rampY, k: 0.7 }, 520);
+      // Rueda por la pista (la cámara la sigue), sube el lomo y salta al tablero
+      s.camTarget = 1;
+      await fly(s, { x: laneX * 0.8, z: LANE - RAMP }, 620);
+      await fly(s, { x: laneX, z: LANE, alt: RAMP_H + BALL_R, ground: RAMP_H }, 170);
       sfx.whee();
-      const land = boardPoint(s, shot.u, shot.v);
-      await fly(s, { x: land.x, y: land.y, k: 0.6 }, 420 + shot.v * 260, s.H * (0.06 + shot.v * 0.1));
-      sfx.notes([[200, 0, 0.07, 'square', 0.1]]);
-      if (shot.hole) {
-        // Cae en el hueco
-        const p = boardPoint(s, shot.hole.u, shot.hole.v);
-        s.lit = shot.hole;
-        await fly(s, { x: p.x, y: p.y, k: 0.5 }, 220);
-        await fly(s, { k: 0.2, alpha: 0 }, 260);
+      if (shot.over) {
+        // Demasiado fuerte: pega en el fondo de la máquina y cae a la canaleta
+        const back = board(shot.a, BOARD_H, CAGE * 0.6);
+        await fly(s, { x: back.x, alt: back.alt, z: back.z, ground: BOARD_ALT + BOARD_H * SIN }, 520, 0.5);
+        sfx.notes([[140, 0, 0.12, 'square', 0.12]]);
+        const low = onBoard(shot.a * 0.6, -0.12);
+        await fly(s, { ...low, k: 0.9 }, 700, 0.25);
+        await fly(s, { alt: low.alt - 0.3, alpha: 0 }, 200);
       } else {
-        // No embocó: rueda tablero abajo hasta la canaleta
-        const low = boardPoint(s, shot.u * 0.9, 0.03);
-        await fly(s, { x: low.x, y: low.y, k: 0.66 }, 500 + shot.v * 500);
-        await fly(s, { k: 0.3, alpha: 0 }, 220);
+        const land = onBoard(shot.a, shot.b);
+        await fly(s, land, 430 + shot.b * 130, 0.55 + shot.b * 0.18);
+        sfx.notes([[200, 0, 0.07, 'square', 0.1]]);
+        // Rueda tablero abajo hasta la canasta (o hasta la canaleta)
+        const end = shot.hole ? onBoard(shot.hole.a, shot.hole.b) : onBoard(shot.a * 0.9, -0.12);
+        const dist = Math.hypot(end.x - land.x, end.z - land.z) + Math.abs(end.alt - land.alt);
+        if (!shot.direct) sfx.notes([[150, 0, 0.3, 'sawtooth', 0.03]]);
+        await fly(s, end, shot.direct ? 160 : 260 + dist * 520);
+        // Cae adentro: baja y queda tapada por el borde de adelante
+        s.sink = shot.hole;
+        s.lit = shot.hole;
+        const drop = board(shot.hole ? shot.hole.a : shot.a * 0.9, shot.hole ? shot.hole.b : -0.12, -0.16);
+        await fly(s, { x: drop.x, alt: drop.alt, z: drop.z, k: 0.8, alpha: shot.hole ? 0.25 : 0 }, 240);
+        s.ball.alpha = 0;
       }
     }
     if (!alive(s)) return;
@@ -440,9 +691,10 @@
     } else if (shot.points) sfx.coin();
     else sfx.aww();
     const say = shot.weak ? '¡Más fuerte!'
-      : shot.points >= 10000 ? '¡Diez mil! ¡Increíble!'
-        : `¡${shot.points}!`;
-    await Promise.all([voice.say(say), wait(1300)]);
+      : shot.over ? '¡Muy fuerte!'
+        : shot.points >= 10000 ? '¡Diez mil! ¡Increíble!'
+          : `¡${shot.points}!`;
+    await Promise.all([voice.say(say), wait(1500)]);
     if (!alive(s)) return;
 
     s.flying = false;
@@ -470,6 +722,6 @@
     });
   }
 
-  // state y plan: para revisar los tiros desde la consola
+  // state, plan y finish: para revisar los tiros desde la consola
   BQ.rampa = { open, state: () => S, plan, holes: HOLES, prizes: PRIZES, finish: () => finish(S) };
 })(window.BQ);
