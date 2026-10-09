@@ -11,9 +11,11 @@
    *   - la fuerza (qué tan rápido se arrastra): qué tan arriba cae la pelota en el tablero.
    *     Muy flojito no sube la rampa (0 puntos); demasiado fuerte pega en el fondo y va a la canaleta.
    *   - la dirección: hacia qué costado va.
-   * Canastas: en fila por el medio, de abajo hacia arriba, 1.000, 2.000, 3.000, 4.000 y 5.000; y en
-   * las dos esquinas de arriba, 10.000. Si la pelota no cae dentro de una canasta rueda tablero
-   * abajo: se mete en la primera canasta que tenga debajo o, si no hay, en la canaleta (1.000).
+   * El tablero es como el de las máquinas clásicas: abajo, tres aros uno adentro del otro (el
+   * grande vale 1.000, el del medio 2.000 y la copita de adentro 3.000); arriba de ellos, las copitas
+   * de 4.000 y 5.000; y en las dos esquinas de arriba, las de 10.000. La pelota vale lo del aro más
+   * chico en el que cae. Si cae arriba de todo y fuera de las copitas, rueda tablero abajo: entra en
+   * la copita que tenga debajo o, si no, rodea el aro grande hasta la canaleta (1.000).
    *
    * Todo se dibuja en 3D con perspectiva, visto desde atrás de la pelota (como el bowling); la
    * cámara acompaña a la pelota y termina cerca del tablero.
@@ -55,16 +57,20 @@
   const LIP = 0.085; // alto del borde de las canastas
   const CAGE = 0.6; // alto de la jaula de los costados
 
-  // Canastas: posición en el tablero (a, b), radio y puntos
+  // Copitas (se emboca adentro): posición en el tablero (a, b), radio y puntos
   const HOLES = [
-    { a: 0, b: 0.38, r: 0.2, points: 1000, color: '#29b6f6', dark: '#0b6fa3' },
-    { a: 0, b: 0.8, r: 0.17, points: 2000, color: '#66bb6a', dark: '#2a7a30' },
-    { a: 0, b: 1.15, r: 0.15, points: 3000, color: '#ffca28', dark: '#b88600' },
-    { a: 0, b: 1.45, r: 0.135, points: 4000, color: '#ff8a50', dark: '#b84e1c' },
-    { a: 0, b: 1.73, r: 0.125, points: 5000, color: '#ef5350', dark: '#a02725' },
-    { a: -0.51, b: 1.72, r: 0.12, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
-    { a: 0.51, b: 1.72, r: 0.12, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
+    { a: 0, b: 0.78, r: 0.15, points: 3000, color: '#ffca28', dark: '#b88600' },
+    { a: 0, b: 1.45, r: 0.15, points: 4000, color: '#ff8a50', dark: '#b84e1c' },
+    { a: 0, b: 1.81, r: 0.135, points: 5000, color: '#ef5350', dark: '#a02725' },
+    { a: -0.5, b: 1.8, r: 0.13, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
+    { a: 0.5, b: 1.8, r: 0.13, points: 10000, color: '#ce6bdc', dark: '#7b2a88' },
   ];
+  // Aros grandes (paredes): lo que cae adentro rueda hasta su agujero ("drain"), abajo
+  const RINGS = [
+    { a: 0, b: 0.66, r: 0.6, points: 1000, color: '#29b6f6', dark: '#0b6fa3', drain: { a: 0, b: 0.2, r: 0.08 } },
+    { a: 0, b: 0.7, r: 0.41, points: 2000, color: '#66bb6a', dark: '#2a7a30', drain: { a: 0, b: 0.42, r: 0.07 } },
+  ];
+  const WALL = 0.05; // grosor de la pared de los aros
   const GUTTER = 1000; // la canaleta de abajo: lo que vale no embocar ninguna canasta
   const WEAK = 0.1; // con menos fuerza que esto, la pelota no sube la rampa
   const TOO_STRONG = 1.04; // con más que esto, pega en el fondo
@@ -104,7 +110,7 @@
     const s = {
       screen, court, canvas, ctx: canvas.getContext('2d'), trail, tctx: trail.getContext('2d'), hero, hand, flash, total, left,
       thrown: 0, score: 0, ready: false, flying: false, drag: null, shownHint: false,
-      ball: homeBall(), cam: 0, camTarget: 0, lit: null, sink: null,
+      ball: homeBall(), cam: 0, camTarget: 0, lit: null, sink: null, inside: null,
     };
     S = s;
     resize(s);
@@ -198,12 +204,24 @@
 
     drawLane(s, near);
     drawBoard(s);
-    // Canastas de atrás para adelante
-    HOLES.slice().sort((p, q) => q.b - p.b).forEach((hole) => drawCup(s, hole, 'all'));
+    // De atrás para adelante: copitas de arriba; después los aros (mitad del fondo), la copita del
+    // medio y las mitades de adelante de los aros, que tapan lo que tienen adentro
+    const [big, mid] = RINGS;
+    HOLES.filter((hole) => hole.b > 1).sort((p, q) => q.b - p.b).forEach((hole) => drawCup(s, hole, 'all'));
+    drawRing(s, big, 'back');
+    drawRing(s, mid, 'back');
+    drawCup(s, HOLES[0], 'all');
+    drawRing(s, mid, 'front');
+    drawRing(s, big, 'front');
     drawCage(s);
     drawBall(s);
-    // La pelota que cae adentro queda tapada por el borde de adelante de su canasta
+    // La pelota queda tapada por el borde de adelante de la copita donde cae, y por la pared de
+    // adelante de los aros cuando rueda adentro
     if (s.sink) drawCup(s, s.sink, 'front');
+    if (s.inside) {
+      if (s.inside.includes(mid)) drawRing(s, mid, 'front');
+      if (s.inside.includes(big)) drawRing(s, big, 'front');
+    }
   }
 
   // Altura del lomo de la rampa en z (0 antes de que empiece)
@@ -281,18 +299,6 @@
     felt.addColorStop(0, '#16307e');
     felt.addColorStop(1, '#2a4fc4');
     poly(s, [p0, p1, p2, p3], felt, '#ffd54f', Math.max(2, p0.k * 0.035));
-    // Arcos de guía pintados en el paño
-    g.strokeStyle = 'rgba(255,255,255,.16)';
-    g.lineWidth = Math.max(1, p0.k * 0.012);
-    for (const bb of [0.62, 1.0, 1.32, 1.6]) {
-      g.beginPath();
-      for (let i = 0; i <= 16; i++) {
-        const t = i / 16;
-        const q = projBoard(s, lerp(-BOARD_W * 0.92, BOARD_W * 0.92, t), bb - Math.sin(t * Math.PI) * 0.12);
-        if (i) g.lineTo(q.x, q.y); else g.moveTo(q.x, q.y);
-      }
-      g.stroke();
-    }
     // Lo que vale la canaleta
     const lab = projBoard(s, 0, -0.14);
     g.fillStyle = 'rgba(255,255,255,.8)';
@@ -421,14 +427,68 @@
       if (i === 3) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y);
     }
     g.stroke();
-    // Los puntos, pintados en el paño al lado (o arriba, en las esquinas)
+    // Los puntos, pintados en el paño: debajo de la copita, o al costado en las dos de arriba
     const corner = hole.a !== 0;
-    const lp = corner ? projBoard(s, hole.a, hole.b + hole.r + 0.11) : projBoard(s, hole.r + 0.17, hole.b - 0.02);
+    const lp = corner || hole === HOLES[0] ? projBoard(s, hole.a, hole.b - hole.r - 0.085)
+      : projBoard(s, hole.r + 0.14, hole.b - 0.02);
     g.fillStyle = lit ? '#fff59d' : '#fff';
-    g.font = `900 ${Math.max(8, lp.k * (corner ? 0.1 : 0.105))}px Arial, sans-serif`;
+    g.font = `900 ${Math.max(8, lp.k * 0.088)}px Arial, sans-serif`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText(fmt(hole.points), lp.x, lp.y);
+  }
+
+  /*
+   * Un aro grande: una pared redonda levantada del tablero, abierta adentro. Se dibuja en dos
+   * mitades para que tape bien: 'back' (la del fondo: se le ve la cara de adentro) y 'front' (la
+   * de adelante: se le ve la cara de afuera). Con 'back' van también su agujero y sus puntos.
+   */
+  function drawRing(s, ring, part) {
+    const g = s.ctx;
+    const N = 44;
+    const circle = (r, lift) => Array.from({ length: N + 1 }, (_, i) => {
+      const t = (i / N) * Math.PI * 2;
+      return projBoard(s, ring.a + Math.cos(t) * r, ring.b + Math.sin(t) * r, lift);
+    });
+    const outB = circle(ring.r, 0);
+    const outT = circle(ring.r, LIP);
+    const inB = circle(ring.r - WALL, 0);
+    const inT = circle(ring.r - WALL, LIP);
+    const lit = s.lit === ring;
+    const top = lit ? '#fff59d' : ring.color;
+    // Mitad del fondo: puntos 0 a N/2 (b más grande); mitad de adelante: N/2 a N
+    const from = part === 'back' ? 0 : N / 2;
+    const to = part === 'back' ? N / 2 : N;
+    if (part === 'back') {
+      // Sombra de la pared sobre el paño, agujero donde cae la pelota y los puntos
+      const d = ring.drain;
+      const hole = Array.from({ length: 20 }, (_, i) => projBoard(s, d.a + Math.cos((i / 20) * Math.PI * 2) * d.r, d.b + Math.sin((i / 20) * Math.PI * 2) * d.r));
+      poly(s, hole.map((p) => ({ x: p.x, y: p.y - p.k * 0.012 })), ring.dark);
+      poly(s, hole, '#04030f');
+      const lp = projBoard(s, ring.a, ring.b + ring.r - WALL - 0.055);
+      g.fillStyle = lit ? '#fff59d' : '#fff';
+      g.font = `900 ${Math.max(8, lp.k * 0.085)}px Arial, sans-serif`;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(fmt(ring.points), lp.x, lp.y);
+      // Cara de adentro de la pared del fondo
+      for (let i = from; i < to; i++) poly(s, [inB[i], inB[i + 1], inT[i + 1], inT[i]], ring.dark, ring.dark, 0.6);
+    } else {
+      // Sombra y cara de afuera de la pared de adelante
+      poly(s, [...outB.slice(from, to + 1), ...outB.slice(from, to + 1).reverse().map((p) => ({ x: p.x + p.k * 0.015, y: p.y + p.k * 0.04 }))], 'rgba(0,0,0,.25)');
+      for (let i = from; i < to; i++) poly(s, [outB[i], outB[i + 1], outT[i + 1], outT[i]], ring.dark, ring.dark, 0.6);
+    }
+    // Borde de arriba de la pared, con una línea de brillo
+    for (let i = from; i < to; i++) poly(s, [outT[i], outT[i + 1], inT[i + 1], inT[i]], top, top, 0.6);
+    g.strokeStyle = 'rgba(255,255,255,.7)';
+    g.lineWidth = Math.max(1, outT[0].k * 0.01);
+    g.beginPath();
+    for (let i = from + 2; i <= to - 2; i++) {
+      const t = (i / N) * Math.PI * 2;
+      const p = projBoard(s, ring.a + Math.cos(t) * (ring.r - WALL / 2), ring.b + Math.sin(t) * (ring.r - WALL / 2), LIP);
+      if (i === from + 2) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y);
+    }
+    g.stroke();
   }
 
   function drawBall(s) {
@@ -482,6 +542,7 @@
     s.ball = homeBall();
     s.lit = null;
     s.sink = null;
+    s.inside = null;
     s.camTarget = 0;
     s.flash.hidden = true;
     s.ready = true;
@@ -582,21 +643,38 @@
 
   /*
    * Qué pasa con el tiro: side = costado (-1 a 1), power = fuerza (0 a 1,2).
-   * Devuelve dónde cae en el tablero (a, b), en qué canasta termina (o null = canaleta), si entra
-   * directo o rodando, y los puntos.
+   * Devuelve dónde cae en el tablero (a, b), los puntos, y por dónde rueda hasta desaparecer:
+   *   cup = copita donde entra · ring = aro grande en el que queda (va a su agujero) ·
+   *   via = puntos del tablero por los que pasa rodando antes · direct = cayó justo adentro
    */
   function plan(side, power) {
     const a = clamp(side, -0.93, 0.93) * (BOARD_W - 0.07);
-    if (power < WEAK) return { weak: true, a, b: 0, hole: null, points: 0 };
-    if (power > TOO_STRONG) return { over: true, a, b: BOARD_H, hole: null, points: GUTTER };
+    if (power < WEAK) return { weak: true, a, b: 0, points: 0 };
+    if (power > TOO_STRONG) return { over: true, a, b: BOARD_H, points: GUTTER };
     // Más fuerza, más arriba
     const b = clamp(0.12 + (power - WEAK) * 2.02, 0.08, BOARD_H - 0.08);
-    // Cae dentro de una canasta: entra directo
-    const direct = HOLES.find((hole) => Math.hypot(a - hole.a, b - hole.b) <= hole.r * 0.95);
-    if (direct) return { a, b, hole: direct, direct: true, points: direct.points };
-    // Si no, rueda tablero abajo y se mete en la primera canasta que tenga debajo
-    const below = HOLES.filter((hole) => hole.b < b && Math.abs(a - hole.a) <= hole.r * 1.15).sort((p, q) => q.b - p.b)[0] || null;
-    return { a, b, hole: below, direct: false, points: below ? below.points : GUTTER };
+    const dist = (o) => Math.hypot(a - o.a, b - o.b);
+    const sideOf = a >= 0 ? 1 : -1;
+    // Cae dentro de una copita: entra directo
+    const cup = HOLES.find((hole) => dist(hole) <= hole.r);
+    if (cup) return { a, b, cup, direct: true, via: [], points: cup.points };
+    // Adentro de un aro grande (el más chico que la contenga): rueda hasta su agujero,
+    // esquivando lo que tenga en el medio
+    const [big, mid] = RINGS;
+    if (dist(mid) <= mid.r - WALL) {
+      const mini = HOLES[0];
+      const via = b > mini.b - 0.05 ? [{ a: sideOf * (mini.r + 0.085), b: mini.b - 0.06 }] : [];
+      return { a, b, ring: mid, via, points: mid.points };
+    }
+    if (dist(big) <= big.r - WALL) {
+      const via = b > mid.b - 0.1 ? [{ a: sideOf * (mid.r + 0.085), b: mid.b - 0.08 }] : [];
+      return { a, b, ring: big, via, points: big.points };
+    }
+    // Arriba de los aros: rueda tablero abajo. Entra en la copita que tenga debajo...
+    const below = HOLES.filter((hole) => hole.b < b && hole.b > 1 && Math.abs(a - hole.a) <= hole.r * 1.15).sort((p, q) => q.b - p.b)[0];
+    if (below) return { a, b, cup: below, direct: false, via: [], points: below.points };
+    // ...o rodea el aro grande por afuera hasta la canaleta
+    return { a, b, via: [{ a: sideOf * (BOARD_W - 0.06), b: Math.min(b, big.b + 0.1) }], points: GUTTER };
   }
 
   // Mueve la pelota hasta "to" en "ms"; "arc" la levanta en el medio del recorrido (salto)
@@ -659,16 +737,21 @@
         const land = onBoard(shot.a, shot.b);
         await fly(s, land, 430 + shot.b * 130, 0.55 + shot.b * 0.18);
         sfx.notes([[200, 0, 0.07, 'square', 0.1]]);
-        // Rueda tablero abajo hasta la canasta (o hasta la canaleta)
-        const end = shot.hole ? onBoard(shot.hole.a, shot.hole.b) : onBoard(shot.a * 0.9, -0.12);
-        const dist = Math.hypot(end.x - land.x, end.z - land.z) + Math.abs(end.alt - land.alt);
-        if (!shot.direct) sfx.notes([[150, 0, 0.3, 'sawtooth', 0.03]]);
-        await fly(s, end, shot.direct ? 160 : 260 + dist * 520);
+        // Rueda por donde le toca (ver plan) hasta la copita, el agujero del aro o la canaleta
+        s.inside = RINGS.filter((ring) => Math.hypot(shot.a - ring.a, shot.b - ring.b) <= ring.r - WALL);
+        const target = shot.cup || (shot.ring && shot.ring.drain) || { a: (shot.a >= 0 ? 1 : -1) * (BOARD_W - 0.12), b: -0.12 };
+        if (!shot.direct) sfx.notes([[150, 0, 0.35, 'sawtooth', 0.03]]);
+        let at = { a: shot.a, b: shot.b };
+        for (const stop of [...shot.via, target]) {
+          const d = Math.hypot(stop.a - at.a, stop.b - at.b);
+          await fly(s, onBoard(stop.a, stop.b), shot.direct ? 150 : 140 + d * 620);
+          at = stop;
+        }
         // Cae adentro: baja y queda tapada por el borde de adelante
-        s.sink = shot.hole;
-        s.lit = shot.hole;
-        const drop = board(shot.hole ? shot.hole.a : shot.a * 0.9, shot.hole ? shot.hole.b : -0.12, -0.16);
-        await fly(s, { x: drop.x, alt: drop.alt, z: drop.z, k: 0.8, alpha: shot.hole ? 0.25 : 0 }, 240);
+        s.sink = shot.cup || null;
+        s.lit = shot.cup || shot.ring || null;
+        const drop = board(target.a, target.b, -0.16);
+        await fly(s, { x: drop.x, alt: drop.alt, z: drop.z, k: 0.75, alpha: shot.cup ? 0.25 : 0 }, 240);
         s.ball.alpha = 0;
       }
     }
@@ -723,5 +806,5 @@
   }
 
   // state, plan y finish: para revisar los tiros desde la consola
-  BQ.rampa = { open, state: () => S, plan, holes: HOLES, prizes: PRIZES, finish: () => finish(S) };
+  BQ.rampa = { open, state: () => S, plan, holes: HOLES, rings: RINGS, prizes: PRIZES, finish: () => finish(S) };
 })(window.BQ);

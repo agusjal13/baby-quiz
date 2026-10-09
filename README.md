@@ -138,13 +138,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Botón 🎟️ Rampa en el mapa. Como en los arcades, en 3D visto desde atrás de la pelota (igual que el bowling):
   se tira arrastrando el dedo hacia arriba, la pelota rueda por la pista, salta en la rampa y cae en un tablero
   inclinado con canastas en relieve. La cámara la acompaña y termina cerca del tablero.
-- La fuerza decide qué tan arriba cae y la dirección, hacia qué costado. Canastas por el medio, de abajo hacia
-  arriba: 1.000, 2.000, 3.000, 4.000 y 5.000; en las dos esquinas de arriba, 10.000. Si no cae dentro de una
-  canasta rueda tablero abajo y se mete en la primera que tenga debajo o, si no hay, en la canaleta (1.000).
+- La fuerza decide qué tan arriba cae y la dirección, hacia qué costado. El tablero es el clásico: abajo, tres
+  aros uno adentro del otro (el grande 1.000, el del medio 2.000 y la copita de adentro 3.000); arriba, las
+  copitas de 4.000 y 5.000; en las dos esquinas de arriba, 10.000. La pelota vale lo del aro más chico en el
+  que cae y rueda hasta su agujero. Si cae arriba de todo y fuera de las copitas, rueda tablero abajo: entra
+  en la copita que tenga debajo o rodea el aro grande hasta la canaleta (1.000).
   Muy flojito no sube la rampa (0); demasiado fuerte pega en el fondo y va a la canaleta.
 - 5 pelotas; con 10.000 puntos o más gana (1 moneda y 1 partido para los trofeos). Premios mayores (`PRIZES`):
   30.000 o más da 5 monedas y 2 partidos; 50.000 (las 5 en las esquinas), 10 monedas y 3 partidos.
-- Las medidas de la máquina y las canastas (`HOLES`) están arriba de todo en `js/rampa.js`.
+- Las medidas de la máquina, las copitas (`HOLES`) y los aros (`RINGS`) están arriba de todo en `js/rampa.js`.
 
 ## Tatetí (con fichas que se mueven)
 
