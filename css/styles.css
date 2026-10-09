@@ -2019,37 +2019,54 @@ button {
 .mz-hero {
   font-size: calc(100cqw / var(--cols) * .78);
   z-index: 2;
-  transition: left .16s ease-out, top .16s ease-out;
 }
 .mz-hero.flip .avatar { transform: scaleX(-1); }
 .mz-board.won .mz-hero { z-index: 4; }
-.mz-pad {
+/* Palanca analógica: base redonda con cuatro flechitas y la perilla que sigue al dedo */
+.mz-stick {
+  position: relative;
   flex: none;
-  display: grid;
-  grid-template: "a up b" 1fr "left c right" 1fr "d down e" 1fr / 1fr 1fr 1fr;
-  gap: 1vmin;
   width: clamp(150px, 40vmin, 300px);
   aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .55) 0 58%, rgba(255, 255, 255, .9) 59% 100%);
+  box-shadow: 0 1.2vmin 0 rgba(0, 0, 0, .25), inset 0 0 0 1vmin rgba(69, 39, 160, .25);
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
 }
-@media (orientation: portrait) { .mz-pad { width: clamp(150px, min(58vw, 30vh), 300px); } }
-.mz-arrow {
-  border-radius: 26%;
-  background: #fff;
-  box-shadow: 0 1.1vmin 0 rgba(0, 0, 0, .25);
-  display: grid;
-  place-items: center;
-  font-size: clamp(30px, 9vmin, 70px);
-  touch-action: none;
+@media (orientation: portrait) { .mz-stick { width: clamp(150px, min(58vw, 30vh), 300px); } }
+.mz-stick-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border: 2.2vmin solid transparent;
+  border-bottom-color: rgba(69, 39, 160, .45);
+  border-top-width: 0;
+  pointer-events: none;
 }
-.mz-arrow.up { grid-area: up; }
-.mz-arrow.down { grid-area: down; }
-.mz-arrow.left { grid-area: left; }
-.mz-arrow.right { grid-area: right; }
-.mz-arrow:active { translate: 0 .8vmin; box-shadow: 0 .3vmin 0 rgba(0, 0, 0, .25); background: #ffe9a8; }
-.mz-arrow .emoji { pointer-events: none; }
+.mz-stick-arrow.up { translate: -50% calc(-50% - var(--r)); }
+.mz-stick-arrow.down { translate: -50% calc(-50% + var(--r)); rotate: 180deg; }
+.mz-stick-arrow.left { translate: calc(-50% - var(--r)) -50%; rotate: -90deg; }
+.mz-stick-arrow.right { translate: calc(-50% + var(--r)) -50%; rotate: 90deg; }
+.mz-stick { --r: clamp(56px, 15.5vmin, 116px); }
+@media (orientation: portrait) { .mz-stick { --r: clamp(56px, min(22vw, 11.5vh), 116px); } }
+.mz-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  margin: -22% 0 0 -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #b39ddb, #5e35b1 70%);
+  box-shadow: 0 1vmin 0 #311b92, 0 1.6vmin 2vmin rgba(0, 0, 0, .3);
+  pointer-events: none;
+  transition: translate .12s ease-out;
+}
+.mz-stick.on .mz-knob { transition: none; box-shadow: 0 .4vmin 0 #311b92, 0 .8vmin 1vmin rgba(0, 0, 0, .3); }
 @keyframes mz-roar { 30% { scale: 1.5; rotate: -8deg; } 60% { scale: 1.4; rotate: 8deg; } }
 @keyframes mz-taken { to { translate: -50% -180%; scale: 1.6; opacity: 0; } }
 @keyframes mz-open { to { scale: .2; rotate: 90deg; opacity: 0; } }

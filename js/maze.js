@@ -2,9 +2,9 @@
   'use strict';
 
   /*
-   * Laberintos: 40 niveles de menor a mayor. El personaje se mueve de a un casillero con un pad
-   * de 4 flechas (también con las flechas del teclado o deslizando el dedo sobre el laberinto)
-   * hasta llegar al cofre.
+   * Laberintos: 40 niveles de menor a mayor. El personaje camina libre (en cualquier dirección, no
+   * de a casilleros) con una palanca analógica; también va hacia el dedo si se toca el laberinto,
+   * o con las flechas del teclado. Se desliza contra las paredes y dobla suave en las esquinas.
    *   - Llave 🔑: abre una puerta 🚪 (cada puerta gasta una llave).
    *   - Espada 🗡️: sirve para vencer al dragón 🐲 que tapa el camino.
    *   - Botón de color (desde el nivel 21): al pisarlo baja el muro del mismo color.
@@ -312,8 +312,10 @@
     board.append(hero);
 
     const bag = h('div', { class: 'mz-bag' });
-    const arrow = (dir, icon) => h('button', { class: 'mz-arrow ' + dir, 'aria-label': dir, 'data-dir': dir }, h('span', { class: 'emoji' }, icon));
-    const pad = h('div', { class: 'mz-pad' }, arrow('up', '⬆️'), arrow('left', '⬅️'), arrow('right', '➡️'), arrow('down', '⬇️'));
+    // Palanca analógica: una base redonda y la perilla que sigue al dedo
+    const knob = h('span', { class: 'mz-knob' });
+    const pad = h('div', { class: 'mz-stick', 'aria-label': 'Palanca para moverse' },
+      ['up', 'right', 'down', 'left'].map((d) => h('span', { class: 'mz-stick-arrow ' + d })), knob);
 
     const screen = h('div', { class: 'screen maze' },
       ui().topbar(ui().backBtn(() => open()),
@@ -322,10 +324,16 @@
       h('div', { class: 'mz-body' }, h('div', { class: 'mz-stage' }, board), pad));
     ui().show(screen, THEME);
 
-    const s = { screen, board, hero, bag, pad, m, things, pos: m.start, keys: 0, sword: false, level, busy: false, told: {} };
+    const s = {
+      screen, board, hero, bag, pad, knob, m, things, keys: 0, sword: false, level, busy: false, told: {},
+      // Posición en casilleros (con decimales): arranca en el centro del casillero de salida
+      x: (m.start % cols) + 0.5, y: Math.floor(m.start / cols) + 0.5,
+      stick: { x: 0, y: 0 }, finger: null, held: {}, walked: 0, last: performance.now(),
+    };
     S = s;
     paintBag(s);
     listen(s);
+    loop(s);
 
     const spec = LEVELS[level - 1];
     const first = (test) => LEVELS.findIndex(test) === level - 1;
@@ -334,7 +342,7 @@
       : first((l) => l.doors && l.dragon) ? '¡Buscá la llave y la espada!'
       : first((l) => l.dragon) ? '¡Buscá la espada para vencer al dragón!'
         : first((l) => l.doors) ? '¡Buscá la llave para abrir la puerta!'
-          : level === 1 ? '¡Llevalo hasta el regalo con las flechas!'
+          : level === 1 ? '¡Llevalo hasta el regalo con la palanca!'
             : spec.doors > 1 ? '¡Hay dos puertas!' : `Laberinto ${level}`);
   }
 
@@ -345,49 +353,107 @@
 
   // ---------- Controles ----------
 
+  const SPEED = 3.4; // casilleros por segundo con la palanca a fondo
+  const BODY = 0.27; // "radio" del personaje, en casilleros: lo que no puede meterse en una pared
+
   function listen(s) {
-    // Pad: un toque = un paso; si se deja apretado, sigue caminando
-    let repeat = null;
-    const stop = () => { clearInterval(repeat); clearTimeout(repeat); repeat = null; };
+    // Palanca: mientras el dedo está apoyado, la perilla lo sigue y marca hacia dónde y qué tan rápido
+    let id = null;
+    const aim = (e) => {
+      const r = s.pad.getBoundingClientRect();
+      const max = r.width * 0.3;
+      let dx = e.clientX - (r.left + r.width / 2);
+      let dy = e.clientY - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy);
+      if (d > max) {
+        dx *= max / d;
+        dy *= max / d;
+      }
+      s.stick.x = dx / max;
+      s.stick.y = dy / max;
+      s.knob.style.translate = `${dx}px ${dy}px`;
+    };
+    const release = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      s.stick.x = 0;
+      s.stick.y = 0;
+      s.knob.style.translate = '0px 0px';
+      s.pad.classList.remove('on');
+    };
     s.pad.addEventListener('pointerdown', (e) => {
-      const b = e.target.closest('.mz-arrow');
-      if (!b) return;
       e.preventDefault();
       sfx.init();
-      stop();
-      move(s, b.dataset.dir);
-      repeat = setTimeout(() => { repeat = setInterval(() => (alive(s) ? move(s, b.dataset.dir) : stop()), 190); }, 380);
+      id = e.pointerId;
+      try { s.pad.setPointerCapture(id); } catch (err) { /* sigue sin captura */ }
+      s.pad.classList.add('on');
+      aim(e);
     });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => s.pad.addEventListener(ev, stop));
+    s.pad.addEventListener('pointermove', (e) => { if (e.pointerId === id) aim(e); });
+    s.pad.addEventListener('pointerup', release);
+    s.pad.addEventListener('pointercancel', release);
 
-    // Deslizar el dedo sobre el laberinto
-    let from = null;
-    s.board.addEventListener('pointerdown', (e) => { e.preventDefault(); sfx.init(); from = [e.clientX, e.clientY]; });
-    s.board.addEventListener('pointerup', (e) => {
-      if (!from) return;
-      const dx = e.clientX - from[0];
-      const dy = e.clientY - from[1];
-      from = null;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-      move(s, Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    // Tocar (o arrastrar el dedo por) el laberinto: el personaje camina hacia el dedo
+    let bid = null;
+    const point = (e) => {
+      const r = s.board.getBoundingClientRect();
+      s.finger = { x: ((e.clientX - r.left) / r.width) * s.m.cols, y: ((e.clientY - r.top) / r.height) * s.m.rows };
+    };
+    s.board.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      sfx.init();
+      bid = e.pointerId;
+      try { s.board.setPointerCapture(bid); } catch (err) { /* sigue sin captura */ }
+      point(e);
     });
+    s.board.addEventListener('pointermove', (e) => { if (e.pointerId === bid) point(e); });
+    const lift = (e) => { if (e.pointerId === bid) { bid = null; s.finger = null; } };
+    s.board.addEventListener('pointerup', lift);
+    s.board.addEventListener('pointercancel', lift);
 
     // Flechas del teclado (en la PC)
     const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
     const onKey = (e) => {
-      if (!alive(s)) return removeEventListener('keydown', onKey);
-      if (keys[e.key]) {
-        e.preventDefault();
-        move(s, keys[e.key]);
+      if (!alive(s)) {
+        removeEventListener('keydown', onKey);
+        removeEventListener('keyup', onKey);
+        return;
       }
+      if (!keys[e.key]) return;
+      e.preventDefault();
+      s.held[keys[e.key]] = e.type === 'keydown';
     };
     addEventListener('keydown', onKey);
+    addEventListener('keyup', onKey);
   }
 
-  // Choque contra una pared, una puerta cerrada o el dragón: sacudón
-  function bump(s, dir) {
-    const [dx, dy] = DIRS[dir];
-    s.hero.animate([{ translate: '-50% -50%' }, { translate: `calc(-50% + ${dx * 18}%) calc(-50% + ${dy * 18}%)` }, { translate: '-50% -50%' }], { duration: 180 });
+  // Hacia dónde quiere ir (vector de largo 0 a 1): palanca, dedo sobre el laberinto o teclado
+  function wish(s) {
+    let x = s.stick.x;
+    let y = s.stick.y;
+    if (Math.hypot(x, y) < 0.18) { // palanca suelta (o apenas tocada)
+      x = (s.held.right ? 1 : 0) - (s.held.left ? 1 : 0);
+      y = (s.held.down ? 1 : 0) - (s.held.up ? 1 : 0);
+      if (!x && !y && s.finger) {
+        x = s.finger.x - s.x;
+        y = s.finger.y - s.y;
+        if (Math.hypot(x, y) < 0.15) return [0, 0]; // ya llegó al dedo
+        const d = Math.hypot(x, y);
+        x /= d;
+        y /= d;
+      }
+    }
+    const d = Math.hypot(x, y);
+    return d > 1 ? [x / d, y / d] : [x, y];
+  }
+
+  function loop(s) {
+    if (!alive(s)) return;
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - s.last) / 1000);
+    s.last = now;
+    if (!s.busy) step(s, dt);
+    setTimeout(() => loop(s), 16);
   }
 
   // Decir algo una sola vez cada tanto (para no repetir en cada choque)
@@ -398,78 +464,132 @@
     voice.say(text);
   }
 
-  function move(s, dir) {
-    if (!alive(s) || s.busy) return;
-    const { m } = s;
-    const [dx, dy, wall] = DIRS[dir];
-    if (dx) s.hero.classList.toggle('flip', dx < 0); // mira para donde camina
-    if (m.walls[s.pos] & wall) {
-      bump(s, dir);
-      sfx.notes([[140, 0, 0.08, 'square', 0.05]]);
-      return;
-    }
-    const next = s.pos + dx + dy * m.cols;
-    const thing = s.things.get(next);
+  // ¿Lo que hay en ese casillero no deja pasar? (puerta sin llave, dragón sin espada, muro levantado)
+  function blocker(s, cell) {
+    const t = s.things.get(cell);
+    if (!t) return null;
+    if (t.type === 'gate' || (t.type === 'door' && !s.keys) || (t.type === 'dragon' && !s.sword)) return t;
+    return null;
+  }
 
-    if (thing && thing.type === 'door') {
-      if (!s.keys) {
-        bump(s, dir);
-        sfx.wrong();
-        thing.el.classList.remove('nope');
-        void thing.el.offsetWidth;
-        thing.el.classList.add('nope');
-        return tell(s, 'door', '¡Está cerrada! Buscá la llave.');
+  // Chocó contra algo que no deja pasar: se sacude y la voz dice qué falta
+  function refuse(s, t) {
+    const now = Date.now();
+    if (s.refused && now - s.refused < 700) return;
+    s.refused = now;
+    t.el.classList.remove('nope', 'roar');
+    void t.el.offsetWidth;
+    t.el.classList.add(t.type === 'dragon' ? 'roar' : 'nope');
+    if (t.type === 'dragon') sfx.noise(0.4, 'lowpass', 300, 0.4, 0.02);
+    else sfx.wrong();
+    tell(s, t.type, t.type === 'door' ? '¡Está cerrada! Buscá la llave.'
+      : t.type === 'dragon' ? '¡Cuidado, un dragón! Buscá la espada.'
+        : `¡Pisá el botón ${COLORS[t.color].name}!`);
+  }
+
+  function step(s, dt) {
+    const { m } = s;
+    const [wx, wy] = wish(s);
+    if (!wx && !wy) return;
+    if (Math.abs(wx) > 0.1) s.hero.classList.toggle('flip', wx < 0); // mira para donde camina
+    const fromX = s.x;
+    const fromY = s.y;
+    s.x += wx * SPEED * dt;
+    s.y += wy * SPEED * dt;
+
+    // Paredes del casillero donde está: no puede acercarse a menos de BODY (y así se desliza).
+    // Una puerta cerrada, el dragón o un muro levantado en el casillero de al lado cuentan como pared.
+    const cx = clampInt(Math.floor(fromX), 0, m.cols - 1);
+    const cy = clampInt(Math.floor(fromY), 0, m.rows - 1);
+    const cell = cy * m.cols + cx;
+    const side = (bit, dx, dy) => {
+      if (m.walls[cell] & bit) return true;
+      const t = blocker(s, cell + dx + dy * m.cols);
+      if (!t) return false;
+      return t; // pared "blanda": avisa
+    };
+    const hit = [];
+    let w;
+    if ((w = side(N, 0, -1)) && s.y < cy + BODY) { s.y = cy + BODY; hit.push(w); }
+    if ((w = side(S_, 0, 1)) && s.y > cy + 1 - BODY) { s.y = cy + 1 - BODY; hit.push(w); }
+    if ((w = side(W, -1, 0)) && s.x < cx + BODY) { s.x = cx + BODY; hit.push(w); }
+    if ((w = side(E, 1, 0)) && s.x > cx + 1 - BODY) { s.x = cx + 1 - BODY; hit.push(w); }
+    const soft = hit.find((t) => t !== true);
+    if (soft) refuse(s, soft);
+
+    // Esquinas: donde termina una pared hay un "poste"; lo rodea en vez de trabarse
+    for (const [px, py] of [[cx, cy], [cx + 1, cy], [cx, cy + 1], [cx + 1, cy + 1]]) {
+      if (!post(m, px, py)) continue;
+      const dx = s.x - px;
+      const dy = s.y - py;
+      const d = Math.hypot(dx, dy);
+      if (d < BODY && d > 0.0001) {
+        s.x = px + (dx / d) * BODY;
+        s.y = py + (dy / d) * BODY;
       }
+    }
+    s.x = Math.max(BODY, Math.min(m.cols - BODY, s.x));
+    s.y = Math.max(BODY, Math.min(m.rows - BODY, s.y));
+
+    s.hero.style.left = (s.x / m.cols) * 100 + '%';
+    s.hero.style.top = (s.y / m.rows) * 100 + '%';
+    // Pasitos: un sonido cada medio casillero caminado
+    s.walked += Math.hypot(s.x - fromX, s.y - fromY);
+    if (s.walked > 0.5) {
+      s.walked = 0;
+      sfx.step();
+    }
+    enter(s, Math.floor(s.y) * m.cols + Math.floor(s.x));
+  }
+
+  const clampInt = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // ¿Hay un poste (punta de alguna pared) en el cruce (px, py) de la cuadrícula?
+  function post(m, px, py) {
+    const wallsAt = (x, y) => (x < 0 || y < 0 || x >= m.cols || y >= m.rows ? 0 : m.walls[y * m.cols + x]);
+    return !!((wallsAt(px - 1, py - 1) & (E | S_)) || (wallsAt(px, py - 1) & (W | S_))
+      || (wallsAt(px - 1, py) & (E | N)) || (wallsAt(px, py) & (W | N)));
+  }
+
+  // Lo que pasa al pisar un casillero: abrir la puerta, vencer al dragón, agarrar algo, pisar un botón, llegar
+  function enter(s, cell) {
+    const { m } = s;
+    const thing = s.things.get(cell);
+    if (thing && thing.type === 'door' && s.keys) {
       s.keys--;
       sfx.notes([[523, 0, 0.1, 'triangle', 0.14], [784, 0.1, 0.2, 'triangle', 0.14]]);
-      vanish(s, next, 'open');
-    } else if (thing && thing.type === 'dragon') {
-      if (!s.sword) {
-        bump(s, dir);
-        sfx.noise(0.4, 'lowpass', 300, 0.4, 0.02);
-        thing.el.classList.remove('roar');
-        void thing.el.offsetWidth;
-        thing.el.classList.add('roar');
-        return tell(s, 'dragon', '¡Cuidado, un dragón! Buscá la espada.');
-      }
+      vanish(s, cell, 'open');
+      paintBag(s);
+    } else if (thing && thing.type === 'dragon' && s.sword) {
       s.sword = false;
       sfx.noise(0.25, 'highpass', 1800, 0.3, 0.005);
       sfx.correct();
-      vanish(s, next, 'beaten');
+      vanish(s, cell, 'beaten');
       ui().burst(s.board);
       tell(s, 'win-dragon', '¡Venciste al dragón!');
-    } else if (thing && thing.type === 'gate') {
-      // Muro de color levantado: hay que pisar el botón del mismo color
-      bump(s, dir);
-      sfx.wrong();
-      thing.el.classList.remove('nope');
-      void thing.el.offsetWidth;
-      thing.el.classList.add('nope');
-      return tell(s, 'gate', `¡Pisá el botón ${COLORS[thing.color].name}!`);
-    } else if (thing && thing.type === 'button') {
-      // Pisa el botón: se hunde y baja el muro de su color
-      s.things.delete(next);
-      thing.el.classList.add('pressed');
-      sfx.notes([[330, 0, 0.08, 'square', 0.1], [220, 0.08, 0.25, 'triangle', 0.14]]);
-      for (const [cell, t] of s.things) {
-        if (t.type === 'gate' && t.color === thing.color) vanish(s, cell, 'lowered');
+      paintBag(s);
+    } else if (thing && (thing.type === 'key' || thing.type === 'sword' || thing.type === 'button')) {
+      // Hay que acercarse al medio del casillero para agarrarlo o pisarlo
+      const near = Math.hypot(s.x - ((cell % m.cols) + 0.5), s.y - (Math.floor(cell / m.cols) + 0.5)) < 0.42;
+      if (near && thing.type === 'button') {
+        // Pisa el botón: se hunde y baja el muro de su color
+        s.things.delete(cell);
+        thing.el.classList.add('pressed');
+        sfx.notes([[330, 0, 0.08, 'square', 0.1], [220, 0.08, 0.25, 'triangle', 0.14]]);
+        for (const [c, t] of s.things) {
+          if (t.type === 'gate' && t.color === thing.color) vanish(s, c, 'lowered');
+        }
+        tell(s, 'button', '¡Se bajó el muro!');
+      } else if (near) {
+        if (thing.type === 'key') s.keys++;
+        else s.sword = true;
+        sfx.coin();
+        vanish(s, cell, 'taken');
+        tell(s, 'got-' + thing.type, thing.type === 'key' ? '¡La llave!' : '¡La espada!');
+        paintBag(s);
       }
-      tell(s, 'button', '¡Se bajó el muro!');
-    } else if (thing) { // llave o espada
-      if (thing.type === 'key') s.keys++;
-      else s.sword = true;
-      sfx.coin();
-      vanish(s, next, 'taken');
-      tell(s, 'got-' + thing.type, thing.type === 'key' ? '¡La llave!' : '¡La espada!');
-    } else {
-      sfx.step();
     }
-    paintBag(s);
-
-    s.pos = next;
-    s.hero.style.left = (((next % m.cols) + 0.5) / m.cols) * 100 + '%';
-    s.hero.style.top = ((Math.floor(next / m.cols) + 0.5) / m.rows) * 100 + '%';
-    if (next === m.goal) finish(s);
+    if (cell === m.goal && Math.hypot(s.x - ((cell % m.cols) + 0.5), s.y - (Math.floor(cell / m.cols) + 0.5)) < 0.45) finish(s);
   }
 
   // Sacar algo del laberinto con su animación (puerta que se abre, dragón vencido, llave agarrada)
@@ -524,5 +644,6 @@
     });
   }
 
-  BQ.maze = { open, build, levels: LEVELS, prizes: PRIZES };
+  // state y advance: para revisar un nivel desde la consola (advance adelanta n cuadros de dt segundos)
+  BQ.maze = { open, build, levels: LEVELS, prizes: PRIZES, state: () => S, advance: (n, dt = 0.016) => { for (let i = 0; i < n && S && !S.busy; i++) step(S, dt); } };
 })(window.BQ);

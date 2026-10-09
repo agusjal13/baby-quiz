@@ -113,8 +113,9 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 ## Laberintos
 
 - Botón 🧭 Laberintos en el mapa. 40 niveles de menor a mayor (de 4x4 a 12x12) que se abren en orden.
-  El personaje se mueve con un pad de 4 flechas (también con las flechas del teclado o deslizando el dedo
-  sobre el laberinto) hasta el regalo 🎁.
+  El personaje camina libre, en cualquier dirección, con una palanca analógica (también va hacia el dedo si se
+  toca el laberinto, o con las flechas del teclado) hasta el regalo 🎁. Se desliza contra las paredes y dobla
+  suave en las esquinas; la velocidad y el tamaño del personaje están en `SPEED` y `BODY`.
   - Desde el nivel 5: puertas 🚪 que se abren con llaves 🔑.
   - Desde el 9: un dragón 🐲 que se vence con la espada 🗡️.
   - Desde el 21: muros de ladrillos de colores que se bajan pisando el botón del mismo color (rojo, azul, verde).
