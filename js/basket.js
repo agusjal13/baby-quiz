@@ -89,7 +89,7 @@
     }
     s.m = Math.min(s.W, s.H * 0.72); // medida base: todo se dibuja en proporción
     s.ballR = s.m * 0.09;
-    s.rim = s.m * 0.112; // medio ancho del aro (el aro está lejos: se ve chico)
+    s.rim = s.m * 0.136; // medio ancho del aro (lejos, pero no tan chico)
     s.hoopY = s.H * 0.25;
     s.startY = s.H * 0.84;
     if (s.ball && !s.flying) Object.assign(s.ball, home(s));
@@ -122,8 +122,8 @@
     g.stroke();
 
     // Poste y tablero
-    const bw = m * 0.41;
-    const bh = m * 0.265;
+    const bw = m * 0.5;
+    const bh = m * 0.32;
     const top = hy - bh * 0.78;
     g.fillStyle = '#78909c';
     g.fillRect(hx - m * 0.02, top + bh, m * 0.04, floorY - top - bh);
@@ -135,7 +135,7 @@
     g.stroke();
     g.strokeStyle = '#e53935';
     g.lineWidth = m * 0.012;
-    g.strokeRect(hx - m * 0.073, hy - m * 0.125, m * 0.146, m * 0.1);
+    g.strokeRect(hx - m * 0.089, hy - m * 0.152, m * 0.178, m * 0.122);
 
     // Aro: mitad de atrás, pelota (si está detrás), mitad de adelante y red
     const shake = Math.sin(performance.now() / 28) * s.rimShake * m * 0.012;
@@ -149,7 +149,7 @@
     if (!s.front) drawBall(s);
     // Red: se mueve cuando entra la pelota
     const sway = Math.sin(performance.now() / 70) * s.netSwing * m * 0.03;
-    const netH = m * 0.125;
+    const netH = m * 0.152;
     g.strokeStyle = 'rgba(255,255,255,.95)';
     g.lineWidth = m * 0.008;
     g.beginPath();
@@ -380,7 +380,7 @@
     const hy = s.hoopY;
     const rise = s.startY - hy;
     const floor = s.H * 0.9;
-    const K = 0.56; // tamaño de la pelota a la altura del aro
+    const K = 0.62; // tamaño de la pelota a la altura del aro
     const bounce = () => sfx.notes([[180, 0, 0.08, 'square', 0.1]]);
 
     if (result === 'short') {
@@ -391,7 +391,7 @@
     } else if (result === 'long') {
       // Se pasa: pega arriba en el tablero y vuelve
       s.front = false;
-      await fly(s, { x: hx + off, y: hy - s.m * 0.14, k: K }, 800, rise * 0.62);
+      await fly(s, { x: hx + off, y: hy - s.m * 0.17, k: K }, 800, rise * 0.62);
       bounce();
       s.rimShake = 1;
       s.front = true;
@@ -420,7 +420,7 @@
         // Adentro: baja por la red
         s.netSwing = 1;
         sfx.noise(0.25, 'highpass', 2500, 0.25, 0.01);
-        await fly(s, { x: hx, y: hy + s.m * 0.15 }, 260);
+        await fly(s, { x: hx, y: hy + s.m * 0.18 }, 260);
         await fly(s, { y: floor, k: 0.62, alpha: 0 }, 520);
       }
     }

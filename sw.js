@@ -40,6 +40,7 @@ const ASSETS = [
   'js/hockey.js',
   'js/basket.js',
   'js/buscar.js',
+  'js/tateti.js',
   'js/game.js',
   'icons/icon.svg',
   'icons/icon-192.png',

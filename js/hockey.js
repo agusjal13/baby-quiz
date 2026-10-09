@@ -30,9 +30,9 @@
   // Dificultad del rival: velocidad para acomodarse y defender (speed), velocidad del golpe (strike),
   // cada cuántos cuadros vuelve a apuntar (react) y cuánto le erra al apuntar (error).
   // Probado con partidos simulados contra un nene que reacciona lento y le erra bastante:
-  // en fácil le gana 2 de cada 3 partidos; en medio, 1 de cada 3; en difícil, casi nunca.
+  // en fácil le gana 9 de cada 10 partidos; en medio, 1 de cada 3; en difícil, casi nunca.
   const LEVELS = [
-    { id: 'facil', icon: '🐢', say: 'Fácil', speed: 1.5, strike: 3.2, react: 34, error: 180 },
+    { id: 'facil', icon: '🐢', say: 'Fácil', speed: 1, strike: 2.3, react: 46, error: 240 },
     { id: 'medio', icon: '🐇', say: 'Medio', speed: 2.2, strike: 4.2, react: 26, error: 140 },
     { id: 'dificil', icon: '🚀', say: 'Difícil', speed: 3, strike: 5.6, react: 16, error: 90 },
   ];

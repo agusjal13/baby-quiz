@@ -132,6 +132,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
   puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
+## Tatetí (con fichas que se mueven)
+
+- Botón ⭕ Tatetí en el mapa. Cada jugador tiene 3 fichas (con la cara de su personaje): primero se ponen de a
+  una y, cuando ya están las 3, en cada turno se mueve una ficha propia a cualquier lugar vacío (se toca la
+  ficha y después el lugar), así nunca termina en empate por falta de lugar. Gana la ronda el que hace tres
+  en línea; el partido termina cuando alguien gana 2 rondas. Da 1 moneda y 1 partido para los trofeos.
+- El rival juega en nivel fácil (`SMART` en `js/tateti.js`: cada cuánto ve que puede ganar o tapar). Si el
+  chico puede hacer tatetí y tarda 4 segundos, se le ilumina el lugar.
+
 ## Buscá a tu personaje
 
 - Botón 🔎 Buscar en el mapa. Como "¿Dónde está Wally?": la pantalla se llena de personajes y hay que tocar
@@ -165,7 +174,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Trofeos
 
-- Cada partido ganado (penales, tiros libres, básquet, hockey, partidito, pool, bowling, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
+- Cada partido ganado (penales, tiros libres, básquet, hockey, tatetí, partidito, pool, bowling, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
   (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
