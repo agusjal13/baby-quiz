@@ -24,6 +24,7 @@
   const LENGTH = 130; // largo de la carrera (pasos): alrededor de 30 segundos
   const SPEED = 4.2; // pasos por segundo
   const HEARTS = 4;
+  const HORSE = 0.78; // tamaño del dibujo del caballo y el jinete (1 = el original, más grande)
   const JUMP = 11; // velocidad hacia arriba al saltar (salto largo: queda más de un segundo en el aire)
   const GRAVITY = 17;
   // Obstáculos: ancho y alto (en pasos)
@@ -102,7 +103,7 @@
     s.k = Math.min(s.W / 9.5, s.H / 6.5); // píxeles por paso
     s.groundY = s.H * (s.W < s.H ? 0.72 : 0.8); // con la pantalla parada, el piso más arriba
     s.horseX = Math.min(s.W * 0.26, s.k * 3.4); // dónde está el caballo en la pantalla
-    s.rider.style.fontSize = s.k * 1.7 / 1.12 + 'px';
+    s.rider.style.fontSize = s.k * HORSE * 1.75 / 1.12 + 'px';
   }
 
   const sx = (s, worldX) => s.horseX + (worldX - s.dist) * s.k; // de pasos del mundo a pantalla
@@ -250,9 +251,9 @@
   // Caballo marrón de costado (mirando a la derecha), con patas que galopan
   function drawHorse(s) {
     const g = s.ctx;
-    const k = s.k;
+    const k = s.k * HORSE; // el caballo (y el jinete) un poco más chicos que la medida del juego
     const x = s.horseX;
-    const base = s.groundY - s.y * k; // dónde apoyan las patas
+    const base = s.groundY - s.y * s.k; // dónde apoyan las patas
     const air = s.y > 0.05;
     const blink = s.safe > 0 && Math.floor(s.t * 12) % 2 === 0; // titila después de un choque
     g.save();
@@ -270,13 +271,13 @@
       const swing = air ? (phase > 0 ? 0.7 : -0.7) : Math.sin(s.t * 16 + phase) * 0.6;
       const kx = lx + Math.sin(swing) * k * 0.45;
       g.strokeStyle = '#2b2140';
-      g.lineWidth = k * 0.26;
+      g.lineWidth = k * 0.2;
       g.beginPath();
       g.moveTo(lx, bodyY + k * 0.25);
       g.lineTo(kx, base - k * 0.12);
       g.stroke();
       g.strokeStyle = brown;
-      g.lineWidth = k * 0.16;
+      g.lineWidth = k * 0.12;
       g.stroke();
       g.fillStyle = '#2b2140';
       g.fillRect(kx - k * 0.11, base - k * 0.16, k * 0.22, k * 0.14);
@@ -294,7 +295,7 @@
     // Cuerpo
     g.fillStyle = brown;
     g.beginPath();
-    g.ellipse(x, bodyY, k * 1.15, k * 0.5, 0, 0, Math.PI * 2);
+    g.ellipse(x, bodyY, k * 1.12, k * 0.42, 0, 0, Math.PI * 2);
     g.fill();
     g.lineWidth = Math.max(1.5, k * 0.06);
     g.stroke();

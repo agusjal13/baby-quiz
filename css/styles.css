@@ -2418,3 +2418,57 @@ button {
 .game-pill.game-tile:active { translate: 0 .8vmin; box-shadow: 0 .4vmin 0 rgba(0, 0, 0, .25); }
 /* Margen abajo en el mapa: con bordes redondeados o barra de gestos, los botones no quedan tapados */
 .screen.worlds { padding-bottom: max(4.5vmin, calc(env(safe-area-inset-bottom) + 2vmin)); }
+
+/* ---------- Corta frutas ---------- */
+
+.game-pill.frutas { background: linear-gradient(160deg, #ff5a6a, #8d3a1f); }
+.frutas { gap: 1.5vmin; }
+.fr-top { display: flex; align-items: center; gap: 2.5vmin; }
+.fr-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 1vmin;
+  min-width: 3.4em;
+  justify-content: center;
+  padding: .15em .7em;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .95);
+  font-size: clamp(18px, 5vmin, 40px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 .8vmin 0 rgba(0, 0, 0, .15);
+}
+.fr-box.bump { animation: pop .3s; }
+.fr-clock-box.hurry { background: #ffe1e1; color: #c62828; animation: pulse .8s ease-in-out infinite; }
+.fr-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  isolation: isolate; /* los carteles de adentro no tapan la pantalla final */
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.fr-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.frutas .sport-flash { z-index: 4; align-items: center; padding: 0; font-size: clamp(34px, 14vmin, 110px); }
+/* Elegir cómo jugar */
+.fr-modes { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 4vmin; background: rgba(62, 39, 35, .5); }
+.fr-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2vmin;
+  width: clamp(110px, 32vmin, 240px);
+  padding: 3vmin 1vmin;
+  border-radius: 5vmin;
+  background: #fff;
+  box-shadow: 0 0 0 1vmin var(--gold), 0 1.2vmin 0 rgba(0, 0, 0, .25);
+  font-size: clamp(46px, 15vmin, 110px);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.fr-mode:nth-child(2) { animation-delay: .6s; }
+.fr-mode-name { font-size: clamp(15px, 3.8vmin, 30px); font-weight: 900; color: #5d3a22; }
+.fr-mode:active { translate: 0 .8vmin; }

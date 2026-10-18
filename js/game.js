@@ -233,6 +233,7 @@
     { cls: 'libres', icon: '⚽💨', name: 'Tiros libres', small: true, open: () => BQ.libres.open() },
     { cls: 'partido', icon: '⚽', name: 'Partidito', open: () => BQ.partido.open() },
     { cls: 'carrera', icon: '🐴', name: 'Carrera', open: () => BQ.carrera.open() },
+    { cls: 'frutas', icon: '🍉', name: 'Corta frutas', open: () => BQ.frutas.open() },
     { cls: 'basket', icon: '🏀', name: 'Básquet', open: () => BQ.basket.open() },
     { cls: 'hockey', icon: '🏒', name: 'Hockey', open: () => BQ.hockey.open() },
     { cls: 'pool', icon: '🎱', name: 'Pool', open: () => BQ.pool.open() },

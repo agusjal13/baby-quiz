@@ -43,6 +43,7 @@ const ASSETS = [
   'js/tateti.js',
   'js/rampa.js',
   'js/carrera.js',
+  'js/frutas.js',
   'js/game.js',
   'icons/icon.svg',
   'icons/icon-192.png',

@@ -147,6 +147,15 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   Gana llegando a la meta con algún corazón; sin chocar nada es resultado perfecto. Unos 30 segundos.
 - Largo de la carrera, velocidad, salto y separación de los obstáculos: arriba de todo en `js/carrera.js`.
 
+## Corta frutas
+
+- Botón 🍉 Corta frutas (en 🎮 Juegos). Las frutas saltan desde abajo y se cortan pasando el dedo; también salen
+  bombas. Al empezar se elige cómo jugar (`MODES` en `js/frutas.js`):
+  - ♾️ Hasta la bomba: sin tiempo, hasta que se corta una bomba (cada vez más rápido y con más bombas). Más de
+    20 frutas da 1 moneda, más de 40 da 2, más de 60 da 3, y así.
+  - ⏱️ 30 segundos: cortar todas las que se pueda; cada bomba resta 2 frutas. Más de 10 da 1 moneda; más de 20, 2.
+- Ganar (al menos una moneda) suma 1 partido para los trofeos.
+
 ## Rampa de puntos (skee-ball)
 
 - Botón 🎟️ Rampa en el mapa. Como en los arcades, en 3D visto desde atrás de la pelota (igual que el bowling):
@@ -205,7 +214,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Trofeos
 
-- Cada partido ganado (penales, tiros libres, carrera, básquet, hockey, tatetí, partidito, pool, bowling, rampa, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **60 trofeos**
+- Cada partido ganado (penales, tiros libres, carrera, corta frutas, básquet, hockey, tatetí, partidito, pool, bowling, rampa, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **60 trofeos**
   (de la medalla de bronce con 1 partido a la mega copa de las estrellas con 400). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
