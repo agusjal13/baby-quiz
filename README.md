@@ -57,7 +57,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   **completo**, cada nivel jugado vuelve a dar una moneda. Ganar un partido de penales también da una.
 - En la tienda (🛍️ en el mapa de mundos) cada personaje tiene su ropa, a **5 monedas** cada cosa
   (un mundo completo = una prenda). El precio está en `PRICE` de `js/wardrobe.js`;
-  una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`).
+  una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`;
+  las camisetas de Mickey, el pato Donald, Pluto y Goofy valen 15).
   Tocar algo comprado lo pone o lo saca. Si un personaje tiene más de 9 cosas, la tienda se separa en pestañas
   (👕 camisetas, 🩳 shorts y canilleras, 👟 botines, ⚽ pelotas y cono, 🥅 arcos, 🧤 guantes y cintas, 🏆 trofeos).
   Los trofeos de la tienda solo se pueden comprar si ya se ganaron en el mapa de trofeos.

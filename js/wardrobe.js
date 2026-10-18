@@ -172,6 +172,39 @@
       back: cloud(40, 72, 1) + cloud(61, 88, 1.1) + cloud(39, 101, 0.8),
     },
   };
+  // Camisetas de dibujitos clásicos (diseños propios inspirados en cada personaje). Valen más: ver CATALOG.
+  Object.assign(TOYS, {
+    // Mickey: roja con dos botones blancos grandes y la silueta de las orejas redondas
+    mickey: {
+      a: '#e53935', sleeve: '#1a1a1a', backColors: ['#e53935'],
+      art: '<circle cx="50" cy="73" r="5.5" fill="#1a1a1a"/><circle cx="43.5" cy="66.5" r="3.6" fill="#1a1a1a"/><circle cx="56.5" cy="66.5" r="3.6" fill="#1a1a1a"/>'
+        + '<ellipse cx="43" cy="92" rx="3.2" ry="4.4" fill="#fff" stroke="#2b2140" stroke-width=".8"/><ellipse cx="57" cy="92" rx="3.2" ry="4.4" fill="#fff" stroke="#2b2140" stroke-width=".8"/>',
+      back: '<ellipse cx="38" cy="100" rx="3.2" ry="4.4" fill="#fff"/><ellipse cx="62" cy="100" rx="3.2" ry="4.4" fill="#fff"/>',
+    },
+    // Pato Donald: de marinero, azul con cuello blanco a rayas y moñito rojo
+    donald: {
+      a: '#1e5bc6', sleeve: '#1e5bc6', backColors: ['#1e5bc6', '#ffffff'],
+      art: '<path d="M30 60 L50 80 L70 60 Z" fill="#fff"/><path d="M33 62 L50 78 L67 62" fill="none" stroke="#1e5bc6" stroke-width="1.4"/>'
+        + '<path d="M42 79 L50 83 L42 87 Z M58 79 L50 83 L58 87 Z" fill="#e53935" stroke="#8e0000" stroke-width=".8"/><circle cx="50" cy="83" r="2" fill="#c62828"/>',
+      back: '<rect x="28" y="60" width="44" height="16" fill="#fff"/><rect x="28" y="70" width="44" height="2" fill="#1e5bc6"/>',
+    },
+    // Pluto: amarilla con carita de perro (orejas largas negras, nariz y lengüita)
+    pluto: {
+      a: '#ffc93c', sleeve: '#ffc93c', backColors: ['#ffc93c'],
+      art: '<ellipse cx="50" cy="82" rx="11" ry="10" fill="#ffd970" stroke="#2b2140" stroke-width=".9"/>'
+        + '<path d="M40 76 Q34 80 36 92 Q40 90 42 82 Z M60 76 Q66 80 64 92 Q60 90 58 82 Z" fill="#1a1a1a"/>'
+        + '<circle cx="46" cy="79" r="1.5" fill="#1a1a1a"/><circle cx="54" cy="79" r="1.5" fill="#1a1a1a"/>'
+        + '<ellipse cx="50" cy="84.5" rx="3" ry="2.2" fill="#1a1a1a"/><path d="M48 88 Q50 93 52 88 Z" fill="#e57373"/>',
+    },
+    // Goofy: remera naranja con chaleco negro y sombrerito verde en el pecho
+    goofy: {
+      a: '#ff8a26', sleeve: '#ff8a26', backColors: ['#1a1a1a'],
+      art: '<path d="M28 62 L41 62 L45 106 L28 106 Z M72 62 L59 62 L55 106 L72 106 Z" fill="#1a1a1a"/>'
+        + '<path d="M44 76 L56 76 L54 66 Q50 63 46 66 Z" fill="#43a047" stroke="#1b5e20" stroke-width=".8"/><rect x="42" y="75.5" width="16" height="2.4" rx="1.2" fill="#2e7d32"/>'
+        + '<rect x="45" y="70" width="10" height="1.6" fill="#1a1a1a"/>',
+      back: '<rect x="28" y="62" width="44" height="44" fill="#1a1a1a"/>',
+    },
+  });
   for (const [id, j] of Object.entries(TOYS)) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 60 44 50" preserveAspectRatio="none"><rect x="28" y="60" width="44" height="50" fill="${j.a}"/>${j.art}</svg>`;
     JERSEYS[id] = { kind: 'art', b: j.a, ...j, css: `url("data:image/svg+xml,${encodeURIComponent(svg)}") center / 100% 100%` };
@@ -229,6 +262,11 @@
       jersey('espacial', 'el traje espacial'),
       jersey('marcianito', 'la camiseta de marcianito'),
       jersey('nubes', 'la camiseta de nubes'),
+      // De dibujitos clásicos: más caras (15 monedas)
+      { ...jersey('mickey', 'la camiseta de Mickey'), price: 15 },
+      { ...jersey('donald', 'la camiseta del pato Donald'), price: 15 },
+      { ...jersey('pluto', 'la camiseta de Pluto'), price: 15 },
+      { ...jersey('goofy', 'la camiseta de Goofy'), price: 15 },
       { id: 'pelota', name: 'la pelota', slot: 'ball', art: 'pelota', use: 'kick', price: 0 },
       { id: 'pelota26', name: 'la pelota del mundial', slot: 'ball', art: 'pelota26', use: 'kick' },
       { id: 'pelotaOro', name: 'la pelota dorada', slot: 'ball', art: 'pelotaOro', use: 'kick' },

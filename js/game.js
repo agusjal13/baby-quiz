@@ -462,7 +462,7 @@
         void b.offsetWidth;
         b.classList.add('nope');
         sfx.wrong();
-        voice.say(`Necesitás ${U.NUM_WORDS[W.price(item)]} monedas y tenés ${coinsWord()}. ¡Pasá niveles para ganar más!`);
+        voice.say(`Necesitás ${U.NUM_WORDS[W.price(item)] || W.price(item)} monedas y tenés ${coinsWord()}. ¡Pasá niveles para ganar más!`);
         return;
       }
       sfx.coin();
