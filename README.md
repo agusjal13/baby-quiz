@@ -69,6 +69,12 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 - Los personajes se dibujan en `js/puppet.js` (`LOOKS`); ahí también está dónde va cada prenda
   (`anchors`) y el gesto propio de cada uno (`idle`).
 
+## Juegos
+
+- En el mapa de mundos hay tres botones abajo: 🎮 Juegos, 🏆 Trofeos y 🎟️ Bingo. 🎮 Juegos abre una pantalla con
+  todos los juegos en tarjetas grandes (lista `GAMES` en `js/game.js`; para sumar uno nuevo, agregarlo ahí).
+  Al salir de un juego se vuelve a esa pantalla.
+
 ## Penales
 
 - Botón ⚽ Penales en el mapa de mundos. 3 penales con preguntas al azar de todos los mundos

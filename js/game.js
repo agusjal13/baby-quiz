@@ -227,7 +227,42 @@
     }
   }
 
+  // Todos los juegos aparte de los mundos (el color de cada tarjeta es el de su clase en styles.css)
+  const GAMES = [
+    { cls: 'penales', icon: '🥅', name: 'Penales', open: () => BQ.penales.open() },
+    { cls: 'libres', icon: '⚽💨', name: 'Tiros libres', small: true, open: () => BQ.libres.open() },
+    { cls: 'partido', icon: '⚽', name: 'Partidito', open: () => BQ.partido.open() },
+    { cls: 'carrera', icon: '🐴', name: 'Carrera', open: () => BQ.carrera.open() },
+    { cls: 'basket', icon: '🏀', name: 'Básquet', open: () => BQ.basket.open() },
+    { cls: 'hockey', icon: '🏒', name: 'Hockey', open: () => BQ.hockey.open() },
+    { cls: 'pool', icon: '🎱', name: 'Pool', open: () => BQ.pool.open() },
+    { cls: 'bowling', icon: '🎳', name: 'Bowling', open: () => BQ.bowling.open() },
+    { cls: 'rampa', icon: '🎟️', name: 'Rampa', open: () => BQ.rampa.open() },
+    { cls: 'tiro', icon: '🎯', name: 'Tiro al blanco', open: () => BQ.tiro.open() },
+    { cls: 'maze', icon: '🧭', name: 'Laberintos', open: () => BQ.maze.open() },
+    { cls: 'buscar', icon: '🔎', name: 'Buscar', open: () => BQ.buscar.open() },
+    { cls: 'tateti', icon: '⭕', name: 'Tatetí', open: () => BQ.tateti.open() },
+    { cls: 'ppt', icon: '✊✋✌️', name: 'Piedra, papel o tijera', small: true, open: () => BQ.ppt.open() },
+  ];
+
+  // Desde dónde se entró a un juego: al salir, se vuelve ahí ('worlds' = mapa, 'games' = juegos)
+  let hub = 'worlds';
+
+  function showGames() {
+    hub = 'games';
+    const tiles = GAMES.map((g) => h('button', {
+      class: 'game-pill game-tile ' + g.cls, 'aria-label': g.name,
+      onpointerdown: tap(() => g.open()),
+    }, h('span', { class: 'game-tile-icon emoji' + (g.small ? ' small' : '') }, g.icon), h('span', { class: 'game-tile-name' }, g.name)));
+    show(h('div', { class: 'screen games' },
+      topbar(backBtn(() => showWorlds()), h('h2', { class: 'screen-title' }, h('span', { class: 'emoji' }, '🎮'), ' ¿A qué jugamos?'),
+        h('div', { class: 'top-right' }, coinCounter(), gearBtn())),
+      h('div', { class: 'games-grid' }, tiles)));
+    voice.say('¿A qué jugamos?');
+  }
+
   function showWorlds(greet) {
+    hub = 'worlds';
     const cards = BQ.worlds.map((w) => h('button', {
       class: 'world-card',
       style: { '--c1': w.theme.card1, '--c2': w.theme.card2 },
@@ -243,23 +278,11 @@
     const shopBtn = h('button', { class: 'shop-btn', 'aria-label': 'Tienda', onpointerdown: tap(() => showShop()) },
       h('span', { class: 'emoji' }, '🛍️'), coinCounter());
     // Juegos aparte de los mundos
+    // Abajo: los juegos (en su propia pantalla, porque son muchos), los trofeos y el bingo
     const games = h('div', { class: 'games-row' },
-      h('button', { class: 'game-pill penales', onpointerdown: tap(() => BQ.penales.open()) }, h('span', { class: 'emoji' }, '🥅'), ' Penales'),
-      h('button', { class: 'game-pill carrera', onpointerdown: tap(() => BQ.carrera.open()) }, h('span', { class: 'emoji' }, '🐴'), ' Carrera'),
-      h('button', { class: 'game-pill libres', onpointerdown: tap(() => BQ.libres.open()) }, h('span', { class: 'emoji' }, '⚽💨'), ' Tiros libres'),
-      h('button', { class: 'game-pill partido', onpointerdown: tap(() => BQ.partido.open()) }, h('span', { class: 'emoji' }, '⚽'), ' Partidito'),
-      h('button', { class: 'game-pill pool', onpointerdown: tap(() => BQ.pool.open()) }, h('span', { class: 'emoji' }, '🎱'), ' Pool'),
-      h('button', { class: 'game-pill bowling', onpointerdown: tap(() => BQ.bowling.open()) }, h('span', { class: 'emoji' }, '🎳'), ' Bowling'),
-      h('button', { class: 'game-pill rampa', onpointerdown: tap(() => BQ.rampa.open()) }, h('span', { class: 'emoji' }, '🎟️'), ' Rampa'),
-      h('button', { class: 'game-pill ppt', 'aria-label': 'Piedra, papel o tijera', onpointerdown: tap(() => BQ.ppt.open()) }, h('span', { class: 'emoji' }, '✊✋✌️')),
-      h('button', { class: 'game-pill tateti', onpointerdown: tap(() => BQ.tateti.open()) }, h('span', { class: 'emoji' }, '⭕'), ' Tatetí'),
-      h('button', { class: 'game-pill tiro', onpointerdown: tap(() => BQ.tiro.open()) }, h('span', { class: 'emoji' }, '🎯'), ' Tiro al blanco'),
-      h('button', { class: 'game-pill maze', onpointerdown: tap(() => BQ.maze.open()) }, h('span', { class: 'emoji' }, '🧭'), ' Laberintos'),
-      h('button', { class: 'game-pill buscar', onpointerdown: tap(() => BQ.buscar.open()) }, h('span', { class: 'emoji' }, '🔎'), ' Buscar'),
-      h('button', { class: 'game-pill hockey', onpointerdown: tap(() => BQ.hockey.open()) }, h('span', { class: 'emoji' }, '🏒'), ' Hockey'),
-      h('button', { class: 'game-pill basket', onpointerdown: tap(() => BQ.basket.open()) }, h('span', { class: 'emoji' }, '🏀'), ' Básquet'),
-      h('button', { class: 'game-pill bingo', onpointerdown: tap(() => BQ.bingo.open()) }, h('span', { class: 'emoji' }, '🎟️'), ' Bingo'),
-      h('button', { class: 'game-pill trofeos', onpointerdown: tap(() => BQ.trophies.open()) }, h('span', { class: 'emoji' }, '🏆'), ' Trofeos'));
+      h('button', { class: 'game-pill juegos', onpointerdown: tap(() => showGames()) }, h('span', { class: 'emoji' }, '🎮'), ' Juegos'),
+      h('button', { class: 'game-pill trofeos', onpointerdown: tap(() => BQ.trophies.open()) }, h('span', { class: 'emoji' }, '🏆'), ' Trofeos'),
+      h('button', { class: 'game-pill bingo', onpointerdown: tap(() => BQ.bingo.open()) }, h('span', { class: 'emoji' }, '🎟️'), ' Bingo'));
 
     show(h('div', { class: 'screen worlds' },
       topbar(
@@ -839,7 +862,8 @@
   }
 
   // Piezas compartidas con otros módulos (bingo.js)
-  BQ.ui = { show, topbar, backBtn, tap, confetti, burst, playable, currentChar, showWorlds, showShop, coinEl, coinCounter, PRAISES, LOGO_COLORS };
+  const backToHub = () => (hub === 'games' ? showGames() : showWorlds());
+  BQ.ui = { show, topbar, backBtn, tap, confetti, burst, playable, currentChar, showWorlds: backToHub, showGames, showShop, coinEl, coinCounter, PRAISES, LOGO_COLORS };
 
   // ---------- Inicio ----------
 

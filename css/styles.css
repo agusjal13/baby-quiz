@@ -2385,3 +2385,36 @@ button {
 .update-bar span { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--accent); transition: width .2s; }
 .update-panel .row { justify-content: center; }
 .update-panel button[disabled] { opacity: .5; }
+
+/* ---------- Pantalla de juegos ---------- */
+
+.game-pill.juegos { background: linear-gradient(160deg, #ff5a8a, #7b2ff7); font-size: clamp(19px, 5vmin, 38px); padding: .4em 1.3em; }
+.games { gap: 2vmin; }
+.games-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(92px, 21vmin, 170px), 1fr));
+  gap: 2.4vmin;
+  align-content: start;
+  padding: 1.5vmin 1.5vmin max(4vmin, env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+.game-pill.game-tile {
+  aspect-ratio: 1;
+  padding: 1.5vmin;
+  border-radius: 4vmin;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vmin;
+  box-shadow: 0 1.2vmin 0 rgba(0, 0, 0, .25);
+}
+.game-tile-icon { font-size: clamp(34px, 9vmin, 76px); line-height: 1.05; letter-spacing: -.08em; white-space: nowrap; }
+.game-tile-icon.small { font-size: clamp(22px, 5.6vmin, 46px); }
+.game-tile-name { font-size: clamp(12px, 2.9vmin, 22px); line-height: 1.1; text-align: center; text-shadow: 0 .3vmin 0 rgba(0, 0, 0, .25); }
+.game-pill.game-tile:active { translate: 0 .8vmin; box-shadow: 0 .4vmin 0 rgba(0, 0, 0, .25); }
+/* Margen abajo en el mapa: con bordes redondeados o barra de gestos, los botones no quedan tapados */
+.screen.worlds { padding-bottom: max(4.5vmin, calc(env(safe-area-inset-bottom) + 2vmin)); }
