@@ -154,6 +154,9 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   - ♾️ Hasta la bomba: sin tiempo, hasta que se corta una bomba (cada vez más rápido y con más bombas). Más de
     20 frutas da 1 moneda, más de 40 da 2, más de 60 da 3, y así.
   - ⏱️ 30 segundos: cortar todas las que se pueda; cada bomba resta 2 frutas. Más de 10 da 1 moneda; más de 20, 2.
+- Fruta gigante: queda flotando unos segundos en el medio y cada corte suma una fruta (mientras está no salen
+  bombas). En 30 segundos aparece a los 15 y otra de bonus cuando se termina el tiempo; en hasta la bomba, cada
+  20 frutas cortadas aparece una al rato (`GIANT`: tamaño, segundos y tiempo mínimo entre cortes).
 - Ganar (al menos una moneda) suma 1 partido para los trofeos.
 
 ## Rampa de puntos (skee-ball)

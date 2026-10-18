@@ -10,6 +10,10 @@
    *     da 3, y así (una más cada 20).
    *   - 30 segundos ⏱️: se cortan todas las que se pueda en 30 segundos. Cortar una bomba resta
    *     2 frutas. Más de 10 frutas da 1 moneda; más de 20, 2.
+   * Fruta gigante: queda flotando unos segundos en el medio y cada corte suma una fruta (mientras
+   * está no salen bombas). En "30 segundos" aparece a los 15 segundos y otra cuando se termina el
+   * tiempo (de bonus: el juego espera a que se vaya). En "hasta la bomba", cada 20 frutas cortadas
+   * aparece una, unos segundos después (cuándo, es al azar).
    * Ganar (al menos una moneda) también suma un partido para los trofeos.
    */
 
@@ -37,6 +41,7 @@
       bomb: 0.2,
     },
   ];
+  const GIANT = { size: 2.7, time: 4.5, gap: 0.09 }; // tamaño (en frutas), segundos y tiempo mínimo entre cortes
   const THEME = { sky1: '#4e342e', sky2: '#8d6e63', ground: '#3e2723', decor: ['🍉', '🍓', '🍌', '🍍', '✨'] };
 
   let S = null;
@@ -68,6 +73,7 @@
       screen, stage, canvas, ctx: canvas.getContext('2d'), flash, count, clock,
       mode: null, playing: false, over: false, score: 0, cut: 0, t: 0, left: 0, spawn: 0.6,
       things: [], halves: [], drops: [], trail: [], pointer: null, last: performance.now(), shake: 0, swoosh: 0,
+      giant: null, giants: 0, nextGiantAt: 20, giantIn: 0, bonus: false,
     };
     S = s;
     resize(s);
@@ -174,6 +180,34 @@
       }
       g.restore();
     }
+    // Fruta gigante: late, se sacude con cada corte y muestra cuántos cortes lleva
+    const gi = s.giant;
+    if (gi) {
+      g.save();
+      g.translate(gi.x, gi.y + Math.sin(s.t * 3) * s.r * 0.15);
+      const pulse = 1 + Math.sin(s.t * 8) * 0.03 + gi.wobble * 0.12;
+      g.scale(pulse, pulse);
+      g.rotate(Math.sin(s.t * 10) * gi.wobble * 0.25);
+      g.shadowColor = 'rgba(255, 235, 59, .9)';
+      g.shadowBlur = s.r * 0.8;
+      g.font = `${gi.r * 2}px ${EMOJI}`;
+      g.fillText(gi.emoji, 0, gi.r * 0.08);
+      g.restore();
+      if (gi.hits) {
+        g.font = `900 ${s.r * 1.1}px Arial, sans-serif`;
+        g.lineWidth = s.r * 0.18;
+        g.strokeStyle = '#fff';
+        g.fillStyle = '#e53935';
+        g.strokeText('+' + gi.hits, gi.x, gi.y - gi.r * 1.25);
+        g.fillText('+' + gi.hits, gi.x, gi.y - gi.r * 1.25);
+      }
+      // Barrita del tiempo que le queda
+      const w = gi.r * 1.6;
+      g.fillStyle = 'rgba(0,0,0,.35)';
+      g.fillRect(gi.x - w / 2, gi.y + gi.r * 1.15, w, s.r * 0.22);
+      g.fillStyle = '#ffeb3b';
+      g.fillRect(gi.x - w / 2, gi.y + gi.r * 1.15, w * Math.max(0, gi.left / GIANT.time), s.r * 0.22);
+    }
     // Estela del dedo
     const now = performance.now();
     const pts = s.trail.filter((p) => now - p.t < 140);
@@ -230,6 +264,25 @@
       s.swoosh = 0;
       sfx.noise(0.12, 'highpass', 2500, 0.08, 0.01);
     }
+    // Fruta gigante: cada corte (con un mínimo de tiempo entre uno y otro) suma una fruta
+    const gi = s.giant;
+    if (gi && gi.left > 0 && near(gi, x1, y1, x2, y2, len) < gi.r * 0.9 && s.t - gi.lastHit > GIANT.gap) {
+      gi.lastHit = s.t;
+      gi.hits++;
+      gi.wobble = 1;
+      s.score++;
+      s.cut++;
+      s.count.textContent = String(s.score);
+      s.count.parentElement.classList.remove('bump');
+      void s.count.offsetWidth;
+      s.count.parentElement.classList.add('bump');
+      sfx.notes([[600 + gi.hits * 25, 0, 0.07, 'triangle', 0.12]]);
+      for (let i = 0; i < 5; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const v = rnd(0.8, 2.4) * s.r * 3;
+        s.drops.push({ x: gi.x + Math.cos(a) * gi.r * 0.6, y: gi.y + Math.sin(a) * gi.r * 0.6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, size: rnd(0.1, 0.2) * s.r, color: JUICE[gi.emoji] || '#ff5a6a', life: 1 });
+      }
+    }
     for (const o of s.things.slice()) {
       // Distancia del centro de la fruta al tramo del dedo
       const t = Math.max(0, Math.min(1, ((o.x - x1) * (x2 - x1) + (o.y - y1) * (y2 - y1)) / (len * len)));
@@ -239,6 +292,38 @@
       else cutFruit(s, o, Math.atan2(y2 - y1, x2 - x1));
       if (s.over) return;
     }
+  }
+
+  // Distancia del centro de "o" al tramo (x1, y1)-(x2, y2) de largo len
+  function near(o, x1, y1, x2, y2, len) {
+    const t = Math.max(0, Math.min(1, ((o.x - x1) * (x2 - x1) + (o.y - y1) * (y2 - y1)) / (len * len)));
+    return Math.hypot(o.x - (x1 + t * (x2 - x1)), o.y - (y1 + t * (y2 - y1)));
+  }
+
+  // Aparece la fruta gigante (en el medio, flotando)
+  function spawnGiant(s, bonus) {
+    s.giants++;
+    s.giant = { x: s.W / 2, y: s.H * 0.45, r: s.r * GIANT.size, emoji: U.pick(['🍉', '🍍', '🍊', '🍎', '🍑']), left: GIANT.time, hits: 0, lastHit: -1, wobble: 0 };
+    sfx.notes([[523, 0, 0.12, 'triangle', 0.14], [659, 0.12, 0.12, 'triangle', 0.14], [784, 0.24, 0.25, 'triangle', 0.14]]);
+    BQ.sport.flash(s.flash, bonus ? '¡BONUS!' : '¡GIGANTE!', 'goal');
+    setTimeout(() => { if (alive(s) && !s.over) s.flash.hidden = true; }, 900);
+    voice.say(bonus ? '¡Última fruta gigante! ¡Cortala muchas veces!' : '¡Fruta gigante! ¡Cortala muchas veces!');
+  }
+
+  // Se va la gigante: explota en dos mitades enormes
+  function endGiant(s) {
+    const gi = s.giant;
+    s.giant = null;
+    for (const side of [-1, 1]) {
+      s.halves.push({ x: gi.x, y: gi.y, vx: side * s.r * 4, vy: -s.r * 4, rot: Math.PI / 2, vr: side * 3, r: gi.r, emoji: gi.emoji, side, life: 2 });
+    }
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = rnd(1, 3.5) * s.r * 3;
+      s.drops.push({ x: gi.x, y: gi.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, size: rnd(0.12, 0.28) * s.r, color: JUICE[gi.emoji] || '#ff5a6a', life: 1.2 });
+    }
+    sfx.cheer();
+    if (gi.hits) voice.say(`¡${gi.hits} cortes!`);
   }
 
   function cutFruit(s, o, angle) {
@@ -327,6 +412,34 @@
     if (!s.playing || s.over) return;
 
     s.t += dt;
+    // Fruta gigante en pantalla: se le acaba el tiempo y después explota
+    if (s.giant) {
+      s.giant.left -= dt;
+      s.giant.wobble = Math.max(0, s.giant.wobble - dt * 4);
+      if (s.giant.left <= 0) endGiant(s);
+    }
+    // Cuándo aparece: en "30 segundos", a los 15; en "hasta la bomba", al rato de cada 20 frutas
+    if (s.mode.time) {
+      if (!s.giants && s.t >= 15 && !s.giant) spawnGiant(s);
+    } else if (!s.giant) {
+      if (s.cut >= s.nextGiantAt) {
+        s.nextGiantAt += 20;
+        s.giantIn = rnd(1, 6);
+      }
+      if (s.giantIn > 0) {
+        s.giantIn -= dt;
+        if (s.giantIn <= 0) spawnGiant(s);
+      }
+    }
+    if (s.mode.time && s.left <= 0) {
+      // Se terminó el tiempo: una gigante de bonus y, cuando se va, el final
+      if (!s.bonus) {
+        s.bonus = true;
+        if (s.giant) endGiant(s);
+        spawnGiant(s, true);
+      } else if (!s.giant) return finish(s);
+      return;
+    }
     if (s.mode.time) {
       const before = Math.ceil(s.left);
       s.left = Math.max(0, s.left - dt);
@@ -336,11 +449,10 @@
         s.clock.parentElement.classList.toggle('hurry', now <= 5);
         if (now <= 5 && now > 0) sfx.notes([[880, 0, 0.05, 'sine', 0.05]]);
       }
-      if (s.left <= 0) return finish(s);
     }
     // Tandas de frutas (en "hasta la bomba", cada vez más seguido)
     s.spawn -= dt;
-    if (s.spawn <= 0) {
+    if (s.spawn <= 0 && !s.giant) { // mientras está la gigante, no salen frutas ni bombas
       const level = s.mode.time ? 0.5 : Math.min(1, s.t / 60);
       s.spawn = rnd(1.0, 1.5) - level * 0.45;
       const n = 1 + Math.floor(Math.random() * (2 + level * 2));
