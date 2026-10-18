@@ -127,6 +127,56 @@
     rosaNegra: { kind: 'split', a: '#ff6fae', b: '#1a1a1a', star: 'none', sleeveL: '#ff6fae', sleeve: '#1a1a1a', css: 'linear-gradient(90deg, #ff6fae 0 50%, #1a1a1a 50%)' },
   });
 
+  /*
+   * Camisetas con dibujo propio ("art"): el dibujo se hace sobre el pecho del personaje, en un
+   * cuadro que va de x 28 a 72 y de y 60 a 110 (el mismo dibujo, achicado, va en la tarjeta).
+   * "back" es lo que se ve de espaldas (si no hay, la espalda es lisa) y "backColors", los colores
+   * que quedan detrás del nombre y el número (para elegir letras que se lean).
+   */
+  const cowSpots = (x0, x1) => [[0.3, 0.12, 2.6], [0.7, 0.3, 2], [0.25, 0.52, 2.3], [0.72, 0.68, 2.8], [0.35, 0.86, 1.8]]
+    .map(([fx, fy, r]) => `<ellipse cx="${x0 + (x1 - x0) * fx}" cy="${62 + 42 * fy}" rx="${r}" ry="${r * 0.8}" fill="#2b2140"/>`).join('');
+  const plaid = [66, 74, 82, 90, 98, 106].map((y) => `<rect x="28" y="${y}" width="44" height="1.2" fill="#e57373" opacity=".7"/>`).join('')
+    + [33, 41, 50, 59, 67].map((x) => `<rect x="${x}" y="60" width="1.2" height="50" fill="#e57373" opacity=".7"/>`).join('');
+  const cloud = (cx, cy, k) => `<g fill="#fff"><circle cx="${cx}" cy="${cy}" r="${3 * k}"/><circle cx="${cx + 3.4 * k}" cy="${cy + 0.8 * k}" r="${2.4 * k}"/><circle cx="${cx - 3.2 * k}" cy="${cy + 1 * k}" r="${2.2 * k}"/><rect x="${cx - 5 * k}" y="${cy + 1 * k}" width="${10 * k}" height="${2.4 * k}" rx="${1.2 * k}"/></g>`;
+  const TOYS = {
+    // Vaquero: camisa amarilla a cuadros, chaleco de manchas de vaca y estrella de sheriff
+    vaquero: {
+      a: '#f6c445', sleeve: '#f6c445', backColors: ['#ffffff'],
+      art: plaid
+        + `<path d="M28 62 L41 62 L43 104 L28 104 Z" fill="#fff"/>${cowSpots(28, 42)}`
+        + `<path d="M59 62 L72 62 L72 104 L57 104 Z" fill="#fff"/>${cowSpots(58, 72)}`
+        + `<polygon points="${star(65, 76, 4.8, 2)}" fill="#ffd23f" stroke="#b07800" stroke-width=".8"/>`
+        + '<rect x="28" y="100" width="44" height="5" fill="#8d5524"/><rect x="47" y="99.5" width="6" height="6" rx="1" fill="#ffd23f" stroke="#b07800" stroke-width=".6"/>',
+      back: plaid + `<path d="M28 62 L72 62 L72 104 L28 104 Z" fill="#fff"/>${cowSpots(28, 72)}`,
+    },
+    // Traje espacial: blanco, panel verde en el pecho con botones y franjas violetas
+    espacial: {
+      a: '#f5f5f5', sleeve: '#f5f5f5', backColors: ['#e0e0e0'],
+      art: '<rect x="28" y="60" width="44" height="7" fill="#7e57c2"/><rect x="28" y="96" width="44" height="14" fill="#7e57c2"/>'
+        + '<path d="M36 68 L64 68 L61 88 L39 88 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="1"/>'
+        + '<circle cx="45" cy="76" r="2.3" fill="#e53935"/><circle cx="51" cy="76" r="2.3" fill="#1e88e5"/><circle cx="57" cy="76" r="2.3" fill="#ffd23f"/>'
+        + '<rect x="43" y="81" width="14" height="3" rx="1.5" fill="#c8e6c9"/>',
+      back: '<rect x="28" y="60" width="44" height="7" fill="#7e57c2"/><rect x="38" y="68" width="24" height="26" rx="5" fill="#e0e0e0" stroke="#9e9e9e" stroke-width="1"/>'
+        + '<rect x="28" y="96" width="44" height="14" fill="#7e57c2"/>',
+    },
+    // Marcianito: verde con carita de tres ojos
+    marcianito: {
+      a: '#8bc34a', sleeve: '#8bc34a',
+      art: [41, 50, 59].map((x) => `<circle cx="${x}" cy="77" r="4.2" fill="#fff" stroke="#2b2140" stroke-width=".9"/><circle cx="${x}" cy="77.6" r="2" fill="#2b2140"/>`).join('')
+        + '<path d="M43 88 Q50 94 57 88" fill="none" stroke="#2b2140" stroke-width="1.6" stroke-linecap="round"/>',
+    },
+    // Nubes: celeste con nubes blancas, como un cielo de dibujito
+    nubes: {
+      a: '#4fa8ea', sleeve: '#4fa8ea', backColors: ['#ffffff'],
+      art: cloud(38, 70, 1) + cloud(60, 78, 1.1) + cloud(42, 92, 0.95) + cloud(64, 100, 0.8),
+      back: cloud(40, 72, 1) + cloud(61, 88, 1.1) + cloud(39, 101, 0.8),
+    },
+  };
+  for (const [id, j] of Object.entries(TOYS)) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 60 44 50" preserveAspectRatio="none"><rect x="28" y="60" width="44" height="50" fill="${j.a}"/>${j.art}</svg>`;
+    JERSEYS[id] = { kind: 'art', b: j.a, ...j, css: `url("data:image/svg+xml,${encodeURIComponent(svg)}") center / 100% 100%` };
+  }
+
   // Botines del futbolista: reemplazan los zapatos (lugar "feet")
   const BOOTS = {
     botinesOro: { fill: '#ffd23f', stripe: '#ffffff' },
@@ -175,6 +225,10 @@
       jersey('blancaRosa', 'la camiseta blanca y rosa'),
       jersey('rosa', 'la camiseta rosa'),
       jersey('rosaNegra', 'la camiseta rosa y negra'),
+      jersey('vaquero', 'la camiseta de vaquero'),
+      jersey('espacial', 'el traje espacial'),
+      jersey('marcianito', 'la camiseta de marcianito'),
+      jersey('nubes', 'la camiseta de nubes'),
       { id: 'pelota', name: 'la pelota', slot: 'ball', art: 'pelota', use: 'kick', price: 0 },
       { id: 'pelota26', name: 'la pelota del mundial', slot: 'ball', art: 'pelota26', use: 'kick' },
       { id: 'pelotaOro', name: 'la pelota dorada', slot: 'ball', art: 'pelotaOro', use: 'kick' },

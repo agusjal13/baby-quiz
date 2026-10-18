@@ -59,6 +59,27 @@
     { wins: 180, name: 'la pelota galáctica', type: 'ball', metal: 'galaxy', scale: 0.99, tiers: 3, laurel: true, wings: true },
     { wins: 190, name: 'el rayo arcoíris', type: 'bolt', metal: 'rainbow', scale: 0.99, tiers: 3, wings: true, laurel: true, sparkles: true },
     { wins: 200, name: 'la súper copa legendaria', type: 'cup', metal: 'galaxy', scale: 1, tiers: 3, wings: true, laurel: true, crown: true, gem: '#ff80ab', topper: true, sparkles: true },
+    // Tercera vitrina: materiales nuevos (océano, caramelo, amatista y obsidiana)
+    { wins: 210, name: 'la medalla del océano', type: 'medal', metal: 'ocean', scale: 0.92, tiers: 1 },
+    { wins: 220, name: 'el corazón de caramelo', type: 'heart', metal: 'candy', scale: 0.93, tiers: 2, sparkles: true },
+    { wins: 230, name: 'la copa de amatista', type: 'cup', metal: 'amethyst', scale: 0.94, tiers: 2, gem: '#ffd23f' },
+    { wins: 240, name: 'el botín de obsidiana', type: 'boot', metal: 'obsidian', scale: 0.94, tiers: 2, gem: '#ff5252' },
+    { wins: 250, name: 'la estrella del océano', type: 'star', metal: 'ocean', scale: 0.95, tiers: 3, sparkles: true },
+    { wins: 260, name: 'el cohete de caramelo', type: 'rocket', metal: 'candy', scale: 0.95, tiers: 3 },
+    { wins: 270, name: 'el escudo de amatista', type: 'shield', metal: 'amethyst', scale: 0.96, tiers: 3, gem: '#ffffff', laurel: true },
+    { wins: 280, name: 'el rayo de obsidiana', type: 'bolt', metal: 'obsidian', scale: 0.96, tiers: 3, sparkles: true },
+    { wins: 290, name: 'la pelota del océano', type: 'ball', metal: 'ocean', scale: 0.97, tiers: 3, laurel: true },
+    { wins: 300, name: 'la copa de los trescientos', type: 'cup', metal: 'candy', scale: 0.98, tiers: 3, crown: true, laurel: true, gem: '#7c4dff', sparkles: true },
+    { wins: 310, name: 'el planeta de amatista', type: 'planet', metal: 'amethyst', scale: 0.97, tiers: 3, wings: true },
+    { wins: 320, name: 'la corona de obsidiana', type: 'crown', metal: 'obsidian', scale: 0.97, tiers: 3, laurel: true, sparkles: true },
+    { wins: 330, name: 'el diamante del océano', type: 'gem', metal: 'ocean', scale: 0.98, tiers: 3, wings: true, sparkles: true },
+    { wins: 340, name: 'la estrella de caramelo', type: 'star', metal: 'candy', scale: 0.98, tiers: 3, wings: true, laurel: true },
+    { wins: 350, name: 'el corazón de amatista', type: 'heart', metal: 'amethyst', scale: 0.98, tiers: 3, wings: true, crown: true },
+    { wins: 360, name: 'la medalla de obsidiana', type: 'medal', metal: 'obsidian', scale: 0.98, tiers: 3, laurel: true, gem: '#ffd23f' },
+    { wins: 370, name: 'el cohete del océano', type: 'rocket', metal: 'ocean', scale: 0.99, tiers: 3, wings: true, sparkles: true },
+    { wins: 380, name: 'el planeta de caramelo', type: 'planet', metal: 'candy', scale: 0.99, tiers: 3, laurel: true, wings: true, sparkles: true },
+    { wins: 390, name: 'la copa de obsidiana y fuego', type: 'cup', metal: 'obsidian', scale: 0.99, tiers: 3, wings: true, laurel: true, gem: '#ff6d00', topper: true },
+    { wins: 400, name: 'la mega copa de las estrellas', type: 'cup', metal: 'rainbow', scale: 1, tiers: 3, wings: true, laurel: true, crown: true, gem: '#ffd23f', topper: true, sparkles: true },
   ];
 
   const METALS = {
@@ -70,12 +91,16 @@
     emerald: ['#c8ffd9', '#2e9e44', '#1b5e20'],
     sapphire: ['#cfe6ff', '#1e88e5', '#0d47a1'],
     rose: ['#ffe0ee', '#ff80ab', '#c2185b'],
+    amethyst: ['#f3e5f5', '#ab47bc', '#4a148c'],
+    obsidian: ['#9e9e9e', '#37474f', '#101418'],
   };
   // Materiales de muchos colores (degradé) y el color oscuro que los acompaña
   const MULTI = {
     rainbow: { stops: ['#ff5a5a', '#ffb84d', '#ffe14d', '#5fd35f', '#4fa8ff', '#b36bff'], dark: '#8e44ad' },
     fire: { stops: ['#fff176', '#ffb300', '#ff6d00', '#e53935'], dark: '#b71c1c' },
     galaxy: { stops: ['#ff80ab', '#7c4dff', '#304ffe', '#00bcd4'], dark: '#1a237e' },
+    ocean: { stops: ['#e0f7fa', '#4dd0e1', '#0097a7', '#01579b'], dark: '#01579b' },
+    candy: { stops: ['#ff80ab', '#fff59d', '#80deea', '#ce93d8'], dark: '#ad1457' },
   };
 
   let uid = 0;

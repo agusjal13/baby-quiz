@@ -133,6 +133,14 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   que tiene el largo de recorrido que le toca al nivel. La lista `LEVELS` de `js/maze.js` tiene tamaño,
   puertas, dragón, muros y pasos de cada uno; al armarlos se descarta cualquiera que no tenga solución.
 
+## Carrera a caballo
+
+- Botón 🐴 Carrera en el mapa. Un vaquero (`vaquero` en `js/puppet.js`, no se elige como personaje) va
+  montado en su caballo, que corre solo por el desierto; se toca la pantalla (en cualquier lado) para saltar
+  los obstáculos, que salen al azar (cactus, piedras, barriles y vallas). 4 corazones: chocar cuesta uno.
+  Gana llegando a la meta con algún corazón; sin chocar nada es resultado perfecto. Unos 30 segundos.
+- Largo de la carrera, velocidad, salto y separación de los obstáculos: arriba de todo en `js/carrera.js`.
+
 ## Rampa de puntos (skee-ball)
 
 - Botón 🎟️ Rampa en el mapa. Como en los arcades, en 3D visto desde atrás de la pelota (igual que el bowling):
@@ -191,8 +199,8 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
 
 ## Trofeos
 
-- Cada partido ganado (penales, tiros libres, básquet, hockey, tatetí, partidito, pool, bowling, rampa, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **40 trofeos**
-  (de la medalla de bronce con 1 partido a la súper copa legendaria con 200). Se ven en 🏆 Trofeos:
+- Cada partido ganado (penales, tiros libres, carrera, básquet, hockey, tatetí, partidito, pool, bowling, rampa, piedra papel o tijera, tiro al blanco o buscar al personaje) da **1 moneda** y suma para los **60 trofeos**
+  (de la medalla de bronce con 1 partido a la mega copa de las estrellas con 400). Se ven en 🏆 Trofeos:
   un mapa con un caminito (un casillero por partido) y el personaje parado donde va, en páginas de 20
   trofeos (`PAGE` en `js/trophies.js`; si se agregan trofeos a la lista, aparecen páginas nuevas solas).
 - **Resultado perfecto** (penales 3-0, tiros libres 5 de 5, básquet 5 de 5, hockey 5-0, partidito 3-0, pool con las 6 bolas, bowling 30 pinos,

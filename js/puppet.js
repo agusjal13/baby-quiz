@@ -155,6 +155,23 @@
         + eyes(41) + cheeks(50) + smile(53),
       anchors: { head: [50, 12, 22], neck: [50, 68] },
     },
+    // Vaquero (no se elige como personaje: es el jinete de la carrera a caballo). Sombrero marrón,
+    // camisa amarilla, chaleco con manchas de vaca, estrella de sheriff y jean.
+    vaquero: {
+      torso: '#f6c445', sleeve: '#f6c445', hands: SKIN, pants: '#3b6fb6', shoes: '#6d4c2f',
+      chest: `<path d="M36 67 L44 65 L45 100 L34 99 Z" fill="#fff" ${S}/><path d="M64 67 L56 65 L55 100 L66 99 Z" fill="#fff" ${S}/>`
+        + '<ellipse cx="38" cy="76" rx="2.4" ry="2" fill="#2b2140"/><ellipse cx="41" cy="90" rx="2" ry="1.6" fill="#2b2140"/>'
+        + '<ellipse cx="62" cy="84" rx="2.3" ry="1.9" fill="#2b2140"/><ellipse cx="60" cy="95" rx="1.7" ry="1.4" fill="#2b2140"/>'
+        + `<path d="M58.5 69.5 L59.7 72.8 L63.2 72.9 L60.4 75 L61.4 78.4 L58.5 76.4 L55.6 78.4 L56.6 75 L53.8 72.9 L57.3 72.8 Z" fill="#ffd23f" stroke="#b07800" stroke-width="1"/>`,
+      head: headCircle(SKIN)
+        + `<path d="M28 40 Q27 26 38 22 L62 22 Q73 26 72 40 Q66 32 50 32 Q34 32 28 40 Z" fill="#6d4c2f" ${S}/>` + face(44)
+        // Sombrero de vaquero: ala ancha curvada y copa con hendidura
+        + `<path d="M14 25 Q22 31 50 29 Q78 31 86 25 Q84 34 50 35 Q16 34 14 25 Z" fill="#a1683a" ${S}/>`
+        + `<path d="M33 27 Q31 8 42 7 Q50 11 58 7 Q69 8 67 27 Q50 31 33 27 Z" fill="#a1683a" ${S}/>`
+        + '<path d="M34 23 Q50 27 66 23 L66.5 26.5 Q50 30 33.5 26.5 Z" fill="#5d3a1a"/>',
+      anchors: { head: [50, 8, 22] },
+      idle: 'wave',
+    },
     gatito: {
       torso: '#ffb74d', belly: '#ffffff', sleeve: '#ffb74d', hands: '#ffffff', pants: '#ffb74d', shoes: '#ffffff',
       back: `<path d="M60 102 Q86 100 84 80 Q82 70 90 70 Q96 80 90 96 Q84 112 62 110 Z" fill="#ffb74d" ${S}/>`,
@@ -198,7 +215,8 @@
   // que quedan detrás (en las rayadas o de dos colores, los dos). El borde va del color opuesto.
   function printColors(shirt, torso) {
     const behind = !shirt ? [torso]
-      : ['solid', 'trim'].includes(shirt.kind) ? [shirt.a] : [shirt.a, shirt.b];
+      : ['solid', 'trim'].includes(shirt.kind) ? [shirt.a]
+        : shirt.kind === 'art' ? [shirt.a, ...(shirt.backColors || [])] : [shirt.a, shirt.b];
     const WHITE = '#ffffff';
     const DARK = '#1a1a2e';
     const worst = (c) => Math.min(...behind.map((bg) => contrast(c, bg)));
@@ -230,6 +248,8 @@
     if (j.kind === 'band') design = `<rect x="30" y="77" width="40" height="10" fill="${j.b}"/>`;
     // Blanca con detalles: costados y ruedo de otro color
     if (j.kind === 'trim') design = `<rect x="28" y="60" width="6" height="50" fill="${j.b}"/><rect x="66" y="60" width="6" height="50" fill="${j.b}"/><rect x="28" y="95" width="44" height="15" fill="${j.b}"/>`;
+    // Con dibujo propio (camisetas de juguetes): de frente "art"; de espaldas "back" (o lisa)
+    if (j.kind === 'art') design = back ? (j.back || '') : j.art;
     if (j.kind === 'diagonal') design = `<path d="M28 68 L37 60 L72 97 L63 106 Z" fill="${j.b}"/>`;
     // Escudito en el corazón (derecha mirando de frente)
     if (j.crest && !back) design += `<path d="M51.5 70 Q55.5 68.6 59.5 70 L59.5 74.5 Q59.5 79 55.5 81 Q51.5 79 51.5 74.5 Z" fill="${j.crest}" stroke="#1b7f76" stroke-width="1"/>`;

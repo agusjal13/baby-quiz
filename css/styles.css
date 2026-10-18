@@ -1757,6 +1757,35 @@ button {
   16%, 50%, 83% { translate: 0 -3.5vmin; }
 }
 
+/* ---------- Carrera a caballo ---------- */
+
+.game-pill.carrera { background: linear-gradient(160deg, #ff9800, #a1683a); }
+.carrera { gap: 1.5vmin; }
+.cr-top { display: flex; align-items: center; gap: 2.5vmin; }
+.cr-hearts { display: flex; gap: .6vmin; font-size: clamp(18px, 5vmin, 38px); }
+.cr-heart.lost { filter: grayscale(1); opacity: .3; animation: shake .4s; }
+.cr-track { position: relative; width: clamp(110px, 34vmin, 280px); height: clamp(26px, 6vmin, 44px); }
+.cr-track-line { position: absolute; left: 0; right: 8%; top: 50%; height: .8vmin; min-height: 4px; translate: 0 -50%; border-radius: 99px; background: rgba(255, 255, 255, .85); }
+.cr-marker { position: absolute; top: 50%; left: 0; translate: -50% -55%; font-size: clamp(18px, 5vmin, 36px); transition: left .2s linear; }
+.cr-goal { position: absolute; right: -4%; top: 50%; translate: 0 -55%; font-size: clamp(18px, 5vmin, 36px); }
+.cr-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  isolation: isolate; /* los carteles de adentro no tapan la pantalla final */
+  border-radius: 3vmin;
+  overflow: hidden;
+  box-shadow: 0 1vmin 0 rgba(0, 0, 0, .25);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.cr-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* El jinete: sentado en la montura (los pies le quedan a los costados del caballo) */
+.cr-rider { position: absolute; translate: -50% -86%; line-height: 1; pointer-events: none; z-index: 1; }
+.cr-hand { z-index: 3; }
+.carrera .sport-flash { z-index: 4; align-items: center; padding: 0; font-size: clamp(34px, 14vmin, 110px); }
+
 /* ---------- Rampa de puntos (skee-ball) ---------- */
 
 .game-pill.rampa { background: linear-gradient(160deg, #5c6bc0, #1a237e); }

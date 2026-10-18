@@ -42,6 +42,7 @@ const ASSETS = [
   'js/buscar.js',
   'js/tateti.js',
   'js/rampa.js',
+  'js/carrera.js',
   'js/game.js',
   'icons/icon.svg',
   'icons/icon-192.png',
