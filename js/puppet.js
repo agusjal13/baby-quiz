@@ -194,6 +194,7 @@
   const ART = {
     baston: { vb: '0 0 40 120', at: [64, 54, 13, 40], body: () => BQ.wardrobe.ART.baston },
     varita: { vb: '0 0 50 120', at: [63, 64, 15, 36], body: () => BQ.wardrobe.ART.varita },
+    paleta: { vb: '0 0 60 120', at: [59, 42, 24, 48], body: () => BQ.wardrobe.ART.paleta },
   };
   const inner = (svg) => svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
 

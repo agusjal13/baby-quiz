@@ -60,7 +60,7 @@ mismo color (ver `js/worlds/unir.js` y `js/connect.js`). Cada tablero completo a
   una cosa puede tener su propio precio con `price` (la pelota común del futbolista es gratis: `price: 0`;
   las camisetas de Mickey, el pato Donald, Pluto y Goofy valen 15).
   Tocar algo comprado lo pone o lo saca. Si un personaje tiene más de 9 cosas, la tienda se separa en pestañas
-  (👕 camisetas, 🩳 shorts y canilleras, 👟 botines, ⚽ pelotas y cono, 🥅 arcos, 🧤 guantes y cintas, 🏆 trofeos).
+  (👕 camisetas, 🩳 shorts y canilleras, 👟 botines, ⚽ pelotas y cono, 🥅 arcos, 🧤 guantes y cintas, 🏆 trofeos y la paleta de pádel).
   Los trofeos de la tienda solo se pueden comprar si ya se ganaron en el mapa de trofeos.
 - El futbolista tiene dos botones debajo, en la tienda: ✏️ para escribir el nombre y el número de la espalda
   (los escribe un adulto; se guardan en `jersey`) y 🔄 para girarlo y verlo de espaldas. Hay un lugar por prenda: cabeza, cuello, mano, cuerpo y espalda.

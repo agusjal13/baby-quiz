@@ -20,6 +20,14 @@
       + `<polygon points="${star(20, 23, 11, 5)}" fill="#fff59d"/></svg>`,
     varita: '<svg viewBox="0 0 50 120"><rect x="21" y="40" width="7" height="78" rx="3" fill="#ff80ab" stroke="#c2185b" stroke-width="2"/>'
       + `<polygon points="${star(25, 24, 23, 10)}" fill="#ffd23f" stroke="#f0a500" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+    // Paleta de pádel roja (con agujeritos y mango negro)
+    paleta: '<svg viewBox="0 0 60 120"><rect x="24" y="74" width="12" height="44" rx="4" fill="#263238" stroke="#11171a" stroke-width="2"/>'
+      + '<path d="M26 84 L34 88 M26 92 L34 96 M26 100 L34 104 M26 108 L34 112" stroke="#546e7a" stroke-width="2"/>'
+      + '<path d="M22 66 L30 80 L38 66 Z" fill="#c62828" stroke="#8e0000" stroke-width="2" stroke-linejoin="round"/>'
+      + '<ellipse cx="30" cy="38" rx="27" ry="34" fill="#e53935" stroke="#8e0000" stroke-width="3"/>'
+      + '<ellipse cx="30" cy="38" rx="21" ry="28" fill="none" stroke="#ff8a80" stroke-width="1.5"/>'
+      + [[22, 24], [30, 20], [38, 24], [18, 34], [26, 32], [34, 32], [42, 34], [22, 44], [30, 42], [38, 44], [26, 54], [34, 54]]
+        .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#8e0000"/>`).join('') + '</svg>',
     corbatita: (c, dark) => `<svg viewBox="0 0 100 60"><path d="M50 30 L8 5 Q0 30 8 55 Z" fill="${c}" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>`
       + `<path d="M50 30 L92 5 Q100 30 92 55 Z" fill="${c}" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>`
       + `<circle cx="50" cy="30" r="11" fill="${dark}"/></svg>`,
@@ -305,6 +313,7 @@
       { id: 'cintaRosa', name: 'la cinta de capitán rosa', slot: 'arm', armband: '#ff4f9a', use: 'raise' },
       { id: 'cintaCeleste', name: 'la cinta de capitán celeste', slot: 'arm', armband: '#4fb3ec', use: 'raise' },
       { id: 'copa', name: 'la copa', slot: 'hand', emoji: '🏆' },
+      { id: 'paleta', name: 'la paleta de pádel roja', slot: 'hand', art: 'paleta', use: 'raise' },
       // Trofeos de verdad (los del mapa de trofeos): se pueden comprar solo si ya se ganaron
       { id: 'trofeoPlata', name: 'la copa de plata', slot: 'hand', trophy: 4, use: 'raise' },
       { id: 'trofeoOro', name: 'la copa de oro', slot: 'hand', trophy: 8, use: 'raise' },

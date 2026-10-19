@@ -345,7 +345,7 @@
       { id: 'ball', icon: '⚽', say: 'Pelotas' },
       { id: 'goal', icon: '🥅', say: 'Arcos' },
       { id: 'hands', icon: '🧤', say: 'Guantes y cintas' },
-      { id: 'hand', icon: '🏆', say: 'Trofeos' },
+      { id: 'hand', icon: '🏆', say: 'Trofeos y paleta' },
       { id: 'otros', icon: '✨', say: 'Otras cosas' },
     ];
     const TAB_OF = { body: 'body', shorts: 'legs', shin: 'legs', feet: 'feet', ball: 'ball', ground: 'ball', back: 'goal', gloves: 'hands', arm: 'hands', hand: 'hand' };
