@@ -225,6 +225,7 @@
     botinesAzules: { fill: '#1e88e5', stripe: '#ffffff' },
     botinesCelestes: { fill: '#74acdf', stripe: '#ffffff', sole: '#ffffff' },
     botinesRosa: { fill: '#1e63d6', stripe: '#ffffff', sole: '#ff4f9a' },
+    botinesNegros: { fill: '#1a1a1a', stripe: '#ffffff' },
   };
   const boots = (id, name) => ({ id, name, slot: 'feet', boots: BOOTS[id], use: 'kick' });
   // Shorts (lugar "shorts"), canilleras ("shin") y guantes de arquero ("gloves"): color y vivo
@@ -287,6 +288,7 @@
       boots('botinesAzules', 'los botines azules'),
       boots('botinesCelestes', 'los botines celestes y blancos'),
       boots('botinesRosa', 'los botines azules, blancos y rosa'),
+      boots('botinesNegros', 'los botines negros con rayas blancas'),
       shorts('shortBlanco', 'el short blanco', '#ffffff', '#1a1a1a'),
       shorts('shortNegro', 'el short negro', '#1a1a1a', '#ffffff'),
       shorts('shortAzul', 'el short azul', '#1a3d8f', '#ffd200'),
