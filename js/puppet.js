@@ -304,6 +304,11 @@
     const id = ++uid;
     const shirt = bySlot.body && bySlot.body.jersey;
     back = !!back && !!look.headBackView;
+    // Peinado de la tienda (solo el futbolista): cambia el pelo de siempre
+    const hair = look.headBackView && bySlot.hair && bySlot.hair.hair;
+    const headSvg = hair
+      ? (hair.behind || '') + headCircle(look.hands) + (back ? hair.back : hair.front + face())
+      : (back ? look.headBackView : look.head);
     let sleeve = shirt ? shirt.sleeve : look.sleeve;
     let sleeveL = shirt && shirt.sleeveL ? shirt.sleeveL : sleeve; // camisetas con una manga de cada color
     if (back) [sleeve, sleeveL] = [sleeveL, sleeve]; // de espaldas, las mangas quedan cambiadas de lado
@@ -361,7 +366,7 @@
       + ball
       + `<g class="pp-body">${torso}${belly}${back ? '' : look.chest || ''}${shirt ? shirtSvg(shirt, id, back) : ''}${back ? backPrint(shirt, look.torso) : ''}</g>`
       + `<g class="pp-arm pp-arm-l">${limb(37, 70, 30, 89, sleeveL, 8)}${hand(30)}</g>`
-      + `<g class="pp-head">${look.headBack || ''}${back ? look.headBackView : look.head}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
+      + `<g class="pp-head">${look.headBack || ''}${headSvg}${bySlot.head ? `<g class="pp-hditem">${itemSvg(bySlot.head, look)}</g>` : ''}</g>`
       + (bySlot.neck ? `<g class="pp-nitem">${itemSvg(bySlot.neck, look)}</g>` : '')
       + `<g class="pp-arm pp-arm-r">${limb(63, 70, 70, 89, sleeve, 8)}`
       // Cinta de capitán en el brazo izquierdo de quien la lleva (a la derecha mirándolo de frente)
@@ -375,7 +380,7 @@
   // ---------- Acciones ("usar" lo que tiene puesto) ----------
 
   const USE_MS = { magic: 1400, raise: 1400, block: 1100, hop: 900, wiggle: 900, spin: 1000, flutter: 1200, kick: 1100, fire: 1100, wave: 1400, shine: 1000 };
-  const DEFAULT_USE = { head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter', ball: 'kick', feet: 'kick' };
+  const DEFAULT_USE = { hair: 'hop', head: 'hop', neck: 'wiggle', hand: 'raise', body: 'spin', back: 'flutter', ball: 'kick', feet: 'kick' };
 
   function spawn(char, x, y, count, spread, size) {
     for (let i = 0; i < count; i++) {
@@ -434,6 +439,8 @@
 
   BQ.puppet = {
     has: (charId) => !!LOOKS[charId],
+    // Cabeza del futbolista con un peinado, para la tarjeta de la tienda
+    hairCard: (hair) => `<svg viewBox="16 -6 68 72">${hair.behind || ''}${headCircle(TAN)}${hair.front}${face()}</svg>`,
     kindFor: (item) => item.use || DEFAULT_USE[item.slot],
 
     // Personaje con su ropa. Tocarlo lo hace usar sus cosas (o su gesto propio).

@@ -371,7 +371,7 @@ button {
   gap: 2.5vmin;
 }
 .shop-side .shop-grid { min-height: 0; overflow-y: auto; padding: 1.5vmin 1.5vmin 2.5vmin; }
-.shop-tabs { flex: none; display: flex; gap: 1.6vmin; }
+.shop-tabs { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6vmin; max-width: 100%; }
 .shop-tab {
   width: clamp(44px, 11vmin, 92px);
   aspect-ratio: 1.25;

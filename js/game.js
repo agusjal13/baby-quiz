@@ -340,6 +340,7 @@
     const all = W.items(c.id);
     const TABS = [
       { id: 'body', icon: '👕', say: 'Camisetas' },
+      { id: 'hair', icon: '💇', say: 'Peinados' },
       { id: 'legs', icon: '🩳', say: 'Shorts y canilleras' },
       { id: 'feet', icon: '👟', say: 'Botines' },
       { id: 'ball', icon: '⚽', say: 'Pelotas' },
@@ -348,7 +349,7 @@
       { id: 'hand', icon: '🏆', say: 'Trofeos y paleta' },
       { id: 'otros', icon: '✨', say: 'Otras cosas' },
     ];
-    const TAB_OF = { body: 'body', shorts: 'legs', shin: 'legs', feet: 'feet', ball: 'ball', ground: 'ball', back: 'goal', gloves: 'hands', arm: 'hands', hand: 'hand' };
+    const TAB_OF = { hair: 'hair', body: 'body', shorts: 'legs', shin: 'legs', feet: 'feet', ball: 'ball', ground: 'ball', back: 'goal', gloves: 'hands', arm: 'hands', hand: 'hand' };
     const tabOf = (item) => TAB_OF[item.slot] || 'otros';
     const tabs = all.length > 9 ? TABS.filter((t) => all.some((it) => tabOf(it) === t.id)) : [];
     let tab = tabs.length ? tabs[0].id : null;

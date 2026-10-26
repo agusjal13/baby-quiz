@@ -228,6 +228,40 @@
     botinesNegros: { fill: '#1a1a1a', stripe: '#ffffff' },
   };
   const boots = (id, name) => ({ id, name, slot: 'feet', boots: BOOTS[id], use: 'kick' });
+  // Peinados del futbolista (lugar "hair"): reemplazan el pelo de siempre. Cabeza con centro en (50, 40) y radio 24.
+  // front: de frente (arriba de la cara), back: de espaldas, behind (opcional): detrás de la cabeza (pelo largo)
+  const HS = 'stroke="#2b2140" stroke-width="2.6" stroke-linejoin="round"';
+  const bumps = (pts, r, c) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" ${HS}/>`).join('');
+  const HAIR = {
+    cresta: {
+      front: '<path d="M27 34 Q28 16 50 16 Q72 16 73 34 Q62 26 50 26 Q38 26 27 34 Z" fill="#3e2723" opacity=".35"/>'
+        + `<path d="M43 25 Q43 13 39 4 L47 9 L50 -2 L53 9 L61 4 Q57 13 57 25 Q50 22 43 25 Z" fill="#3e2723" ${HS}/>`,
+      back: '<path d="M26 44 Q22 13 50 14 Q78 13 74 44 Q64 55 50 55 Q36 55 26 44 Z" fill="#3e2723" opacity=".35"/>'
+        + `<path d="M44 53 L44 20 Q44 10 40 3 L47 8 L50 -2 L53 8 L60 3 Q56 10 56 20 L56 53 Q50 55 44 53 Z" fill="#3e2723" ${HS}/>`,
+    },
+    rulos: {
+      front: bumps([[26, 31], [30, 21], [38, 14], [50, 11], [62, 14], [70, 21], [74, 31]], 7.5, '#2b1a10')
+        + '<path d="M25 36 Q24 15 50 13 Q76 15 75 36 Q66 28 50 29 Q34 28 25 36 Z" fill="#2b1a10"/>',
+      back: bumps([[25, 42], [26, 30], [33, 19], [43, 12], [57, 12], [67, 19], [74, 30], [75, 42], [68, 52], [58, 57], [42, 57], [32, 52]], 7.5, '#2b1a10')
+        + '<circle cx="50" cy="36" r="24" fill="#2b1a10"/>',
+    },
+    rapado: {
+      front: '<path d="M26.5 36 Q26 16 50 16 Q74 16 73.5 36 Q66 27 50 27 Q34 27 26.5 36 Z" fill="#5d4037" opacity=".5"/>',
+      back: '<path d="M26 44 Q22 14 50 15 Q78 14 74 44 Q64 54 50 54 Q36 54 26 44 Z" fill="#5d4037" opacity=".5"/>',
+    },
+    largo: {
+      behind: `<path d="M25 40 Q20 12 50 13 Q80 12 75 40 L77 64 Q70 68 63 62 L37 62 Q30 68 23 64 Z" fill="#c8873a" ${HS}/>`,
+      front: `<path d="M26 37 Q26 14 50 14 Q74 14 74 37 Q70 30 62 30 Q56 26 50 30 Q44 26 38 30 Q30 30 26 37 Z" fill="#c8873a" ${HS}/>`
+        + '<path d="M27.5 26 Q50 14 72.5 26" fill="none" stroke="#e53935" stroke-width="4.5" stroke-linecap="round"/>',
+      back: `<path d="M26 44 Q22 12 50 13 Q78 12 74 44 L76 63 Q50 67 24 63 Z" fill="#c8873a" ${HS}/>`
+        + '<path d="M26.5 28 Q50 19 73.5 28" fill="none" stroke="#e53935" stroke-width="4.5" stroke-linecap="round"/>',
+    },
+    puntas: {
+      front: `<path d="M26 37 L23 24 L31 25 L30 13 L39 18 L43 6 L50 14 L57 6 L61 18 L70 13 L69 25 L77 24 L74 37 Q66 27 50 28 Q34 27 26 37 Z" fill="#ffc93c" ${HS}/>`,
+      back: `<path d="M26 46 L21 34 L27 30 L23 20 L33 20 L34 9 L43 15 L50 4 L57 15 L66 9 L67 20 L77 20 L73 30 L79 34 L74 46 Q64 55 50 55 Q36 55 26 46 Z" fill="#ffc93c" ${HS}/>`,
+    },
+  };
+  const hair = (id, name) => ({ id: 'pelo_' + id, name, slot: 'hair', hair: HAIR[id] });
   // Shorts (lugar "shorts"), canilleras ("shin") y guantes de arquero ("gloves"): color y vivo
   const shorts = (id, name, fill, stripe) => ({ id, name, slot: 'shorts', shorts: { fill, stripe }, use: 'hop' });
   const shin = (id, name, fill, stripe) => ({ id, name, slot: 'shin', shin: { fill, stripe }, use: 'kick' });
@@ -289,6 +323,11 @@
       boots('botinesCelestes', 'los botines celestes y blancos'),
       boots('botinesRosa', 'los botines azules, blancos y rosa'),
       boots('botinesNegros', 'los botines negros con rayas blancas'),
+      hair('cresta', 'el peinado con cresta'),
+      hair('rulos', 'el pelo con rulos'),
+      hair('rapado', 'el pelo rapado'),
+      hair('largo', 'el pelo largo con vincha'),
+      hair('puntas', 'el pelo rubio en puntas'),
       shorts('shortBlanco', 'el short blanco', '#ffffff', '#1a1a1a'),
       shorts('shortNegro', 'el short negro', '#1a1a1a', '#ffffff'),
       shorts('shortAzul', 'el short azul', '#1a3d8f', '#ffd200'),
@@ -419,6 +458,7 @@
       if (item.emoji) return h('span', { class: 'card-art emoji' }, item.emoji);
       if (item.trophy) return h('span', { class: 'card-art' + (this.locked(item) ? ' locked' : '') }, BQ.trophies.el(this.trophyOf(item), 'card-trophy'));
       if (item.jersey) return h('span', { class: 'card-art' }, h('span', { class: 'shirt', style: { background: item.shirt } }));
+      if (item.hair) return h('span', { class: 'card-art card-svg round', html: BQ.puppet.hairCard(item.hair) });
       const svg = item.art ? ART[item.art]
         : item.boots ? ART.botin(item.boots.fill, item.boots.stripe, item.boots.sole)
           : item.bow ? ART.corbatita(...item.bow)
